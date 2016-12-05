@@ -188,11 +188,16 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             UpdateBulletStartDatas();
             SendMessage();
 
-            if (_world.TickIndex == 301)
+            if (_world.TickIndex == 501)
             {
-                var emptyLane = GetEmptyLane();
-                if (emptyLane != null) _line = emptyLane.Value;
+                _line = GetLineToGo();
             }
+
+            //if (_world.TickIndex == 301)
+            //{
+            //    var emptyLane = GetEmptyLane();
+            //    if (emptyLane != null) _line = emptyLane.Value;
+            //}
             //CheckMasterLine();
             //CheckNeedChangeLine();
 
@@ -3555,6 +3560,8 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
 
         private bool goTo(Point2D point, double relaxCoeff, double strightRelaxCoeff, bool needTurn, IList<Point> path = null)
         {
+            if (_world.TickIndex < 501) return false;
+
             //if (!_self.IsMaster && _world.TickIndex < CHECK_MASTER_TIME) return false;
 
             SpeedContainer speedContainer = null;
@@ -4309,6 +4316,50 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             }
 
             return null;
+        }
+
+        private LaneType GetLineToGo()
+        {
+            var laneTypes = new List<LaneType>()
+            {
+                LaneType.Top,
+                LaneType.Middle,
+                LaneType.Bottom
+            };
+            var laneWizards = new Dictionary<LaneType, int>()
+            {
+                {LaneType.Top, 0},
+                {LaneType.Middle, 0},
+                {LaneType.Bottom, 0},
+            };
+
+            foreach (var wizard in _world.Wizards.Where(x => x.Faction == _self.Faction && !x.IsMe))
+            {
+                foreach (var laneType in laneTypes)
+                {
+                    if (IsStrongOnLine(wizard, laneType))
+                    {
+                        laneWizards[laneType]++;
+                    }
+                }
+            }
+
+            foreach (var item in laneWizards)
+            {
+                if (item.Value == 0) return item.Key;
+            }
+
+            if (laneWizards[LaneType.Middle] < 2)
+            {
+                return LaneType.Middle;
+            }
+
+            if (laneWizards[LaneType.Top] < 2)
+            {
+                return LaneType.Top;
+            }
+
+            return LaneType.Bottom;
         }
 
         private void CheckMasterLine()
