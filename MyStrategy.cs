@@ -2781,7 +2781,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             //_move.Speed = -_game.WizardBackwardSpeed;
             //_move.StrafeSpeed = 0;
 
-            var beforePrevWaypoint = getPreviousWaypoint();
+            var beforePrevWaypoint = getBeforePreviousWaypoint();
             _thisTickResPoint = beforePrevWaypoint;
             goTo(beforePrevWaypoint, _self.Radius * 2, 0d, false);
         }
