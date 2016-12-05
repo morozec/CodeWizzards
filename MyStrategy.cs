@@ -296,7 +296,10 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             _anemyBaseX = _world.Width - _selfBase.X;
             _anemyBaseY = _world.Height - _selfBase.Y;
 
-            var goBonusResult = CheckAndGoForBonus();
+            var nearestStaffTarget = GetNearestStaffRangeTarget();
+            var shootingTarget = GetShootingTarget();
+
+            var goBonusResult = CheckAndGoForBonus(nearestStaffTarget, shootingTarget);
             //var goBonusResult = new GoBonusResult()
             //{
             //    IsGo = false,
@@ -304,7 +307,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             //};
 
             var runBackTime = 0d;
-            var nearestStaffTarget = GetNearestStaffRangeTarget();
+            
             var canGoOnStaffRange = CanGoToStaffRangeNew(ref runBackTime);
 
             if (nearestStaffTarget != null)
@@ -331,8 +334,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                 //var canGoOnStaffRange = CanGoOnStaffRange(closestTarget);
 
                 Point2D radiusPoint = null;
-
-                var shootingTarget = GetShootingTarget();
+               
                 if (shootingTarget != null)
                 {
 
@@ -872,13 +874,23 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             return fullTime;
         }
 
-        private GoBonusResult CheckAndGoForBonus()
+        private GoBonusResult CheckAndGoForBonus(LivingUnit nearestStaffRangeTarget, LivingUnit shootingTarget)
         {
             var goBonusResult = new GoBonusResult()
             {
                 IsGo = false,
                 IsWoodCut = false
             };
+
+            //не идем, если атакуем дохлую башню
+            var nearestStaffRangeTargetBuilding = nearestStaffRangeTarget as Building;
+            var shootingTargetBuilding = shootingTarget as Building;
+            if (nearestStaffRangeTargetBuilding != null &&
+                nearestStaffRangeTargetBuilding.Life <= nearestStaffRangeTargetBuilding.MaxLife * 0.25 ||
+                shootingTargetBuilding != null && shootingTargetBuilding.Life <= shootingTargetBuilding.MaxLife * 0.25)
+            {
+                return goBonusResult;
+            }
 
             var eps = _self.Radius * 2;
             var dangerousAnemies = GetDangerousAnemies(_self, eps).Where(x => x is Wizard);
@@ -3755,6 +3767,24 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
 
             if (shootingTarget != null) return shootingTarget;
 
+
+            var minDist = double.MaxValue;
+            foreach (var target in _world.Buildings)
+            {
+                if (target.Faction == _self.Faction) continue;
+                if (!IsOkDistanceToShoot(_self, target, 0d)) continue;
+
+                double distance = _self.GetDistanceTo(target);
+
+                if (distance < minDist && target.Life <= target.MaxLife * 0.25)
+                {
+                    minDist = distance;
+                    shootingTarget = target;
+                }
+            }
+            if (shootingTarget != null) return shootingTarget;
+
+
             var minions = _world.Minions;
             minHp = double.MaxValue;
             foreach (var target in minions)
@@ -3775,7 +3805,8 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
 
             if (shootingTarget != null) return shootingTarget;
 
-            var minDist = double.MaxValue;
+
+            minDist = double.MaxValue;
             foreach (var target in _world.Buildings)
             {
                 if (target.Faction == _self.Faction) continue;
