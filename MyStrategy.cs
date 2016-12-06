@@ -353,9 +353,20 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                     {
                         if (canGoOnStaffRange)
                         {
-                            _thisTickResPoint = new Point2D(closestTarget.X, closestTarget.Y);
-                            goTo(new Point2D(closestTarget.X, closestTarget.Y), _game.StaffRange + closestTarget.Radius - TOLERANCE,
-                                _game.StaffRange + closestTarget.Radius - TOLERANCE, false);
+                            var isWeakWizard = IsWeakWizard(shootingTarget);
+                            LivingUnit target;
+                            if (isWeakWizard)
+                            {
+                                target = shootingTarget;
+                            }
+                            else
+                            {
+                                target = closestTarget;
+                            }
+
+                            _thisTickResPoint = new Point2D(target.X, target.Y);
+                            goTo(new Point2D(target.X, target.Y), _game.StaffRange + target.Radius - TOLERANCE,
+                                _game.StaffRange + target.Radius - TOLERANCE, false);
                         }
 
                         else
@@ -579,6 +590,12 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             //goTo(nextWaypoint, _self.Radius * 4, false, true);
 
             //Debug.endPost();
+        }
+
+        private bool IsWeakWizard(LivingUnit unit)
+        {
+            var wizard = unit as Wizard;
+            return wizard != null && wizard.Life < wizard.MaxLife*0.25;
         }
 
         private void MakeGoBack(BulletStartData bullet, double runBackTime)
@@ -3754,9 +3771,8 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
 
                 var life = target.Life;
 
-                if (needRunBack)
+                if (needRunBack || target.Life < target.MaxLife * 0.25)
                 {
-
                     if (life < minHp)
                     {
                         minHp = life;
