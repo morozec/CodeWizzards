@@ -33,10 +33,10 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
     {
 
 
-        //static MyStrategy()
-        //{
-        //    Debug.connect("localhost", 13579);
-        //}
+        static MyStrategy()
+        {
+            Debug.connect("localhost", 13579);
+        }
 
         private static double WAYPOINT_RADIUS = 100.0D;
         private static double ANEMY_WAYPOINT_RADIUS = 200.0D;
@@ -180,7 +180,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
 
         public void Move(Wizard self, World world, Game game, Move move)
         {
-            //Debug.beginPost();
+            Debug.beginPost();
             initializeTick(self, world, game, move);
             initializeStrategy(self, game);
 
@@ -3519,7 +3519,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             var trees = new List<LivingUnit>();
             if (path0.Units != null) trees.AddRange(path0.Units.Where(x => x is Tree));
             if (path1.Units != null) trees.AddRange(path1.Units.Where(x => x is Tree));
-            var minDist = double.MaxValue;
+            var minTreeHp = double.MaxValue;
             LivingUnit nearestTree = null;
             foreach (var tree in trees)
             {
@@ -3533,10 +3533,10 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                     _self.Radius,
                     tree.Radius))
                 {
-                    var dist = tree.GetDistanceTo(path0.X, path0.Y);
-                    if (dist < minDist)
+                    var hp = tree.Life;
+                    if (hp < minTreeHp)
                     {
-                        minDist = dist;
+                        minTreeHp = hp;
                         nearestTree = tree;
                     }
                 }
@@ -3591,10 +3591,10 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                 path = GetCorrectPath(path);
             }
 
-            //foreach (var p in path)
-            //{
-            //    Debug.circle((p as Square).X + _squareSize / 2, (p as Square).Y + _squareSize / 2, _squareSize / 2, 150);
-            //}
+            foreach (var p in path)
+            {
+                Debug.circle((p as Square).X + _squareSize / 2, (p as Square).Y + _squareSize / 2, _squareSize / 2, 150);
+            }
 
 
             double resX;
@@ -4178,8 +4178,12 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             if (friends.Count < 2) return false;
 
             var anemies = new List<LivingUnit>();
-            anemies.AddRange(_world.Wizards.Where(x => x.Faction != _self.Faction && x.GetDistanceTo(_self) <= _self.CastRange * 1.5));
-            anemies.AddRange(_world.Minions.Where(x => x.Faction != _self.Faction && x.GetDistanceTo(_self) <= _self.CastRange * 1.5));
+            var anemyWizard =
+                _world.Wizards.Where(x => x.Faction != _self.Faction && x.GetDistanceTo(_self) <= _self.CastRange*1.5);
+            anemies.AddRange(anemyWizard);
+            var anemyMinions =
+                _world.Minions.Where(x => x.Faction != _self.Faction && x.GetDistanceTo(_self) <= _self.CastRange*1.5);
+            anemies.AddRange(anemyMinions);
 
 
             for (int i = 0; i < _anemyBuildings.Count; ++i)
@@ -4193,18 +4197,30 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             }
 
 
-
+            var needRunBackAnemies = new List<LivingUnit>();
             foreach (var anemy in anemies)
             {
                 if (IsCalmNeutralMinion(anemy)) continue;
 
                 //var needRunBack = NeedRunBack(anemy, _self, friends, ref runBackTime);
                 var needRunBack = NeedRunBack(anemy, _self, friends, true);
-                if (needRunBack) return false;
-
+                if (needRunBack)
+                {
+                    needRunBackAnemies.Add(anemy);
+                }
             }
 
-            return true;
+            if (!needRunBackAnemies.Any()) return true;//0
+            if (needRunBackAnemies.Count > 1) return false;//>=2
+            if (needRunBackAnemies[0] is Minion)
+            {
+                return !anemyWizard.Any() &&
+                       anemyMinions.All(x => x.Id == needRunBackAnemies[0].Id || x.GetDistanceTo(_self) > _self.CastRange);
+            }
+           
+            return false;
+            
+
         }
 
         private SpeedContainer GetSpeedContainer(double x, double y)
