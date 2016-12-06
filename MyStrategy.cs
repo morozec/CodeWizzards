@@ -1295,6 +1295,8 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             var building = source as Building;
             if (building != null)
             {
+                if (_self.Life < building.Damage + _game.DartDirectDamage) return true;
+
                 var nearFriends = friends.Where(f => building.GetDistanceTo(f) <= building.AttackRange);
                 var friendsCount = building.Type == BuildingType.GuardianTower ? 1 : 3;
                 if (building.GetDistanceTo(target) - target.Radius <= building.AttackRange && nearFriends.Count() <= friendsCount)
