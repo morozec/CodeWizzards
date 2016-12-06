@@ -313,7 +313,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
 
             var runBackTime = 0d;
             
-            var canGoOnStaffRange = CanGoToStaffRangeNew(ref runBackTime);
+            var canGoOnStaffRange = CanGoToStaffRangeNew(shootingTarget, ref runBackTime);
 
             if (nearestStaffTarget != null)
             {
@@ -595,7 +595,14 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
         private bool IsWeakWizard(LivingUnit unit)
         {
             var wizard = unit as Wizard;
-            return wizard != null && wizard.Life < wizard.MaxLife*0.25;
+            return wizard != null && wizard.Life <= GetShootingPower(_self)*2;
+        }
+
+        private double GetShootingPower(Wizard wizard)
+        {
+            double defaultDamage = _game.MagicMissileDirectDamage;
+            if (wizard.Statuses.Any(x => x.Type == StatusType.Empowered)) defaultDamage *= _game.EmpoweredDamageFactor;
+            return defaultDamage;
         }
 
         private void MakeGoBack(BulletStartData bullet, double runBackTime)
@@ -903,6 +910,9 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                 IsGo = false,
                 IsWoodCut = false
             };
+
+            //не идем, если атакуем дохлого волшебника
+            if (IsOkToRunForWeakWizard(shootingTarget)) return goBonusResult;
 
             //не идем, если атакуем дохлую башню
             var nearestStaffRangeTargetBuilding = nearestStaffRangeTarget as Building;
@@ -3767,11 +3777,11 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                 if (!IsOkDistanceToShoot(_self, target, 0d)) continue;
 
                 //var canShootWizard = CanShootWizard(_self, target);
-                var needRunBack = CanShootWizard(_self, target);
+                var canShootWizard = CanShootWizard(_self, target);
 
                 var life = target.Life;
 
-                if (needRunBack || target.Life < target.MaxLife * 0.25)
+                if (canShootWizard || IsWeakWizard(target))
                 {
                     if (life < minHp)
                     {
@@ -4185,8 +4195,45 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
         #endregion
 
 
-        private bool CanGoToStaffRangeNew(ref double runBackTime)
+        private bool IsOkToRunForWeakWizard(LivingUnit target)
         {
+            if (target == null) return false;
+
+            var isWeakWizard = IsWeakWizard(target);
+            var isOkHp = _self.Life > target.Life;
+            var isFarBuildings = true;
+            for (int i = 0; i < _anemyBuildings.Count; ++i)
+            {
+                if (!_IsAnemyBuildingAlive[i] || _self.Life > _anemyBuildings[i].Damage) continue;
+                if (_anemyBuildings[i].GetDistanceTo(_self) - _self.Radius < _anemyBuildings[i].AttackRange)
+                {
+                    isFarBuildings = false;
+                    break;
+                }
+            }
+
+            var anemyWizards = _world.Wizards.Where(x => x.Faction != _self.Faction && x.Id != target.Id);
+            var isFarWizards = anemyWizards.All(x => !CanShootWizard(x, _self));
+
+            var anemyMinions = _world.Minions.Where(x => x.Faction != _self.Faction);
+            var isFarMinios = true;
+            foreach (var minion in anemyMinions)
+            {
+                if (IsCalmNeutralMinion(minion) || minion.Type == MinionType.FetishBlowdart) continue;
+                if (minion.GetDistanceTo(_self) - _self.Radius <= _game.OrcWoodcutterAttackRange)
+                {
+                    isFarMinios = false;
+                    break;
+                }
+            }
+
+            return isWeakWizard && isOkHp && isFarBuildings && isFarWizards && isFarMinios;
+        }
+
+        private bool CanGoToStaffRangeNew(LivingUnit shootingTarget, ref double runBackTime)
+        {
+            if (IsOkToRunForWeakWizard(shootingTarget)) return true;
+
             var friends = new List<LivingUnit>();
             friends.AddRange(_world.Wizards.Where(x => x.Faction == _self.Faction));
             friends.AddRange(_world.Minions.Where(x => x.Faction == _self.Faction));
