@@ -4255,6 +4255,8 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             for (int i = 0; i < _anemyBuildings.Count; ++i)
             {
                 if (!_IsAnemyBuildingAlive[i]) continue;
+                if (!IsStrongOnLine(_anemyBuildings[i], _line)) continue;
+
                 if (_anemyBuildings[i].GetDistanceTo(_self) <
                     _anemyBuildings[i].AttackRange + 2 * _self.Radius)
                 {
