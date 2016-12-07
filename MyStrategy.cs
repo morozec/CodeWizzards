@@ -74,6 +74,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
         private Random _random;
 
         private LaneType _line;
+        private bool _isLineSet = false;
 
         private Wizard _self;
         private World _world;
@@ -190,7 +191,11 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             UpdateBulletStartDatas();
             SendMessage();
 
-            if (_world.TickIndex == 501)
+            if (!_isLineSet)
+            {
+                _line = GetAgressiveLineToGo();
+            }
+            if (_world.TickIndex == 501 && !_isLineSet)
             {
                 _line = GetLineToGo();
             }
@@ -3746,7 +3751,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
 
         private bool goTo(Point2D point, double relaxCoeff, double strightRelaxCoeff, bool needTurn, IList<Point> path = null)
         {
-            if (_world.TickIndex < 501) return false;
+            if (!_isLineSet) return false;
 
             //if (!_self.IsMaster && _world.TickIndex < CHECK_MASTER_TIME) return false;
 
@@ -4633,6 +4638,51 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             return null;
         }
 
+        private LaneType GetAgressiveLineToGo()
+        {
+            var laneTypes = new List<LaneType>()
+            {
+                LaneType.Top,
+                LaneType.Middle,
+                LaneType.Bottom
+            };
+            var laneWizards = new Dictionary<LaneType, int>()
+            {
+                {LaneType.Top, 0},
+                {LaneType.Middle, 0},
+                {LaneType.Bottom, 0},
+            };
+
+            foreach (var wizard in _world.Wizards.Where(x => x.Faction == _self.Faction && !x.IsMe))
+            {
+                foreach (var laneType in laneTypes)
+                {
+                    if (IsStrongOnLine(wizard, laneType))
+                    {
+                        laneWizards[laneType]++;
+                    }
+                }
+            }
+
+            if (laneWizards[LaneType.Middle] >= 2)
+            {
+                _isLineSet = true;
+                return LaneType.Middle;
+            }
+            if (laneWizards[LaneType.Top] >= 1)
+            {
+                _isLineSet = true;
+                return LaneType.Top;
+            }
+            if (laneWizards[LaneType.Bottom] >= 1)
+            {
+                _isLineSet = true;
+                return LaneType.Bottom;
+            }
+
+            return LaneType.Top;
+        }
+
         private LaneType GetLineToGo()
         {
             var laneTypes = new List<LaneType>()
@@ -4658,6 +4708,8 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                     }
                 }
             }
+
+            _isLineSet = true;
 
             foreach (var item in laneWizards)
             {
