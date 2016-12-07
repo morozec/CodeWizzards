@@ -60,7 +60,8 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
         private static double WOOD_WEIGHT = 2;
         private static int CHECK_MASTER_TIME = 200;
 
-        private static double SHOOTING_SQUARE_WEIGHT = 2;
+        private static double SHOOTING_SQUARE_WEIGHT = 7;
+        private static double LIGHT_SHOOTING_SQUARE_WEIGHT = 3;
 
         /**
          * �������� ����� ��� ������ �����, ����������� ��������� ���������� ������������ ����������.
@@ -1977,29 +1978,39 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                 }
             }
 
-            for (int k = 0; k < _anemyBuildings.Count; ++k)
+            var anemies = new List<LivingUnit>();
+            anemies.AddRange(_world.Wizards.Where(x => x.Faction != _self.Faction));
+            anemies.AddRange(_world.Minions.Where(x => x.Faction != _self.Faction && (!IsCalmNeutralMinion(x) || x.Faction != Faction.Neutral)));
+            for (int i = 0; i < _anemyBuildings.Count; ++i)
             {
-                if (!_IsAnemyBuildingAlive[k]) continue;
+                if (!_IsAnemyBuildingAlive[i]) continue;
+               anemies.Add(_anemyBuildings[i]);
+            }
 
-                var x1 = _anemyBuildings[k].X - _anemyBuildings[k].AttackRange;
-                var y1 = _anemyBuildings[k].Y - _anemyBuildings[k].AttackRange;
-                var x2 = _anemyBuildings[k].X + _anemyBuildings[k].AttackRange;
-                var y2 = _anemyBuildings[k].Y + _anemyBuildings[k].AttackRange;
+
+            foreach (var anemy in anemies)
+            {
+                var attackRange = GetAttackRange(anemy);
+                var weight = GetSquareWeight(anemy);
+                var x1 = anemy.X - attackRange;
+                var y1 = anemy.Y - attackRange;
+                var x2 = anemy.X + attackRange;
+                var y2 = anemy.Y + attackRange;
 
                 if (_lastTickPath != null)
                 {
                     foreach (Square p in _lastTickPath)
                     {
-                        if (p.Weight > 1) continue;
+                        //if (p.Weight > 1) continue;
 
                         if (p.X + p.Side >= x1 && p.X <= x2 && p.Y + p.Side >= y1 && p.Y <= y2)
                         {
                             var centerX = p.X + _squareSize / 2;
                             var centerY = p.Y + _squareSize / 2;
-                            var dist = _anemyBuildings[k].GetDistanceTo(centerX, centerY);
-                            if (dist < _anemyBuildings[k].AttackRange)
+                            var dist = anemy.GetDistanceTo(centerX, centerY);
+                            if (dist < attackRange)
                             {
-                                p.Weight += SHOOTING_SQUARE_WEIGHT;
+                                p.Weight += weight;
                             }
                         }
                     }
@@ -2018,70 +2029,132 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                 {
                     for (int j = j1; j <= j2 && j < _m; ++j)
                     {
-                        if (_table[i, j].Weight > 1) continue;
+                        //if (_table[i, j].Weight > 1) continue;
 
                         var centerX = _startX + i * _squareSize + _squareSize / 2;
                         var centerY = _startY + j * _squareSize + _squareSize / 2;
-                        var dist = _anemyBuildings[k].GetDistanceTo(centerX, centerY);
-                        if (dist < _anemyBuildings[k].AttackRange)
+                        var dist = anemy.GetDistanceTo(centerX, centerY);
+                        if (dist < attackRange)
                         {
-                            _table[i, j].Weight += SHOOTING_SQUARE_WEIGHT;
+                            _table[i, j].Weight += weight;
                         }
                     }
                 }
             }
 
-            foreach (var w in _world.Wizards.Where(x => x.Faction != _self.Faction))
-            {
-                var x1 = w.X - w.CastRange;
-                var y1 = w.Y - w.CastRange;
-                var x2 = w.X + w.CastRange;
-                var y2 = w.Y + w.CastRange;
 
-                if (_lastTickPath != null)
-                {
-                    foreach (Square p in _lastTickPath)
-                    {
-                        if (p.Weight > 1) continue;
 
-                        if (p.X + p.Side >= x1 && p.X <= x2 && p.Y + p.Side >= y1 && p.Y <= y2)
-                        {
-                            var centerX = p.X + _squareSize / 2;
-                            var centerY = p.Y + _squareSize / 2;
-                            var dist = w.GetDistanceTo(centerX, centerY);
-                            if (dist < w.CastRange)
-                            {
-                                p.Weight += SHOOTING_SQUARE_WEIGHT;
-                            }
-                        }
-                    }
-                }
 
-                var i1 = GetSquareI(x1);
-                if (i1 < 0) i1 = 0;
-                var j1 = GetSquareJ(y1);
-                if (j1 < 0) j1 = 0;
-                var i2 = GetSquareI(x2);
-                if (i2 > _n - 1) i2 = _n - 1;
-                var j2 = GetSquareJ(y2);
-                if (i2 > _m - 1) j2 = _m - 1;
 
-                for (int i = i1; i <= i2 && i < _n; ++i)
-                {
-                    for (int j = j1; j <= j2 && j < _m; ++j)
-                    {
-                        if (_table[i, j].Weight > 1) continue;
 
-                        var centerX = _startX + i * _squareSize + _squareSize / 2;
-                        var centerY = _startY + j * _squareSize + _squareSize / 2;
-                        var dist = w.GetDistanceTo(centerX, centerY);
-                        if (dist < w.CastRange)
-                        {
-                            _table[i, j].Weight += SHOOTING_SQUARE_WEIGHT;
-                        }
-                    }
-                }
-            }
+
+
+
+            //for (int k = 0; k < _anemyBuildings.Count; ++k)
+            //{
+            //    if (!_IsAnemyBuildingAlive[k]) continue;
+
+            //    var x1 = _anemyBuildings[k].X - _anemyBuildings[k].AttackRange;
+            //    var y1 = _anemyBuildings[k].Y - _anemyBuildings[k].AttackRange;
+            //    var x2 = _anemyBuildings[k].X + _anemyBuildings[k].AttackRange;
+            //    var y2 = _anemyBuildings[k].Y + _anemyBuildings[k].AttackRange;
+
+            //    if (_lastTickPath != null)
+            //    {
+            //        foreach (Square p in _lastTickPath)
+            //        {
+            //            if (p.Weight > 1) continue;
+
+            //            if (p.X + p.Side >= x1 && p.X <= x2 && p.Y + p.Side >= y1 && p.Y <= y2)
+            //            {
+            //                var centerX = p.X + _squareSize / 2;
+            //                var centerY = p.Y + _squareSize / 2;
+            //                var dist = _anemyBuildings[k].GetDistanceTo(centerX, centerY);
+            //                if (dist < _anemyBuildings[k].AttackRange)
+            //                {
+            //                    p.Weight += SHOOTING_SQUARE_WEIGHT;
+            //                }
+            //            }
+            //        }
+            //    }
+
+            //    var i1 = GetSquareI(x1);
+            //    if (i1 < 0) i1 = 0;
+            //    var j1 = GetSquareJ(y1);
+            //    if (j1 < 0) j1 = 0;
+            //    var i2 = GetSquareI(x2);
+            //    if (i2 > _n - 1) i2 = _n - 1;
+            //    var j2 = GetSquareJ(y2);
+            //    if (i2 > _m - 1) j2 = _m - 1;
+
+            //    for (int i = i1; i <= i2 && i < _n; ++i)
+            //    {
+            //        for (int j = j1; j <= j2 && j < _m; ++j)
+            //        {
+            //            if (_table[i, j].Weight > 1) continue;
+
+            //            var centerX = _startX + i * _squareSize + _squareSize / 2;
+            //            var centerY = _startY + j * _squareSize + _squareSize / 2;
+            //            var dist = _anemyBuildings[k].GetDistanceTo(centerX, centerY);
+            //            if (dist < _anemyBuildings[k].AttackRange)
+            //            {
+            //                _table[i, j].Weight += SHOOTING_SQUARE_WEIGHT;
+            //            }
+            //        }
+            //    }
+            //}
+
+            //foreach (var w in _world.Wizards.Where(x => x.Faction != _self.Faction))
+            //{
+            //    var x1 = w.X - w.CastRange;
+            //    var y1 = w.Y - w.CastRange;
+            //    var x2 = w.X + w.CastRange;
+            //    var y2 = w.Y + w.CastRange;
+
+            //    if (_lastTickPath != null)
+            //    {
+            //        foreach (Square p in _lastTickPath)
+            //        {
+            //            if (p.Weight > 1) continue;
+
+            //            if (p.X + p.Side >= x1 && p.X <= x2 && p.Y + p.Side >= y1 && p.Y <= y2)
+            //            {
+            //                var centerX = p.X + _squareSize / 2;
+            //                var centerY = p.Y + _squareSize / 2;
+            //                var dist = w.GetDistanceTo(centerX, centerY);
+            //                if (dist < w.CastRange)
+            //                {
+            //                    p.Weight += SHOOTING_SQUARE_WEIGHT;
+            //                }
+            //            }
+            //        }
+            //    }
+
+            //    var i1 = GetSquareI(x1);
+            //    if (i1 < 0) i1 = 0;
+            //    var j1 = GetSquareJ(y1);
+            //    if (j1 < 0) j1 = 0;
+            //    var i2 = GetSquareI(x2);
+            //    if (i2 > _n - 1) i2 = _n - 1;
+            //    var j2 = GetSquareJ(y2);
+            //    if (i2 > _m - 1) j2 = _m - 1;
+
+            //    for (int i = i1; i <= i2 && i < _n; ++i)
+            //    {
+            //        for (int j = j1; j <= j2 && j < _m; ++j)
+            //        {
+            //            if (_table[i, j].Weight > 1) continue;
+
+            //            var centerX = _startX + i * _squareSize + _squareSize / 2;
+            //            var centerY = _startY + j * _squareSize + _squareSize / 2;
+            //            var dist = w.GetDistanceTo(centerX, centerY);
+            //            if (dist < w.CastRange)
+            //            {
+            //                _table[i, j].Weight += SHOOTING_SQUARE_WEIGHT;
+            //            }
+            //        }
+            //    }
+            //}
 
 
             var leftI = 0;
@@ -2819,7 +2892,45 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
 
             var beforePrevWaypoint = getBeforePreviousWaypoint();
             _thisTickResPoint = beforePrevWaypoint;
-            goTo(beforePrevWaypoint, _self.Radius * 2, 0d, false);
+            goTo(beforePrevWaypoint, _self.Radius * 4, 0, false);
+
+         
+                //var friends = new List<LivingUnit>();
+                //friends.AddRange(_world.Wizards.Where(x => !x.IsMe && x.Faction == _self.Faction && IsStrongOnLine(x, _line)));
+                //friends.AddRange(_world.Buildings.Where(x => x.Faction == _self.Faction && IsStrongOnLine(x, _line)));
+                //friends.AddRange(_world.Minions.Where(x => x.Faction == _self.Faction && IsStrongOnLine(x, _line)));
+
+                //var anemies = new List<LivingUnit>();
+                //anemies.AddRange(_world.Wizards.Where(x => x.Faction != _self.Faction));
+                //anemies.AddRange(
+                //    _world.Minions.Where(
+                //        x =>
+                //            x.Faction != _self.Faction && (x.Faction != Faction.Neutral || !IsCalmNeutralMinion(x))));
+
+                //for (int i = 0; i < _anemyBuildings.Count; ++i)
+                //{
+                //    if (!_IsAnemyBuildingAlive[i]) continue;
+                //    anemies.Add(_anemyBuildings[i]);
+                //}
+
+                //var sortedFriends = friends.OrderBy(x => x.GetDistanceTo(_anemyBaseX, _anemyBaseY));
+                //var friendToGo =
+                //    sortedFriends.FirstOrDefault(
+                //        f =>
+                //            anemies.All(
+                //                a =>
+                //                    a.GetDistanceTo(_self) > _self.GetDistanceTo(f) || a.GetDistanceTo(f) > _self.GetDistanceTo(f)));
+
+                //if (friendToGo != null)
+                //{
+                //    goTo(new Point2D(friendToGo.X, friendToGo.Y), _self.Radius*2, _self.Radius*2, false);
+                //}
+                //else
+                //{
+                //    goTo(beforePrevWaypoint, _self.Radius * 2, _self.Radius * 2, false);
+                //}
+
+            
         }
 
         private int GetSquareI(double x)
@@ -3448,7 +3559,9 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
 
                 if (firstWaypoint.getDistanceTo(waypoint) < firstWaypoint.getDistanceTo(_self))
                 {
-                    return _waypointsByLine[_line][waypointIndex - 1];
+                    return waypoint.getDistanceTo(_self) > WAYPOINT_RADIUS * 2
+                        ? waypoint
+                        : _waypointsByLine[_line][waypointIndex - 1];
                 }
             }
 
@@ -3963,6 +4076,42 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                 attackRange = _game.FetishBlowdartAttackRange;
 
             return attackRange >= distance - target.Radius + _game.MagicMissileRadius * 1.5 - eps;
+        }
+
+        private double GetAttackRange(LivingUnit unit)
+        {
+            var building = unit as Building;
+            if (building != null) return building.AttackRange;
+
+            var wizard = unit as Wizard;
+            if (wizard != null) return wizard.CastRange + _self.Radius - _game.MagicMissileRadius;
+
+            var minion = unit as Minion;
+            if (minion != null)
+            {
+                if (minion.Type == MinionType.FetishBlowdart)
+                {
+                    return _game.FetishBlowdartAttackRange + _self.Radius - _game.DartRadius;
+                }
+                else
+                {
+                    return _game.OrcWoodcutterAttackRange + _self.Radius;
+                }
+            }
+
+            return 0;
+        }
+
+        private double GetSquareWeight(LivingUnit unit)
+        {
+            var building = unit as Building;
+            var wizard = unit as Wizard;
+            if (wizard != null || building != null) return SHOOTING_SQUARE_WEIGHT;
+
+            var minion = unit as Minion;
+            if (minion != null) return LIGHT_SHOOTING_SQUARE_WEIGHT;
+
+            return 0d;
         }
 
         private bool IsBlockingTree(LivingUnit source, LivingUnit target, double bulletRadius)
