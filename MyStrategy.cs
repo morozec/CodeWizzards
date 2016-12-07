@@ -2,6 +2,7 @@ using Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk.Model;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Configuration;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.ComTypes;
 using System.Security.Cryptography;
@@ -869,7 +870,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                     continue;
                 }
 
-                if (IsCalmNeutralMinion(unit)) continue;
+                if (unit is Minion && (unit as Minion).Faction == Faction.Neutral && IsCalmNeutralMinion(unit as Minion)) continue;
 
                 if (!IsStrongOnLine(unit, _line)) continue;
                 var dist = _selfBase.GetDistanceTo(unit);
@@ -2622,7 +2623,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
 
             foreach (var anemy in anemies)
             {
-                if (IsCalmNeutralMinion(anemy)) continue;
+                if (unit is Minion && (unit as Minion).Faction == Faction.Neutral && IsCalmNeutralMinion(unit as Minion)) continue;
 
                 var canShoot = IsOkDistanceToShoot(anemy, unit, eps);
                 if (canShoot) result.Add(anemy);
@@ -3003,7 +3004,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                 }
 
 
-                if (IsCalmNeutralMinion(target)) continue;
+                if (target is Minion && (target as Minion).Faction == Faction.Neutral && IsCalmNeutralMinion(target as Minion)) continue;
 
                 //var angle = _self.GetAngleTo(target);
                 //if (Math.Abs(angle) > _game.StaffSector / 2.0D) continue;
@@ -3524,11 +3525,55 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             return resPath;
         }
 
-        private bool IsCalmNeutralMinion(LivingUnit unit)
+        private bool ShouldAttackNeutralMinion(Minion minion)
         {
-            var minion = unit as Minion;
-            if (minion == null) return false;
-            if (minion.Faction != Faction.Neutral) return false;
+            var units = new List<LivingUnit>();
+            units.AddRange(_world.Wizards);
+            units.AddRange(_world.Minions.Where(x => x.Faction != Faction.Neutral));
+            units.AddRange(_world.Buildings.Where(x => x.Faction == _self.Faction));
+          
+
+            for (int i = 0; i < _anemyBuildings.Count; ++i)
+            {
+                if (!_IsAnemyBuildingAlive[i]) continue;
+                units.Add(_anemyBuildings[i]);
+            }
+
+            var isCalm = IsCalmNeutralMinion(minion);
+            if (isCalm)
+            {
+                var nearNeutrals = _world.Minions.Where(x => x.Faction == Faction.Neutral && x.GetDistanceTo(minion) <= 300);
+                var selfFactionCount = 0;
+                var anemyFactionCount = 0;
+
+                foreach (var neutral in nearNeutrals)
+                {
+                    var sortedUnits = units.OrderBy(x => x.GetDistanceTo(neutral));
+                    if (sortedUnits.First().Id == _self.Id) return false;
+
+                    if (sortedUnits.First().Faction == _self.Faction)
+                    {
+                        selfFactionCount++;
+                    }
+                    else
+                    {
+                        anemyFactionCount++;
+                    }
+                }
+
+                return anemyFactionCount > selfFactionCount;
+            }
+            else
+            {
+                //стреляем, если ближе наш союзник
+                var sortedUnits = units.OrderBy(x => x.GetDistanceTo(minion));
+                var nearestUnit = sortedUnits.FirstOrDefault();
+                return nearestUnit != null && nearestUnit.Faction == _self.Faction;
+            }
+        }
+
+        private bool IsCalmNeutralMinion(Minion minion)
+        {
             return minion.Life == minion.MaxLife && minion.SpeedX == 0 && minion.SpeedY == 0 &&
                    minion.RemainingActionCooldownTicks == 0;
         }
@@ -3752,7 +3797,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                 }
 
 
-                if (IsCalmNeutralMinion(target)) continue;
+                if (target is Minion && (target as Minion).Faction == Faction.Neutral && IsCalmNeutralMinion(target as Minion)) continue;
 
                 var dist = _self.GetDistanceTo(target);
                 if (dist < minDist)
@@ -3766,11 +3811,32 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
 
         private LivingUnit GetShootingTarget()
         {
-            var wizards = _world.Wizards.Where(x => x.Faction != _self.Faction);
             LivingUnit shootingTarget = null;
+            var neutrals = _world.Minions.Where(x => x.Faction == Faction.Neutral);
+            var minHp = double.MaxValue;
+            foreach (var target in neutrals)
+            {
+                if (!ShouldAttackNeutralMinion(target)) continue;
+                if (!IsOkDistanceToShoot(_self, target, 0d)) continue;
+
+                //double distance = _self.GetDistanceTo(target);
+
+                var life = target.Life;
+                if (life < minHp)
+                {
+                    minHp = life;
+                    shootingTarget = target;
+                }
+            }
+
+            if (shootingTarget != null) return shootingTarget;
+
+
+            var wizards = _world.Wizards.Where(x => x.Faction != _self.Faction);
+          
             //LivingUnit possibleShootingTarget = null;
 
-            var minHp = double.MaxValue;
+            minHp = double.MaxValue;
             //var possibleMinHp = double.MaxValue;
 
             foreach (var target in wizards)
@@ -3826,7 +3892,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             foreach (var target in minions)
             {
                 if (target.Faction == _self.Faction) continue;
-                if (IsCalmNeutralMinion(target)) continue;
+                if (target.Faction == Faction.Neutral && !ShouldAttackNeutralMinion(target)) continue;
                 if (!IsOkDistanceToShoot(_self, target, 0d)) continue;
 
                 //double distance = _self.GetDistanceTo(target);
@@ -3957,7 +4023,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                     continue;
                 }
 
-                if (IsCalmNeutralMinion(target)) continue;
+                if (target is Minion && (target as Minion).Faction == Faction.Neutral && IsCalmNeutralMinion(target as Minion)) continue;
 
 
                 double distance = _self.GetDistanceTo(target);
@@ -3984,7 +4050,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                     {
                         continue;
                     }
-                    if (IsCalmNeutralMinion(target)) continue;
+                    if (target is Minion && (target as Minion).Faction == Faction.Neutral && IsCalmNeutralMinion(target as Minion)) continue;
 
                     if (!IsOnLine(target)) continue;
 
@@ -4221,7 +4287,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             var isFarMinios = true;
             foreach (var minion in anemyMinions)
             {
-                if (IsCalmNeutralMinion(minion) || minion.Type == MinionType.FetishBlowdart) continue;
+                if (minion.Faction == Faction.Neutral && IsCalmNeutralMinion(minion) || minion.Type == MinionType.FetishBlowdart) continue;
                 if (minion.GetDistanceTo(_self) - _self.Radius <= _game.OrcWoodcutterAttackRange)
                 {
                     isFarMinios = false;
@@ -4248,7 +4314,10 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                 _world.Wizards.Where(x => x.Faction != _self.Faction && x.GetDistanceTo(_self) <= _self.CastRange*1.5);
             anemies.AddRange(anemyWizard);
             var anemyMinions =
-                _world.Minions.Where(x => x.Faction != _self.Faction && x.GetDistanceTo(_self) <= _self.CastRange*1.5);
+                _world.Minions.Where(
+                    x =>
+                        x.Faction != _self.Faction && (x.Faction != Faction.Neutral || !IsCalmNeutralMinion(x)) &&
+                        x.GetDistanceTo(_self) <= _self.CastRange*1.5);
             anemies.AddRange(anemyMinions);
 
 
@@ -4268,8 +4337,6 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             var needRunBackAnemies = new List<LivingUnit>();
             foreach (var anemy in anemies)
             {
-                if (IsCalmNeutralMinion(anemy)) continue;
-
                 //var needRunBack = NeedRunBack(anemy, _self, friends, ref runBackTime);
                 var needRunBack = NeedRunBack(anemy, _self, friends, true);
                 if (needRunBack)
