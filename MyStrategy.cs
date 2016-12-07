@@ -4013,7 +4013,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                 if (target.Faction == _self.Faction) continue;
                 if (target.Faction == Faction.Neutral && !ShouldAttackNeutralMinion(target)) continue;
                 if (!IsOkDistanceToShoot(_self, target, 0d)) continue;
-                if (target.Faction != Faction.Neutral && IsBlockingTree(_self, target, _game.MagicMissileRadius))
+                if (IsBlockingTree(_self, target, _game.MagicMissileRadius))
                     continue;
 
                 //double distance = _self.GetDistanceTo(target);
@@ -4054,7 +4054,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             //TODO
             var angle = _self.GetAngleTo(unit);
             if (Math.Abs(angle) >= _game.StaffSector / 2.0D) return false;
-            if (unit.Faction != Faction.Neutral && IsBlockingTree(_self, unit, _game.MagicMissileRadius)) return false;
+            if (IsBlockingTree(_self, unit, _game.MagicMissileRadius)) return false;
 
             //if (unit is Wizard)
             //{
@@ -4120,11 +4120,11 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
 
         private bool IsBlockingTree(LivingUnit source, LivingUnit target, double bulletRadius)
         {
-            foreach (var tree in _trees)
-            {
-                var isCross = Square.Intersect(source.X, source.Y, target.X, target.Y, tree.X, tree.Y, bulletRadius, tree.Radius);
-                if (isCross) return true;
-            }
+            //foreach (var tree in _trees)
+            //{
+            //    var isCross = Square.Intersect(source.X, source.Y, target.X, target.Y, tree.X, tree.Y, bulletRadius, tree.Radius);
+            //    if (isCross) return true;
+            //}
             return false;
         }
 
