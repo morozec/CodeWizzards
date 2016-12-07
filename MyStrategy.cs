@@ -3559,9 +3559,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
 
                 if (firstWaypoint.getDistanceTo(waypoint) < firstWaypoint.getDistanceTo(_self))
                 {
-                    return waypoint.getDistanceTo(_self) > WAYPOINT_RADIUS * 2
-                        ? waypoint
-                        : _waypointsByLine[_line][waypointIndex - 1];
+                    return _waypointsByLine[_line][waypointIndex - 1];
                 }
             }
 
@@ -4010,7 +4008,8 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                 if (target.Faction == _self.Faction) continue;
                 if (target.Faction == Faction.Neutral && !ShouldAttackNeutralMinion(target)) continue;
                 if (!IsOkDistanceToShoot(_self, target, 0d)) continue;
-                if (IsBlockingTree(_self, target, _game.MagicMissileRadius)) continue;
+                if (target.Faction != Faction.Neutral && IsBlockingTree(_self, target, _game.MagicMissileRadius))
+                    continue;
 
                 //double distance = _self.GetDistanceTo(target);
 
@@ -4050,7 +4049,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             //TODO
             var angle = _self.GetAngleTo(unit);
             if (Math.Abs(angle) >= _game.StaffSector / 2.0D) return false;
-            if (IsBlockingTree(_self, unit, _game.MagicMissileRadius)) return false;
+            if (unit.Faction != Faction.Neutral && IsBlockingTree(_self, unit, _game.MagicMissileRadius)) return false;
 
             //if (unit is Wizard)
             //{
