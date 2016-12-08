@@ -4737,10 +4737,10 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
 
             _move.Messages = new Message[]
             {
-                new Message(LaneType.Top, null, new byte[0]),
                 new Message(LaneType.Middle, null, new byte[0]),
                 new Message(LaneType.Middle, null, new byte[0]),
-                new Message(LaneType.Bottom, null, new byte[0]),
+                new Message(LaneType.Middle, null, new byte[0]),
+                new Message(LaneType.Middle, null, new byte[0]),
             };
         }
 
