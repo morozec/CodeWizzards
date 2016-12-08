@@ -4599,6 +4599,32 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
 
         #endregion
 
+        private bool IsOkToDestroyBase(LivingUnit target)
+        {
+            if (target == null) return false;
+            var building = target as Building;
+            if (building == null || building.Type != BuildingType.FactionBase) return false;
+
+            var isWeakBuilding = target.Life <= target.MaxLife*0.33;
+            var isOkHp = _self.Life > _self.MaxMana*0.5;
+
+            var anemyMinions = _world.Minions.Where(x => x.Faction != _self.Faction);
+            var isFarMinios = true;
+            foreach (var minion in anemyMinions)
+            {
+                if (minion.Faction == Faction.Neutral && IsCalmNeutralMinion(minion) || minion.Type == MinionType.FetishBlowdart) continue;
+                if (minion.GetDistanceTo(_self) - _self.Radius <= _game.OrcWoodcutterAttackRange)
+                {
+                    isFarMinios = false;
+                    break;
+                }
+            }
+
+            var anemyWizards = _world.Wizards.Where(x => x.Faction != _self.Faction && x.Id != target.Id);
+            var isFarWizards = anemyWizards.All(x => !CanShootWizard(x, _self, true, true, true));
+
+            return isWeakBuilding && isOkHp && isFarMinios && isFarWizards;
+        }
 
         private bool IsOkToRunForWeakWizard(LivingUnit target)
         {
@@ -4638,6 +4664,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
         private bool CanGoToStaffRangeNew(LivingUnit shootingTarget, ref double runBackTime)
         {
             if (IsOkToRunForWeakWizard(shootingTarget)) return true;
+            if (IsOkToDestroyBase(shootingTarget)) return true;
 
             var friends = new List<LivingUnit>();
             friends.AddRange(_world.Wizards.Where(x => x.Faction == _self.Faction));
