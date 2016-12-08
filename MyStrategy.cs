@@ -208,18 +208,25 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             UpdateBulletStartDatas();
             SendMessage();
 
-            if (_world.TickIndex <= 600)
+
+            
+
+            if (!_isLineSet)
             {
-                _line = GetAgressiveLineToGo();
-                _line = LaneType.Middle;
-                
+                var line = GetAgressiveLineToGo(_world.TickIndex < 600);
+                if (line != null)
+                {
+                    _line = line.Value;
+                    _isLineSet = true;
+                }
             }
-            else if (_bonusPoints[0].getDistanceTo(_self) < (_self.Radius + _game.BonusRadius)*2)
+
+            if (_bonusPoints[0].getDistanceTo(_self) < (_self.Radius + _game.BonusRadius)*2)
             {
                 _line = GetAgressiveLineToGo(LaneType.Bottom);
                 _isLineSet = false;
             }
-            else if (_bonusPoints[1].getDistanceTo(_self) < (_self.Radius + _game.BonusRadius)*2)
+            if (_bonusPoints[1].getDistanceTo(_self) < (_self.Radius + _game.BonusRadius)*2)
             {
                 _line = GetAgressiveLineToGo(LaneType.Top);
                 _isLineSet = false;
@@ -3842,7 +3849,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
 
         private bool goTo(Point2D point, double relaxCoeff, double strightRelaxCoeff, bool needTurn, IList<Point> path = null)
         {
-            if (_world.TickIndex < 600)
+            if (!_isLineSet && _world.TickIndex < 600)
             {
                 point = new Point2D(900, _world.Height - 1000);
             }
@@ -4837,7 +4844,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
 
         } 
 
-        private LaneType GetAgressiveLineToGo()
+        private LaneType? GetAgressiveLineToGo(bool needTwoWizards)
         {
             var laneTypes = new List<LaneType>()
             {
@@ -4861,6 +4868,13 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                         laneWizards[laneType]++;
                     }
                 }
+            }
+
+            if (needTwoWizards)
+            {
+                return laneWizards.Keys.Any(x => laneWizards[x] >= 2)
+                    ? laneWizards.Keys.FirstOrDefault(x => laneWizards[x] >= 2)
+                    : (LaneType?) null;
             }
 
             var maxLaneWizards = 0;
