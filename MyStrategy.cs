@@ -182,7 +182,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
 
 
         public void Move(Wizard self, World world, Game game, Move move)
-        {
+         {
             //Debug.beginPost();
             //for (int i = 0; i < _n; ++i)
             //{
@@ -211,7 +211,20 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             if (_world.TickIndex <= 600)
             {
                 _line = GetAgressiveLineToGo();
+                _line = LaneType.Middle;
+                
             }
+            else if (_bonusPoints[0].getDistanceTo(_self) < (_self.Radius + _game.BonusRadius)*2)
+            {
+                _line = GetAgressiveLineToGo(LaneType.Bottom);
+                _isLineSet = false;
+            }
+            else if (_bonusPoints[1].getDistanceTo(_self) < (_self.Radius + _game.BonusRadius)*2)
+            {
+                _line = GetAgressiveLineToGo(LaneType.Top);
+                _isLineSet = false;
+            }
+
 
             if (!_isLineSet && _world.TickIndex > 600)
             {
@@ -3738,14 +3751,14 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             if (isCalm)
             {
                 //стреляем, если ближе враг
-                var neutrals = _world.Minions.Where(x => x.Faction == Faction.Neutral && x.GetDistanceTo(minion) < 250);
+                var neutrals = _world.Minions.Where(x => x.Faction == Faction.Neutral && x.GetDistanceTo(minion) < 500);
                 var friends = new List<LivingUnit>();
                 var anemies = new List<LivingUnit>();
                 foreach (var neutral in neutrals)
                 {
                     var newSortedUnits = units.OrderBy(x => x.GetDistanceTo(neutral));
                     var newNearestUnit = newSortedUnits.First();
-                    if (neutral.GetDistanceTo(newNearestUnit) > 250) continue;
+                    if (neutral.GetDistanceTo(newNearestUnit) > 500) continue;
                     if (newNearestUnit.Faction == _self.Faction)
                     {
                         friends.Add(newNearestUnit);
@@ -3756,7 +3769,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                     }
                 }
 
-                return anemies.Count > friends.Count || anemies.Any(x => x is Building);
+                return !friends.Any(x => x.Id == _self.Id) && anemies.Count > friends.Count || anemies.Any(x => x is Building);
 
             }
             else
@@ -4774,6 +4787,55 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
 
             return null;
         }
+
+        private LaneType GetAgressiveLineToGo(LaneType excludingLaneType)
+        {
+            var laneTypes = new List<LaneType>()
+            {
+                LaneType.Middle,
+                LaneType.Top,
+                LaneType.Bottom
+            };
+            var laneWizards = new Dictionary<LaneType, int>()
+            {
+                {LaneType.Middle, 0},
+                {LaneType.Top, 0},
+                {LaneType.Bottom, 0},
+            };
+
+            foreach (var wizard in _world.Wizards.Where(x => x.Faction == _self.Faction && !x.IsMe))
+            {
+                foreach (var laneType in laneTypes)
+                {
+                    if (IsStrongOnLine(wizard, laneType))
+                    {
+                        laneWizards[laneType]++;
+                    }
+                }
+            }
+
+            var maxLaneWizards = 0;
+            foreach (var laneType in laneTypes)
+            {
+                if (laneWizards[laneType] > maxLaneWizards)
+                {
+                    maxLaneWizards = laneWizards[laneType];
+                }
+            }
+
+            var resultLanes = new List<LaneType>();
+            foreach (var laneType in laneTypes.Where(x => x != excludingLaneType))
+            {
+                if (laneWizards[laneType] == maxLaneWizards)
+                {
+                    resultLanes.Add(laneType);
+                }
+            }
+
+            if (resultLanes.Contains(_line)) return _line;
+            return resultLanes[0]; //иначе там только одна другая линия
+
+        } 
 
         private LaneType GetAgressiveLineToGo()
         {
