@@ -148,17 +148,17 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
         private readonly SkillType[] _skillsOrder = new SkillType[]
         {
 
-            SkillType.RangeBonusPassive1,
-            SkillType.RangeBonusAura1,
-            SkillType.RangeBonusPassive2,
-            SkillType.RangeBonusAura2,
-            SkillType.AdvancedMagicMissile,
-            
             SkillType.StaffDamageBonusPassive1,
             SkillType.StaffDamageBonusAura1,
             SkillType.StaffDamageBonusPassive2,
             SkillType.StaffDamageBonusAura2,
             SkillType.Fireball,
+
+            SkillType.RangeBonusPassive1,
+            SkillType.RangeBonusAura1,
+            SkillType.RangeBonusPassive2,
+            SkillType.RangeBonusAura2,
+            SkillType.AdvancedMagicMissile,
 
             SkillType.MagicalDamageBonusPassive1,
             SkillType.MagicalDamageBonusAura1,
