@@ -3832,10 +3832,10 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                 path = GetCorrectPath(path);
             }
 
-            foreach (var p in path)
-            {
-                Debug.circle((p as Square).X + _squareSize / 2, (p as Square).Y + _squareSize / 2, _squareSize / 2, 150);
-            }
+            //foreach (var p in path)
+            //{
+            //    Debug.circle((p as Square).X + _squareSize / 2, (p as Square).Y + _squareSize / 2, _squareSize / 2, 150);
+            //}
 
 
             double resX;
