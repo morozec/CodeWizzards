@@ -1070,9 +1070,21 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
         private void GoToBonus(Point2D bonusPoint, double relaxCoeff, double realRelaxCoeff, bool needTurn,
             IList<Point> path, double gotBonusTime, ref bool isWoodCut)
         {
+            var angle = Math.PI/2 - _self.Angle;
+            var x1 = bonusPoint.X + _game.BonusRadius * Math.Cos(angle);
+            var y1 = bonusPoint.X - _game.BonusRadius * Math.Sin(angle);
+
+            var x2 = bonusPoint.X - _game.BonusRadius * Math.Cos(angle);
+            var y2 = bonusPoint.X + _game.BonusRadius * Math.Sin(angle);
+            
+            //Debug.circle(bonusPoint.X, bonusPoint.Y, _game.BonusRadius, 150);
+            //Debug.circle(x1, y1, 10, 150);
+            //Debug.circle(x2, y2, 10, 150);
 
             var goStraightPoint = GetGoStraightPoint(bonusPoint.X, bonusPoint.Y, relaxCoeff - TOLERANCE * 10000);
-            if (goStraightPoint != null)
+            var goVsp1PointPoint = GetGoStraightPoint(x1, y1, relaxCoeff/2);
+            var goVsp2PointPoint = GetGoStraightPoint(x2, y2, relaxCoeff/2);
+            if (goStraightPoint != null || goVsp1PointPoint != null || goVsp2PointPoint != null)
             {
 
                 var nearstWizard = GetClosestToBonusWizard(bonusPoint);
@@ -1113,13 +1125,36 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
 
                 if (realRelaxCoeff == 0)
                 {
-                    _thisTickResPoint = new Point2D(bonusPoint.X, bonusPoint.Y);
-                    isWoodCut = goTo(
-                        bonusPoint,
-                        relaxCoeff - TOLERANCE * 100,
-                        relaxCoeff - TOLERANCE * 100,
-                        needTurn,
-                        path);
+                    if (goStraightPoint != null)
+                    {
+                        _thisTickResPoint = new Point2D(bonusPoint.X, bonusPoint.Y);
+                        isWoodCut = goTo(
+                            bonusPoint,
+                            relaxCoeff - TOLERANCE * 100,
+                            relaxCoeff - TOLERANCE * 100,
+                            needTurn,
+                            path);
+                    }
+                    else if (goVsp1PointPoint != null)
+                    {
+                        _thisTickResPoint = new Point2D(x1, y1);
+                        isWoodCut = goTo(
+                            new Point2D(x1, y1),
+                            relaxCoeff / 2,
+                            relaxCoeff / 2,
+                            needTurn,
+                            path);
+                    }
+                    else //goVsp2PointPoint != null
+                    {
+                        _thisTickResPoint = new Point2D(x2, y2);
+                        isWoodCut = goTo(
+                            new Point2D(x2, y2),
+                            relaxCoeff / 2,
+                            relaxCoeff / 2,
+                            needTurn,
+                            path);
+                    }
                 }
                 else if (wizardPreventPoint != null)
                 {
