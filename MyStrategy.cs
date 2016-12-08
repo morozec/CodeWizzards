@@ -209,9 +209,9 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             SendMessage();
 
 
-            
 
-            if (!_isLineSet)
+
+            if (!_isLineSet && _world.TickIndex <= 600)
             {
                 var line = GetAgressiveLineToGo(_world.TickIndex < 600);
                 if (line != null)
@@ -4044,7 +4044,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             {
                 if (target.Faction == _self.Faction) continue;
                 if (!IsOkDistanceToShoot(_self, target, 0d)) continue;
-                if (IsBlockingTree(_self, target, _game.MagicMissileRadius)) continue;
+                //if (IsBlockingTree(_self, target, _game.MagicMissileRadius)) continue;
 
                 var life = target.Life;
 
@@ -4071,8 +4071,6 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                 if (!IsOkDistanceToShoot(_self, target, 0d)) continue;
                 if (IsBlockingTree(_self, target, _game.MagicMissileRadius)) continue;
 
-                //double distance = _self.GetDistanceTo(target);
-
                 var life = target.Life;
                 if (life < minHp)
                 {
@@ -4091,7 +4089,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             {
                 if (target.Faction == _self.Faction) continue;
                 if (!IsOkDistanceToShoot(_self, target, 0d)) continue;
-                if (IsBlockingTree(_self, target, _game.MagicMissileRadius)) continue;
+                //if (IsBlockingTree(_self, target, _game.MagicMissileRadius)) continue;
 
                 double distance = _self.GetDistanceTo(target);
 
@@ -4116,7 +4114,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             {
                 if (target.Faction == _self.Faction) continue;
                 if (!IsOkDistanceToShoot(_self, target, 0d)) continue;
-                if (IsBlockingTree(_self, target, _game.MagicMissileRadius)) continue;
+                //if (IsBlockingTree(_self, target, _game.MagicMissileRadius)) continue;
 
                 var canShootWizard = CanShootWizard(_self, target);
 
@@ -4143,8 +4141,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                 if (target.Faction == _self.Faction) continue;
                 if (target.Faction == Faction.Neutral && !ShouldAttackNeutralMinion(target)) continue;
                 if (!IsOkDistanceToShoot(_self, target, 0d)) continue;
-                if (IsBlockingTree(_self, target, _game.MagicMissileRadius))
-                    continue;
+                //if (IsBlockingTree(_self, target, _game.MagicMissileRadius)) continue;
 
                 //double distance = _self.GetDistanceTo(target);
 
@@ -4167,7 +4164,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                 if (target.Faction == _self.Faction) continue;
                 if (!IsOkDistanceToShoot(_self, target, 0d)) continue;
                 if (IsBlockingTree(_self, target, _game.MagicMissileRadius)) continue;
-                if (!IsStrongOnLine(target, _line)) continue;
+                //if (!IsStrongOnLine(target, _line)) continue;
 
                 double distance = _self.GetDistanceTo(target);
 
@@ -4188,8 +4185,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                 if (target.Faction == _self.Faction) continue;
                 if (target.Faction == Faction.Neutral && !ShouldAttackNeutralMinion(target)) continue;
                 if (!IsOkDistanceToShoot(_self, target, 0d)) continue;
-                if (IsBlockingTree(_self, target, _game.MagicMissileRadius))
-                    continue;
+                //if (IsBlockingTree(_self, target, _game.MagicMissileRadius)) continue;
 
                 //double distance = _self.GetDistanceTo(target);
 
@@ -4213,13 +4209,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             //TODO
             var angle = _self.GetAngleTo(unit);
             if (Math.Abs(angle) >= _game.StaffSector / 2.0D) return false;
-            if (IsBlockingTree(_self, unit, _game.MagicMissileRadius)) return false;
-
-            //if (unit is Wizard)
-            //{
-            //    return IsOkDistanceToShootWizardWithMissile(_self, unit);
-            //}
-
+            //if (IsBlockingTree(_self, unit, _game.MagicMissileRadius)) return false;
             return IsOkDistanceToShoot(_self, unit, 0d);
         }
 
@@ -4279,11 +4269,11 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
 
         private bool IsBlockingTree(LivingUnit source, LivingUnit target, double bulletRadius)
         {
-            //foreach (var tree in _trees)
-            //{
-            //    var isCross = Square.Intersect(source.X, source.Y, target.X, target.Y, tree.X, tree.Y, bulletRadius, tree.Radius);
-            //    if (isCross) return true;
-            //}
+            foreach (var tree in _trees)
+            {
+                var isCross = Square.Intersect(source.X, source.Y, target.X, target.Y, tree.X, tree.Y, bulletRadius, tree.Radius);
+                if (isCross) return true;
+            }
             return false;
         }
 
@@ -4823,6 +4813,8 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                 }
             }
 
+            laneWizards[LaneType.Top] = 0;
+
             var maxLaneWizards = 0;
             foreach (var laneType in laneTypes)
             {
@@ -4841,7 +4833,8 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                 }
             }
 
-            if (resultLanes.Contains(_line)) return _line;
+
+            if (!resultLanes.Any() || resultLanes.Contains(_line)) return _line;
             return resultLanes[0]; //иначе там только одна другая линия
 
         } 
