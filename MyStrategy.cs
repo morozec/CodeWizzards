@@ -195,10 +195,10 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             {
                 _line = GetAgressiveLineToGo();
             }
-            if (_world.TickIndex == 501 && !_isLineSet)
-            {
-                _line = GetLineToGo();
-            }
+            //if (_world.TickIndex == 501 && !_isLineSet)
+            //{
+            //    _line = GetLineToGo();
+            //}
 
             //if (_world.TickIndex == 301)
             //{
@@ -2214,29 +2214,31 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                 }
             }
 
-
-            for (int i = 0; i < _n; ++i)
+            if (IsStrongOnLine(_self, _line))
             {
-                for (int j = 0; j < _m; ++j)
+                for (int i = 0; i < _n; ++i)
                 {
-                    var square = _table[i, j];
+                    for (int j = 0; j < _m; ++j)
+                    {
+                        var square = _table[i, j];
 
-                    if (square.X <= ROW_WIDTH * 2 && square.Y >= _world.Height - ROW_WIDTH * 2) continue;
-                    if (square.Y <= ROW_WIDTH * 2 && square.X >= _world.Width - ROW_WIDTH * 2) continue;
+                        if (square.X <= ROW_WIDTH*2 && square.Y >= _world.Height - ROW_WIDTH*2) continue;
+                        if (square.Y <= ROW_WIDTH*2 && square.X >= _world.Width - ROW_WIDTH*2) continue;
 
-                    if (_line == LaneType.Top && square.Y > _world.Width - ROW_WIDTH - square.X)
-                    {
-                        square.Weight = 999999;
-                    }
-                    if (_line == LaneType.Bottom && square.Y < _world.Width + ROW_WIDTH - square.X)
-                    {
-                        square.Weight = 999999;
-                    }
-                    if (_line == LaneType.Middle && (square.X <= ROW_WIDTH || square.Y <= ROW_WIDTH ||
-                                                     square.X >= _world.Width - ROW_WIDTH ||
-                                                     square.Y >= _world.Height - ROW_WIDTH))
-                    {
-                        square.Weight = 999999;
+                        if (_line == LaneType.Top && square.Y > _world.Width - ROW_WIDTH - square.X)
+                        {
+                            square.Weight = 999999;
+                        }
+                        if (_line == LaneType.Bottom && square.Y < _world.Width + ROW_WIDTH - square.X)
+                        {
+                            square.Weight = 999999;
+                        }
+                        if (_line == LaneType.Middle && (square.X <= ROW_WIDTH || square.Y <= ROW_WIDTH ||
+                                                         square.X >= _world.Width - ROW_WIDTH ||
+                                                         square.Y >= _world.Height - ROW_WIDTH))
+                        {
+                            square.Weight = 999999;
+                        }
                     }
                 }
             }
@@ -3734,8 +3736,11 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
 
         private bool goTo(Point2D point, double relaxCoeff, double strightRelaxCoeff, bool needTurn, IList<Point> path = null)
         {
-            if (!_isLineSet) return false;
-
+            if (_world.TickIndex < 400)
+            {
+                point = new Point2D(900, _world.Height - 1000);
+            }
+            
             //if (!_self.IsMaster && _world.TickIndex < CHECK_MASTER_TIME) return false;
 
             SpeedContainer speedContainer = null;
@@ -4681,14 +4686,14 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
         {
             var laneTypes = new List<LaneType>()
             {
-                LaneType.Top,
                 LaneType.Middle,
+                LaneType.Top,
                 LaneType.Bottom
             };
             var laneWizards = new Dictionary<LaneType, int>()
             {
-                {LaneType.Top, 0},
                 {LaneType.Middle, 0},
+                {LaneType.Top, 0},
                 {LaneType.Bottom, 0},
             };
 
@@ -4703,23 +4708,18 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                 }
             }
 
-            if (laneWizards[LaneType.Middle] >= 2)
+            var maxLaneWizards = 0;
+            var resultLane = LaneType.Middle;
+            foreach (var laneType in laneTypes)
             {
-                _isLineSet = true;
-                return LaneType.Middle;
+                if (laneWizards[laneType] > maxLaneWizards)
+                {
+                    maxLaneWizards = laneWizards[laneType];
+                    resultLane = laneType;
+                }
             }
-            if (laneWizards[LaneType.Top] >= 1)
-            {
-                _isLineSet = true;
-                return LaneType.Top;
-            }
-            if (laneWizards[LaneType.Bottom] >= 1)
-            {
-                _isLineSet = true;
-                return LaneType.Bottom;
-            }
-
-            return LaneType.Top;
+            
+            return resultLane;
         }
 
         private LaneType GetLineToGo()
