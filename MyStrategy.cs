@@ -917,7 +917,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                 IsGo = false,
                 IsWoodCut = false
             };
-
+            
             //не идем, если атакуем дохлого волшебника
             if (IsOkToRunForWeakWizard(shootingTarget)) return goBonusResult;
 
@@ -925,7 +925,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             var nearestStaffRangeTargetBuilding = nearestStaffRangeTarget as Building;
             var shootingTargetBuilding = shootingTarget as Building;
             if (nearestStaffRangeTargetBuilding != null &&
-                nearestStaffRangeTargetBuilding.Life <= nearestStaffRangeTargetBuilding.MaxLife * 0.25 ||
+                nearestStaffRangeTargetBuilding.Life <= nearestStaffRangeTargetBuilding.MaxLife * 0.5 ||
                 shootingTargetBuilding != null && shootingTargetBuilding.Life <= shootingTargetBuilding.MaxLife * 0.25)
             {
                 return goBonusResult;
@@ -2701,7 +2701,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
 
             foreach (var anemy in anemies)
             {
-                if (unit is Minion && (unit as Minion).Faction == Faction.Neutral && IsCalmNeutralMinion(unit as Minion)) continue;
+                if (anemy is Minion && (anemy as Minion).Faction == Faction.Neutral && IsCalmNeutralMinion(anemy as Minion)) continue;
 
                 var canShoot = IsOkDistanceToShoot(anemy, unit, eps);
                 if (canShoot) result.Add(anemy);
@@ -3910,6 +3910,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
 
         private LivingUnit GetShootingTarget()
         {
+            #region Спокойный нейтрал
             LivingUnit shootingTarget = null;
             var neutrals = _world.Minions.Where(x => x.Faction == Faction.Neutral);
             var minHp = double.MaxValue;
@@ -3930,7 +3931,9 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             }
 
             if (shootingTarget != null) return shootingTarget;
+            #endregion
 
+            #region Дохлый волшебник
 
             var wizards = _world.Wizards.Where(x => x.Faction != _self.Faction);
           
@@ -3945,12 +3948,11 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                 if (!IsOkDistanceToShoot(_self, target, 0d)) continue;
                 if (IsBlockingTree(_self, target, _game.MagicMissileRadius)) continue;
 
-                //var canShootWizard = CanShootWizard(_self, target);
                 var canShootWizard = CanShootWizard(_self, target);
 
                 var life = target.Life;
 
-                if (canShootWizard || IsWeakWizard(target))
+                if (IsWeakWizard(target))
                 {
                     if (life < minHp)
                     {
@@ -3958,18 +3960,12 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                         shootingTarget = target;
                     }
                 }
-                //else
-                //{
-                //    if (life < possibleMinHp)
-                //    {
-                //        possibleMinHp = life;
-                //        possibleShootingTarget = target;
-                //    }
-                //}
             }
 
             if (shootingTarget != null) return shootingTarget;
+            #endregion
 
+            #region Дохлая башня
 
             var minDist = double.MaxValue;
             foreach (var target in _world.Buildings)
@@ -3980,7 +3976,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
 
                 double distance = _self.GetDistanceTo(target);
 
-                if (distance < minDist && target.Life <= target.MaxLife * 0.25)
+                if (distance < minDist && target.Life <= target.MaxLife * 0.5)
                 {
                     minDist = distance;
                     shootingTarget = target;
@@ -3988,8 +3984,84 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             }
             if (shootingTarget != null) return shootingTarget;
 
+            #endregion
+    
+            #region Обычный волшебник
 
+            //LivingUnit possibleShootingTarget = null;
+
+            minHp = double.MaxValue;
+            //var possibleMinHp = double.MaxValue;
+
+            foreach (var target in wizards)
+            {
+                if (target.Faction == _self.Faction) continue;
+                if (!IsOkDistanceToShoot(_self, target, 0d)) continue;
+                if (IsBlockingTree(_self, target, _game.MagicMissileRadius)) continue;
+
+                var canShootWizard = CanShootWizard(_self, target);
+
+                var life = target.Life;
+
+                if (canShootWizard)
+                {
+                    if (life < minHp)
+                    {
+                        minHp = life;
+                        shootingTarget = target;
+                    }
+                }
+            }
+
+            if (shootingTarget != null) return shootingTarget;
+            #endregion
+
+            #region Опасный миньон
             var minions = _world.Minions;
+            minHp = double.MaxValue;
+            foreach (var target in minions.Where(x => x.Type == MinionType.FetishBlowdart && x.GetDistanceTo(_self) < GetAttackRange(x)))
+            {
+                if (target.Faction == _self.Faction) continue;
+                if (target.Faction == Faction.Neutral && !ShouldAttackNeutralMinion(target)) continue;
+                if (!IsOkDistanceToShoot(_self, target, 0d)) continue;
+                if (IsBlockingTree(_self, target, _game.MagicMissileRadius))
+                    continue;
+
+                //double distance = _self.GetDistanceTo(target);
+
+                var life = target.Life;
+                if (life < minHp)
+                {
+                    minHp = life;
+                    shootingTarget = target;
+                }
+            }
+
+            if (shootingTarget != null) return shootingTarget;
+
+            #endregion
+
+            #region Обычная башня
+            minDist = double.MaxValue;
+            foreach (var target in _world.Buildings)
+            {
+                if (target.Faction == _self.Faction) continue;
+                if (!IsOkDistanceToShoot(_self, target, 0d)) continue;
+                if (IsBlockingTree(_self, target, _game.MagicMissileRadius)) continue;
+
+                double distance = _self.GetDistanceTo(target);
+
+                if (distance < minDist && target.Life <= target.MaxLife)
+                {
+                    minDist = distance;
+                    shootingTarget = target;
+                }
+            }
+            if (shootingTarget != null) return shootingTarget;
+
+            #endregion
+
+            #region Миньон
             minHp = double.MaxValue;
             foreach (var target in minions)
             {
@@ -4011,24 +4083,8 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
 
             if (shootingTarget != null) return shootingTarget;
 
-
-            minDist = double.MaxValue;
-            foreach (var target in _world.Buildings)
-            {
-                if (target.Faction == _self.Faction) continue;
-                if (!IsOkDistanceToShoot(_self, target, 0d)) continue;
-                if (IsBlockingTree(_self, target, _game.MagicMissileRadius)) continue;
-
-                double distance = _self.GetDistanceTo(target);
-
-                if (distance < minDist)
-                {
-                    minDist = distance;
-                    shootingTarget = target;
-                }
-            }
-            if (shootingTarget != null) return shootingTarget;
-
+            #endregion
+            
             return null;
         }
 
@@ -4262,20 +4318,20 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
 
         private bool IsStrongOnLine(LivingUnit livingUnit, LaneType laneType)
         {
-            var isNearToBase = livingUnit.X < 2 * ROW_WIDTH && livingUnit.Y > _world.Height - 2 * ROW_WIDTH;
+            var isNearToBase = livingUnit.X <= 2 * ROW_WIDTH && livingUnit.Y >= _world.Height - 2 * ROW_WIDTH;
 
             if (isNearToBase) return false;
 
-            var isOnTop = livingUnit.Y < ROW_WIDTH || livingUnit.X < ROW_WIDTH ||
-                        livingUnit.Y < _world.Width / 2 - livingUnit.X;
+            var isOnTop = livingUnit.Y <= ROW_WIDTH || livingUnit.X <= ROW_WIDTH ||
+                        livingUnit.Y <= _world.Width / 2 - livingUnit.X;
 
             if (laneType == LaneType.Top)
             {
                 return isOnTop;
             }
 
-            var isOnBottom = livingUnit.Y > _world.Height - ROW_WIDTH || livingUnit.X > _world.Width - ROW_WIDTH ||
-                             livingUnit.Y > 3 * _world.Width / 2 - livingUnit.X;
+            var isOnBottom = livingUnit.Y >= _world.Height - ROW_WIDTH || livingUnit.X >= _world.Width - ROW_WIDTH ||
+                             livingUnit.Y >= 3 * _world.Width / 2 - livingUnit.X;
             if (laneType == LaneType.Bottom)
             {
                 return isOnBottom;
