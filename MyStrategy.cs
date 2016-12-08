@@ -3795,7 +3795,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                     }
                 }
 
-                return !friends.Any(x => x.Id == _self.Id) && anemies.Count > friends.Count || anemies.Any(x => x is Building);
+                return !friends.Any(x => x.Id == _self.Id) && anemies.Count > friends.Count;
 
             }
             else
