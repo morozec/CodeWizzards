@@ -211,7 +211,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
 
 
 
-            if (!_isLineSet && _world.TickIndex <= 600)
+            if (_world.TickIndex <= 600)
             {
                 var line = GetAgressiveLineToGo(_world.TickIndex < 600);
                 if (line != null)
