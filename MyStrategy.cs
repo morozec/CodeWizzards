@@ -4029,36 +4029,15 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
 
         private LivingUnit GetShootingTarget()
         {
-            #region Спокойный нейтрал
             LivingUnit shootingTarget = null;
-            var neutrals = _world.Minions.Where(x => x.Faction == Faction.Neutral);
-            var minHp = double.MaxValue;
-            foreach (var target in neutrals)
-            {
-                if (!IsCalmNeutralMinion(target) || !ShouldAttackNeutralMinion(target)) continue;
-                if (!IsOkDistanceToShoot(_self, target, 0d)) continue;
-                if (IsBlockingTree(_self, target, _game.MagicMissileRadius)) continue;
-
-                //double distance = _self.GetDistanceTo(target);
-
-                var life = target.Life;
-                if (life < minHp)
-                {
-                    minHp = life;
-                    shootingTarget = target;
-                }
-            }
-
-            if (shootingTarget != null) return shootingTarget;
-            #endregion
 
             #region Дохлый волшебник
 
             var wizards = _world.Wizards.Where(x => x.Faction != _self.Faction);
-          
+
             //LivingUnit possibleShootingTarget = null;
 
-            minHp = double.MaxValue;
+            var minHp = double.MaxValue;
             //var possibleMinHp = double.MaxValue;
 
             foreach (var target in wizards)
@@ -4076,6 +4055,29 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                         minHp = life;
                         shootingTarget = target;
                     }
+                }
+            }
+
+            if (shootingTarget != null) return shootingTarget;
+            #endregion
+
+            #region Спокойный нейтрал
+          
+            var neutrals = _world.Minions.Where(x => x.Faction == Faction.Neutral);
+            minHp = double.MaxValue;
+            foreach (var target in neutrals)
+            {
+                if (!IsCalmNeutralMinion(target) || !ShouldAttackNeutralMinion(target)) continue;
+                if (!IsOkDistanceToShoot(_self, target, 0d)) continue;
+                if (IsBlockingTree(_self, target, _game.MagicMissileRadius)) continue;
+
+                //double distance = _self.GetDistanceTo(target);
+
+                var life = target.Life;
+                if (life < minHp)
+                {
+                    minHp = life;
+                    shootingTarget = target;
                 }
             }
 
