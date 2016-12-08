@@ -184,6 +184,23 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
         public void Move(Wizard self, World world, Game game, Move move)
         {
             //Debug.beginPost();
+            //for (int i = 0; i < _n; ++i)
+            //{
+            //    for (int j = 0; j < _m; ++j)
+            //    {
+            //        var dist = _self.GetDistanceTo(_table[i, j].X, _table[i, j].Y);
+            //        if (dist > _self.CastRange) continue;
+
+            //        if (_table[i, j].Weight >= LIGHT_SHOOTING_SQUARE_WEIGHT && _table[i, j].Weight < 999999)
+            //        {
+            //            Debug.rect(_table[i, j].X, _table[i, j].Y, _table[i, j].X + _table[i, j].Side,
+            //                _table[i, j].Y + _table[i, j].Side, 150);
+            //        }
+            //    }
+            //}
+
+
+
             initializeTick(self, world, game, move);
             initializeStrategy(self, game);
 
@@ -195,6 +212,12 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             {
                 _line = GetAgressiveLineToGo();
             }
+
+            if (!_isLineSet && _world.TickIndex > 600)
+            {
+                if (IsStrongOnLine(_self, _line)) _isLineSet = true;
+            }
+
             //if (_world.TickIndex == 501 && !_isLineSet)
             //{
             //    _line = GetLineToGo();
@@ -284,20 +307,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
 
 
 
-            //for (int i = 0; i < _n; ++i)
-            //{
-            //    for (int j = 0; j < _m; ++j)
-            //    {
-            //        var dist = _self.GetDistanceTo(_table[i, j].X, _table[i, j].Y);
-            //        if (dist > _self.CastRange) continue;
-
-            //        if (_table[i, j].Weight == SHOOTING_SQUARE_WEIGHT)
-            //        {
-            //            Debug.rect(_table[i, j].X, _table[i, j].Y, _table[i, j].X + _table[i, j].Side,
-            //                _table[i, j].Y + _table[i, j].Side, 150);
-            //        }
-            //    }
-            //}
+     
 
 
 
@@ -2247,7 +2257,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                 }
             }
 
-            if (_world.TickIndex > 700)
+            if (_isLineSet)
             {
                 for (int i = 0; i < _n; ++i)
                 {
@@ -3822,10 +3832,10 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                 path = GetCorrectPath(path);
             }
 
-            //foreach (var p in path)
-            //{
-            //    Debug.circle((p as Square).X + _squareSize / 2, (p as Square).Y + _squareSize / 2, _squareSize / 2, 150);
-            //}
+            foreach (var p in path)
+            {
+                Debug.circle((p as Square).X + _squareSize / 2, (p as Square).Y + _squareSize / 2, _squareSize / 2, 150);
+            }
 
 
             double resX;
