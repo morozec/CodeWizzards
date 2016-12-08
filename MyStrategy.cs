@@ -1394,12 +1394,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             var building = source as Building;
             if (building != null)
             {
-                if (_self.Life < building.Damage + _game.DartDirectDamage) return true;
-
-                var nearFriends = friends.Where(f => building.GetDistanceTo(f) <= building.AttackRange);
-                var friendsCount = building.Type == BuildingType.GuardianTower ? 1 : 3;
-                if (building.GetDistanceTo(target) - target.Radius <= building.AttackRange && nearFriends.Count() <= friendsCount)
-                    return true;
+                return !CanGoToBuilding(building, friends);
             }
 
 
@@ -1413,6 +1408,31 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             //var Wizard = unit as Wizard;
 
 
+        }
+
+        private bool CanGoToBuilding (Building building, IList<LivingUnit> friends)
+        {
+            var nearFriends = friends.Where(f => building.GetDistanceTo(f) <= building.AttackRange && f.Id != _self.Id);
+
+            var selfBuildingDist = _self.GetDistanceTo(building);
+            var resultDist = selfBuildingDist + GetWizardMaxBackSpeed(_self) * building.RemainingActionCooldownTicks;
+            var canGoBack = resultDist - 70 > building.AttackRange;
+
+            var friendsCount = building.Type == BuildingType.GuardianTower ? 2 : 3;
+            if (_self.Life < building.Damage)
+            {
+                return nearFriends.Any(x => x.Life > _self.Life) || canGoBack;
+            }
+            else if (_self.Life > building.Damage)
+            {
+                if (nearFriends.Any(x => x.Life >= building.Damage && x.Life < _self.Life)) return true;
+                var myHpFriends = nearFriends.Where(x => x.Life == _self.Life);
+               
+                return myHpFriends.Count() >= friendsCount || canGoBack;
+            }
+            
+            //здоровье равно атаке башни
+            return canGoBack;
         }
 
         /// <summary>
@@ -4644,7 +4664,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                 if (!IsStrongOnLine(_anemyBuildings[i], _line)) continue;
 
                 if (_anemyBuildings[i].GetDistanceTo(_self) <
-                    _anemyBuildings[i].AttackRange + 2 * _self.Radius)
+                    _anemyBuildings[i].AttackRange + 2.5 * _self.Radius)
                 {
                     anemies.Add(_anemyBuildings[i]);
                 }
