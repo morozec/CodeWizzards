@@ -4916,8 +4916,9 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                     : (LaneType?) null;
             }
 
-            var maxLaneWizards = 0;
-            var resultLane = LaneType.Middle;
+           
+            var resultLane = _line;
+            var maxLaneWizards = laneWizards[resultLane];
             foreach (var laneType in laneTypes)
             {
                 if (laneWizards[laneType] > maxLaneWizards)
