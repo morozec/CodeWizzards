@@ -4813,8 +4813,6 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                 }
             }
 
-            laneWizards[LaneType.Top] = 0;
-
             var maxLaneWizards = 0;
             foreach (var laneType in laneTypes)
             {
