@@ -191,7 +191,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             UpdateBulletStartDatas();
             SendMessage();
 
-            if (_world.TickIndex <= 400)
+            if (_world.TickIndex <= 600)
             {
                 _line = GetAgressiveLineToGo();
             }
@@ -810,6 +810,33 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             return !isIntersect && canGoStraightPoint;
         }
 
+        private bool CanGoForward(Wizard target, BulletStartData bsd, double time)
+        {
+
+            var newX = target.X + GetWizardMaxForwardSpeed(target) * time * Math.Cos(target.Angle);
+            var newY = target.Y + GetWizardMaxForwardSpeed(target) * time * Math.Sin(target.Angle);
+
+            if (newX < target.Radius || newY < target.Radius || newX > _world.Width - target.Radius ||
+                newY > _world.Height - target.Radius)
+                return false;
+
+            //var canGo = CanGoSide(bsd, myX, myY);
+
+            var isIntersect = Square.Intersect(
+                bsd.StartX,
+                bsd.StartY,
+                bsd.EndX,
+                bsd.EndY,
+                newX,
+                newY,
+                bsd.Radius,
+                target.Radius);
+
+            return !isIntersect && GetGoStraightPoint(newX, newY, 0) != null;
+        }
+
+
+
         private bool CanGoLeft(Wizard target, BulletStartData bsd, double time)
         {
 
@@ -1185,7 +1212,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             var startX = source.X;
             var startY = source.Y;
 
-            return CanShootWithMissle(source, startX, startY, target, turnTime);
+            return CanShootWithMissle(source, startX, startY, target, turnTime, true);
         }
 
         private bool NeedRunBack(LivingUnit source, Wizard target, IList<LivingUnit> friends, bool isNextStep)
@@ -1294,7 +1321,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                         target.Messages);
                 }
 
-                var canShootWithMissle = CanShootWithMissle(wizard, startX, startY, newTarget, turnTime);
+                var canShootWithMissle = CanShootWithMissle(wizard, startX, startY, newTarget, turnTime, false);
                 if (canShootWithMissle) return true;
 
             }
@@ -1332,7 +1359,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
         /// <param name="target">цель стрельбы</param>
         /// <param name="turnTime">время поворота до цели</param>
         /// <returns></returns>
-        private bool CanShootWithMissle(Wizard wizard, double startX, double startY, Wizard target, double turnTime)
+        private bool CanShootWithMissle(Wizard wizard, double startX, double startY, Wizard target, double turnTime, bool checkAllWays)
         {
 
             var bsd = new BulletStartData(
@@ -1351,7 +1378,13 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                                wizard.RemainingCooldownTicksByAction[(int)ActionType.MagicMissile] + turnTime;
 
             var canGoBack = CanGoBack(target, bsd, nextTickTime, true);
-            return !canGoBack;
+            if (!checkAllWays) return !canGoBack;
+
+            var canGoForward = CanGoForward(target, bsd, nextTickTime);
+            var canGoLeft = CanGoForward(target, bsd, nextTickTime);
+            var canGoRight = CanGoForward(target, bsd, nextTickTime);
+
+            return !canGoBack && !canGoForward && !canGoLeft && !canGoRight;
         }
 
         private bool CanShootWithFrostBolt(Wizard wizard, double startX, double startY, Wizard target, double turnTime)
@@ -2214,7 +2247,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                 }
             }
 
-            if (_world.TickIndex > 550)
+            if (_world.TickIndex > 700)
             {
                 for (int i = 0; i < _n; ++i)
                 {
@@ -3736,7 +3769,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
 
         private bool goTo(Point2D point, double relaxCoeff, double strightRelaxCoeff, bool needTurn, IList<Point> path = null)
         {
-            if (_world.TickIndex < 400)
+            if (_world.TickIndex < 600)
             {
                 point = new Point2D(900, _world.Height - 1000);
             }
@@ -3900,7 +3933,8 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                     continue;
                 }
 
-
+                if (target is Building && !IsStrongOnLine(target, _line)) continue;
+                
                 if (target is Minion && (target as Minion).Faction == Faction.Neutral && IsCalmNeutralMinion(target as Minion)) continue;
 
                 var dist = _self.GetDistanceTo(target);
@@ -3952,8 +3986,6 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                 if (target.Faction == _self.Faction) continue;
                 if (!IsOkDistanceToShoot(_self, target, 0d)) continue;
                 if (IsBlockingTree(_self, target, _game.MagicMissileRadius)) continue;
-
-                var canShootWizard = CanShootWizard(_self, target);
 
                 var life = target.Life;
 
@@ -4053,6 +4085,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                 if (target.Faction == _self.Faction) continue;
                 if (!IsOkDistanceToShoot(_self, target, 0d)) continue;
                 if (IsBlockingTree(_self, target, _game.MagicMissileRadius)) continue;
+                if (!IsStrongOnLine(target, _line)) continue;
 
                 double distance = _self.GetDistanceTo(target);
 
@@ -4718,7 +4751,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                     resultLane = laneType;
                 }
             }
-            
+
             return resultLane;
         }
 
