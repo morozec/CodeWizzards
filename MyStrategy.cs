@@ -3697,7 +3697,26 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             if (isCalm)
             {
                 //стреляем, если ближе враг
-                return nearestUnit != null && nearestUnit.Faction != _self.Faction && minion.GetDistanceTo(nearestUnit) < 250;
+                var neutrals = _world.Minions.Where(x => x.Faction == Faction.Neutral && x.GetDistanceTo(minion) < 250);
+                var friends = new List<LivingUnit>();
+                var anemies = new List<LivingUnit>();
+                foreach (var neutral in neutrals)
+                {
+                    var newSortedUnits = units.OrderBy(x => x.GetDistanceTo(neutral));
+                    var newNearestUnit = newSortedUnits.First();
+                    if (neutral.GetDistanceTo(newNearestUnit) > 250) continue;
+                    if (newNearestUnit.Faction == _self.Faction)
+                    {
+                        friends.Add(newNearestUnit);
+                    }
+                    else
+                    {
+                        anemies.Add(newNearestUnit);
+                    }
+                }
+
+                return anemies.Count > friends.Count || anemies.Any(x => x is Building);
+
             }
             else
             {
