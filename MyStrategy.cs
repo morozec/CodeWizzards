@@ -3655,35 +3655,18 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                 units.Add(_anemyBuildings[i]);
             }
 
+            var sortedUnits = units.OrderBy(x => x.GetDistanceTo(minion));
+            var nearestUnit = sortedUnits.FirstOrDefault();
+
             var isCalm = IsCalmNeutralMinion(minion);
             if (isCalm)
             {
-                var nearNeutrals = _world.Minions.Where(x => x.Faction == Faction.Neutral && x.GetDistanceTo(minion) <= 250);
-                var selfFactionCount = 0;
-                var anemyFactionCount = 0;
-
-                foreach (var neutral in nearNeutrals)
-                {
-                    var sortedUnits = units.OrderBy(x => x.GetDistanceTo(neutral));
-                    if (sortedUnits.First().Id == _self.Id) return false;
-
-                    if (sortedUnits.First().Faction == _self.Faction)
-                    {
-                        selfFactionCount++;
-                    }
-                    else
-                    {
-                        anemyFactionCount++;
-                    }
-                }
-
-                return anemyFactionCount > selfFactionCount;
+                //стреляем, если ближе враг
+                return nearestUnit != null && nearestUnit.Faction != _self.Faction && minion.GetDistanceTo(nearestUnit) < 250;
             }
             else
             {
                 //стреляем, если ближе наш союзник
-                var sortedUnits = units.OrderBy(x => x.GetDistanceTo(minion));
-                var nearestUnit = sortedUnits.FirstOrDefault();
                 return nearestUnit != null && nearestUnit.Faction == _self.Faction;
             }
         }
