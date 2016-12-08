@@ -191,7 +191,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             UpdateBulletStartDatas();
             SendMessage();
 
-            if (!_isLineSet)
+            if (_world.TickIndex <= 400)
             {
                 _line = GetAgressiveLineToGo();
             }
@@ -2214,7 +2214,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                 }
             }
 
-            if (IsStrongOnLine(_self, _line))
+            if (_world.TickIndex > 550)
             {
                 for (int i = 0; i < _n; ++i)
                 {
@@ -4346,7 +4346,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                                    livingUnit.Y <= _world.Width + ROW_WIDTH - livingUnit.X;
 
             //Mid
-            return !isOnTop && !isOnBottom && isOnMainDiagonal;
+            return isOnMainDiagonal;
         }
 
         private bool IsOnLine(LivingUnit livingUnit)
