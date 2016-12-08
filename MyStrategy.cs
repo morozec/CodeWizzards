@@ -2026,39 +2026,100 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                 }
             }
 
-            var anemies = new List<LivingUnit>();
-            anemies.AddRange(_world.Wizards.Where(x => x.Faction != _self.Faction));
-            anemies.AddRange(_world.Minions.Where(x => x.Faction != _self.Faction && (!IsCalmNeutralMinion(x) || x.Faction != Faction.Neutral)));
-            for (int i = 0; i < _anemyBuildings.Count; ++i)
-            {
-                if (!_IsAnemyBuildingAlive[i]) continue;
-               anemies.Add(_anemyBuildings[i]);
-            }
+            //var anemies = new List<LivingUnit>();
+            //anemies.AddRange(_world.Wizards.Where(x => x.Faction != _self.Faction));
+            //anemies.AddRange(_world.Minions.Where(x => x.Faction != _self.Faction && (!IsCalmNeutralMinion(x) || x.Faction != Faction.Neutral)));
+            //for (int i = 0; i < _anemyBuildings.Count; ++i)
+            //{
+            //    if (!_IsAnemyBuildingAlive[i]) continue;
+            //   anemies.Add(_anemyBuildings[i]);
+            //}
 
 
-            foreach (var anemy in anemies)
+            //foreach (var anemy in anemies)
+            //{
+            //    var attackRange = GetAttackRange(anemy);
+            //    var weight = GetSquareWeight(anemy);
+            //    var x1 = anemy.X - attackRange;
+            //    var y1 = anemy.Y - attackRange;
+            //    var x2 = anemy.X + attackRange;
+            //    var y2 = anemy.Y + attackRange;
+
+            //    if (_lastTickPath != null)
+            //    {
+            //        foreach (Square p in _lastTickPath)
+            //        {
+            //            //if (p.Weight > 1) continue;
+
+            //            if (p.X + p.Side >= x1 && p.X <= x2 && p.Y + p.Side >= y1 && p.Y <= y2)
+            //            {
+            //                var centerX = p.X + _squareSize / 2;
+            //                var centerY = p.Y + _squareSize / 2;
+            //                var dist = anemy.GetDistanceTo(centerX, centerY);
+            //                if (dist < attackRange)
+            //                {
+            //                    p.Weight += weight;
+            //                }
+            //            }
+            //        }
+            //    }
+
+            //    var i1 = GetSquareI(x1);
+            //    if (i1 < 0) i1 = 0;
+            //    var j1 = GetSquareJ(y1);
+            //    if (j1 < 0) j1 = 0;
+            //    var i2 = GetSquareI(x2);
+            //    if (i2 > _n - 1) i2 = _n - 1;
+            //    var j2 = GetSquareJ(y2);
+            //    if (i2 > _m - 1) j2 = _m - 1;
+
+            //    for (int i = i1; i <= i2 && i < _n; ++i)
+            //    {
+            //        for (int j = j1; j <= j2 && j < _m; ++j)
+            //        {
+            //            //if (_table[i, j].Weight > 1) continue;
+
+            //            var centerX = _startX + i * _squareSize + _squareSize / 2;
+            //            var centerY = _startY + j * _squareSize + _squareSize / 2;
+            //            var dist = anemy.GetDistanceTo(centerX, centerY);
+            //            if (dist < attackRange)
+            //            {
+            //                _table[i, j].Weight += weight;
+            //            }
+            //        }
+            //    }
+            //}
+
+
+
+
+
+
+
+
+
+            for (int k = 0; k < _anemyBuildings.Count; ++k)
             {
-                var attackRange = GetAttackRange(anemy);
-                var weight = GetSquareWeight(anemy);
-                var x1 = anemy.X - attackRange;
-                var y1 = anemy.Y - attackRange;
-                var x2 = anemy.X + attackRange;
-                var y2 = anemy.Y + attackRange;
+                if (!_IsAnemyBuildingAlive[k]) continue;
+
+                var x1 = _anemyBuildings[k].X - _anemyBuildings[k].AttackRange;
+                var y1 = _anemyBuildings[k].Y - _anemyBuildings[k].AttackRange;
+                var x2 = _anemyBuildings[k].X + _anemyBuildings[k].AttackRange;
+                var y2 = _anemyBuildings[k].Y + _anemyBuildings[k].AttackRange;
 
                 if (_lastTickPath != null)
                 {
                     foreach (Square p in _lastTickPath)
                     {
-                        //if (p.Weight > 1) continue;
 
                         if (p.X + p.Side >= x1 && p.X <= x2 && p.Y + p.Side >= y1 && p.Y <= y2)
                         {
                             var centerX = p.X + _squareSize / 2;
                             var centerY = p.Y + _squareSize / 2;
-                            var dist = anemy.GetDistanceTo(centerX, centerY);
-                            if (dist < attackRange)
+                            var dist = _anemyBuildings[k].GetDistanceTo(centerX, centerY);
+                            if (dist < _anemyBuildings[k].AttackRange)
                             {
-                                p.Weight += weight;
+                                p.Weight += LIGHT_SHOOTING_SQUARE_WEIGHT;
                             }
                         }
                     }
@@ -2077,132 +2138,67 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                 {
                     for (int j = j1; j <= j2 && j < _m; ++j)
                     {
-                        //if (_table[i, j].Weight > 1) continue;
 
                         var centerX = _startX + i * _squareSize + _squareSize / 2;
                         var centerY = _startY + j * _squareSize + _squareSize / 2;
-                        var dist = anemy.GetDistanceTo(centerX, centerY);
-                        if (dist < attackRange)
+                        var dist = _anemyBuildings[k].GetDistanceTo(centerX, centerY);
+                        if (dist < _anemyBuildings[k].AttackRange)
                         {
-                            _table[i, j].Weight += weight;
+                            _table[i, j].Weight += LIGHT_SHOOTING_SQUARE_WEIGHT;
                         }
                     }
                 }
             }
 
+            foreach (var w in _world.Wizards.Where(x => x.Faction != _self.Faction))
+            {
+                var x1 = w.X - w.CastRange;
+                var y1 = w.Y - w.CastRange;
+                var x2 = w.X + w.CastRange;
+                var y2 = w.Y + w.CastRange;
 
+                if (_lastTickPath != null)
+                {
+                    foreach (Square p in _lastTickPath)
+                    {
 
+                        if (p.X + p.Side >= x1 && p.X <= x2 && p.Y + p.Side >= y1 && p.Y <= y2)
+                        {
+                            var centerX = p.X + _squareSize / 2;
+                            var centerY = p.Y + _squareSize / 2;
+                            var dist = w.GetDistanceTo(centerX, centerY);
+                            if (dist < w.CastRange)
+                            {
+                                p.Weight += LIGHT_SHOOTING_SQUARE_WEIGHT;
+                            }
+                        }
+                    }
+                }
 
+                var i1 = GetSquareI(x1);
+                if (i1 < 0) i1 = 0;
+                var j1 = GetSquareJ(y1);
+                if (j1 < 0) j1 = 0;
+                var i2 = GetSquareI(x2);
+                if (i2 > _n - 1) i2 = _n - 1;
+                var j2 = GetSquareJ(y2);
+                if (i2 > _m - 1) j2 = _m - 1;
 
+                for (int i = i1; i <= i2 && i < _n; ++i)
+                {
+                    for (int j = j1; j <= j2 && j < _m; ++j)
+                    {
 
-
-
-
-            //for (int k = 0; k < _anemyBuildings.Count; ++k)
-            //{
-            //    if (!_IsAnemyBuildingAlive[k]) continue;
-
-            //    var x1 = _anemyBuildings[k].X - _anemyBuildings[k].AttackRange;
-            //    var y1 = _anemyBuildings[k].Y - _anemyBuildings[k].AttackRange;
-            //    var x2 = _anemyBuildings[k].X + _anemyBuildings[k].AttackRange;
-            //    var y2 = _anemyBuildings[k].Y + _anemyBuildings[k].AttackRange;
-
-            //    if (_lastTickPath != null)
-            //    {
-            //        foreach (Square p in _lastTickPath)
-            //        {
-            //            if (p.Weight > 1) continue;
-
-            //            if (p.X + p.Side >= x1 && p.X <= x2 && p.Y + p.Side >= y1 && p.Y <= y2)
-            //            {
-            //                var centerX = p.X + _squareSize / 2;
-            //                var centerY = p.Y + _squareSize / 2;
-            //                var dist = _anemyBuildings[k].GetDistanceTo(centerX, centerY);
-            //                if (dist < _anemyBuildings[k].AttackRange)
-            //                {
-            //                    p.Weight += SHOOTING_SQUARE_WEIGHT;
-            //                }
-            //            }
-            //        }
-            //    }
-
-            //    var i1 = GetSquareI(x1);
-            //    if (i1 < 0) i1 = 0;
-            //    var j1 = GetSquareJ(y1);
-            //    if (j1 < 0) j1 = 0;
-            //    var i2 = GetSquareI(x2);
-            //    if (i2 > _n - 1) i2 = _n - 1;
-            //    var j2 = GetSquareJ(y2);
-            //    if (i2 > _m - 1) j2 = _m - 1;
-
-            //    for (int i = i1; i <= i2 && i < _n; ++i)
-            //    {
-            //        for (int j = j1; j <= j2 && j < _m; ++j)
-            //        {
-            //            if (_table[i, j].Weight > 1) continue;
-
-            //            var centerX = _startX + i * _squareSize + _squareSize / 2;
-            //            var centerY = _startY + j * _squareSize + _squareSize / 2;
-            //            var dist = _anemyBuildings[k].GetDistanceTo(centerX, centerY);
-            //            if (dist < _anemyBuildings[k].AttackRange)
-            //            {
-            //                _table[i, j].Weight += SHOOTING_SQUARE_WEIGHT;
-            //            }
-            //        }
-            //    }
-            //}
-
-            //foreach (var w in _world.Wizards.Where(x => x.Faction != _self.Faction))
-            //{
-            //    var x1 = w.X - w.CastRange;
-            //    var y1 = w.Y - w.CastRange;
-            //    var x2 = w.X + w.CastRange;
-            //    var y2 = w.Y + w.CastRange;
-
-            //    if (_lastTickPath != null)
-            //    {
-            //        foreach (Square p in _lastTickPath)
-            //        {
-            //            if (p.Weight > 1) continue;
-
-            //            if (p.X + p.Side >= x1 && p.X <= x2 && p.Y + p.Side >= y1 && p.Y <= y2)
-            //            {
-            //                var centerX = p.X + _squareSize / 2;
-            //                var centerY = p.Y + _squareSize / 2;
-            //                var dist = w.GetDistanceTo(centerX, centerY);
-            //                if (dist < w.CastRange)
-            //                {
-            //                    p.Weight += SHOOTING_SQUARE_WEIGHT;
-            //                }
-            //            }
-            //        }
-            //    }
-
-            //    var i1 = GetSquareI(x1);
-            //    if (i1 < 0) i1 = 0;
-            //    var j1 = GetSquareJ(y1);
-            //    if (j1 < 0) j1 = 0;
-            //    var i2 = GetSquareI(x2);
-            //    if (i2 > _n - 1) i2 = _n - 1;
-            //    var j2 = GetSquareJ(y2);
-            //    if (i2 > _m - 1) j2 = _m - 1;
-
-            //    for (int i = i1; i <= i2 && i < _n; ++i)
-            //    {
-            //        for (int j = j1; j <= j2 && j < _m; ++j)
-            //        {
-            //            if (_table[i, j].Weight > 1) continue;
-
-            //            var centerX = _startX + i * _squareSize + _squareSize / 2;
-            //            var centerY = _startY + j * _squareSize + _squareSize / 2;
-            //            var dist = w.GetDistanceTo(centerX, centerY);
-            //            if (dist < w.CastRange)
-            //            {
-            //                _table[i, j].Weight += SHOOTING_SQUARE_WEIGHT;
-            //            }
-            //        }
-            //    }
-            //}
+                        var centerX = _startX + i * _squareSize + _squareSize / 2;
+                        var centerY = _startY + j * _squareSize + _squareSize / 2;
+                        var dist = w.GetDistanceTo(centerX, centerY);
+                        if (dist < w.CastRange)
+                        {
+                            _table[i, j].Weight += LIGHT_SHOOTING_SQUARE_WEIGHT;
+                        }
+                    }
+                }
+            }
 
 
             var leftI = 0;
