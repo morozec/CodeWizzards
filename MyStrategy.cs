@@ -1260,7 +1260,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             }
         }
 
-        private bool CanShootWizard(Wizard source, Wizard target)
+        private bool CanShootWizard(Wizard source, Wizard target, bool checkBack, bool checkForward, bool checkSide)
         {
             var angle = source.GetAngleTo(target);
             var deltaAngle = Math.Abs(angle) - _game.StaffSector / 2;
@@ -1277,7 +1277,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             var startX = source.X;
             var startY = source.Y;
 
-            return CanShootWithMissle(source, startX, startY, target, turnTime, true);
+            return CanShootWithMissle(source, startX, startY, target, turnTime, checkBack, checkForward, checkSide);
         }
 
         private bool NeedRunBack(LivingUnit source, Wizard target, IList<LivingUnit> friends, bool isNextStep)
@@ -1386,7 +1386,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                         target.Messages);
                 }
 
-                var canShootWithMissle = CanShootWithMissle(wizard, startX, startY, newTarget, turnTime, false);
+                var canShootWithMissle = CanShootWithMissle(wizard, startX, startY, newTarget, turnTime, true, false, false);
                 if (canShootWithMissle) return true;
 
             }
@@ -1424,7 +1424,8 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
         /// <param name="target">цель стрельбы</param>
         /// <param name="turnTime">время поворота до цели</param>
         /// <returns></returns>
-        private bool CanShootWithMissle(Wizard wizard, double startX, double startY, Wizard target, double turnTime, bool checkAllWays)
+        private bool CanShootWithMissle(Wizard wizard, double startX, double startY, Wizard target, double turnTime, 
+            bool checkBack, bool checkForward, bool checkSide)
         {
 
             var bsd = new BulletStartData(
@@ -1442,12 +1443,10 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             var nextTickTime = bulletTime +
                                wizard.RemainingCooldownTicksByAction[(int)ActionType.MagicMissile] + turnTime;
 
-            var canGoBack = CanGoBack(target, bsd, nextTickTime, true);
-            if (!checkAllWays) return !canGoBack;
-
-            var canGoForward = CanGoForward(target, bsd, nextTickTime);
-            var canGoLeft = CanGoForward(target, bsd, nextTickTime);
-            var canGoRight = CanGoForward(target, bsd, nextTickTime);
+            var canGoBack = checkBack && CanGoBack(target, bsd, nextTickTime, true);
+            var canGoForward = checkForward && CanGoForward(target, bsd, nextTickTime);
+            var canGoLeft = checkSide && CanGoLeft(target, bsd, nextTickTime);
+            var canGoRight = checkSide && CanGoRight(target, bsd, nextTickTime);
 
             return !canGoBack && !canGoForward && !canGoLeft && !canGoRight;
         }
@@ -4048,7 +4047,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
 
                 var life = target.Life;
 
-                if (IsWeakWizard(target))
+                if (IsWeakWizard(target) && CanShootWizard(_self, target, false, true, false))
                 {
                     if (life < minHp)
                     {
@@ -4116,7 +4115,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                 if (!IsOkDistanceToShoot(_self, target, 0d)) continue;
                 //if (IsBlockingTree(_self, target, _game.MagicMissileRadius)) continue;
 
-                var canShootWizard = CanShootWizard(_self, target);
+                var canShootWizard = CanShootWizard(_self, target, true, true, true);
 
                 var life = target.Life;
 
@@ -4599,7 +4598,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             }
 
             var anemyWizards = _world.Wizards.Where(x => x.Faction != _self.Faction && x.Id != target.Id);
-            var isFarWizards = anemyWizards.All(x => !CanShootWizard(x, _self));
+            var isFarWizards = anemyWizards.All(x => !CanShootWizard(x, _self, true, true, true));
 
             var anemyMinions = _world.Minions.Where(x => x.Faction != _self.Faction);
             var isFarMinios = true;
