@@ -3658,7 +3658,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             var isCalm = IsCalmNeutralMinion(minion);
             if (isCalm)
             {
-                var nearNeutrals = _world.Minions.Where(x => x.Faction == Faction.Neutral && x.GetDistanceTo(minion) <= 300);
+                var nearNeutrals = _world.Minions.Where(x => x.Faction == Faction.Neutral && x.GetDistanceTo(minion) <= 250);
                 var selfFactionCount = 0;
                 var anemyFactionCount = 0;
 
@@ -3932,7 +3932,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             var minHp = double.MaxValue;
             foreach (var target in neutrals)
             {
-                if (!ShouldAttackNeutralMinion(target)) continue;
+                if (!IsCalmNeutralMinion(target) || !ShouldAttackNeutralMinion(target)) continue;
                 if (!IsOkDistanceToShoot(_self, target, 0d)) continue;
                 if (IsBlockingTree(_self, target, _game.MagicMissileRadius)) continue;
 
