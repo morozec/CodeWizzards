@@ -947,7 +947,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             }
 
             //if (_self.Life < _self.MaxLife * LOW_HP_BONUS_FACTOR) return goBonusResult;
-            var maxLength = 20 * _self.Radius * 2;
+            var maxLength = 17 * _self.Radius * 2;
             var pathMaxLength = maxLength / _squareSize;
             var closestTarget = GetClosestTarget();
             var needTurn = closestTarget == null || _self.GetDistanceTo(closestTarget) > _self.CastRange + _self.Radius * 5;
