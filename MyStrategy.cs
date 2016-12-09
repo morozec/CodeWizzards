@@ -848,7 +848,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             else if (_self.RemainingActionCooldownTicks == 0 && _self.Skills.Any(x => x == SkillType.Fireball) &&
                      (canFireballWizard || canFireballBuilding || canFiballUnit) &&
                      (realDist - _self.Radius > _game.FireballExplosionMinDamageRange) &&
-                     _self.RemainingCooldownTicksByAction[(int)ActionType.Fireball] == 0)
+                     _self.RemainingCooldownTicksByAction[(int)ActionType.Fireball] == 0 && shootingTarget.Faction != Faction.Neutral)
             {
                 _move.Action = ActionType.Fireball;
                 _move.CastAngle = angle;
