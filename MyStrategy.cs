@@ -1091,7 +1091,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                     continue;
                 }
 
-                if (unit is Minion && (unit as Minion).Faction == Faction.Neutral && IsCalmNeutralMinion(unit as Minion)) continue;
+                if (unit is Minion && (unit as Minion).Faction == Faction.Neutral) continue;
 
                 if (!IsStrongOnLine(unit, _line)) continue;
                 var dist = _selfBase.GetDistanceTo(unit);
@@ -4279,7 +4279,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
 
                 if (target is Building && !IsStrongOnLine(target, _line)) continue;
                 
-                if (target is Minion && (target as Minion).Faction == Faction.Neutral && IsCalmNeutralMinion(target as Minion)) continue;
+                if (target is Minion && (target as Minion).Faction == Faction.Neutral) continue;
 
                 var dist = _self.GetDistanceTo(target);
                 if (dist < minDist)
