@@ -1575,20 +1575,22 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
 
         private bool CanGoToBuilding (Building building, IList<LivingUnit> friends)
         {
+            const int eps = 70;
+
             var nearFriends = friends.Where(f => building.GetDistanceTo(f) <= building.AttackRange && f.Id != _self.Id);
 
             var selfBuildingDist = _self.GetDistanceTo(building);
             var resultDist = selfBuildingDist + GetWizardMaxBackSpeed(_self) * building.RemainingActionCooldownTicks;
-            var canGoBack = resultDist - 70 > building.AttackRange;
+            var canGoBack = resultDist - eps > building.AttackRange;
 
             var friendsCount = building.Type == BuildingType.GuardianTower ? 2 : 3;
             if (_self.Life < building.Damage)
             {
-                return nearFriends.Any(x => x.Life > _self.Life) || canGoBack;
+                return nearFriends.Any(x => x.Life > _self.Life && !CanFriendGoBack(x, building)) || canGoBack;
             }
             else if (_self.Life > building.Damage)
             {
-                if (nearFriends.Any(x => x.Life >= building.Damage && x.Life < _self.Life)) return true;
+                if (nearFriends.Any(x => x.Life >= building.Damage && x.Life < _self.Life && !CanFriendGoBack(x, building))) return true;
                 var myHpFriends = nearFriends.Where(x => x.Life == _self.Life);
                
                 return myHpFriends.Count() >= friendsCount || canGoBack;
@@ -1596,6 +1598,16 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             
             //здоровье равно атаке башни
             return canGoBack;
+        }
+
+        private bool CanFriendGoBack(LivingUnit unit, Building building)
+        {
+            var wizard = unit as Wizard;
+            if (wizard == null) return false;
+
+            var friendBuildingDist = wizard.GetDistanceTo(building);
+            var resultFriendDist = friendBuildingDist + GetWizardMaxBackSpeed(wizard) * building.RemainingActionCooldownTicks;
+            return resultFriendDist > building.AttackRange;
         }
 
         /// <summary>
@@ -4856,7 +4868,13 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                 if (_anemyBuildings[i].GetDistanceTo(_self) <
                     _anemyBuildings[i].AttackRange + 2.5 * _self.Radius)
                 {
-                    anemies.Add(_anemyBuildings[i]);
+                    var realBuilding =
+                        _world.Buildings.FirstOrDefault(
+                            b =>
+                                Math.Abs(b.X - _anemyBuildings[i].X) < TOLERANCE &&
+                                Math.Abs(b.Y - _anemyBuildings[i].Y) < TOLERANCE);
+
+                    anemies.Add(realBuilding ?? _anemyBuildings[i]);
                 }
             }
 
