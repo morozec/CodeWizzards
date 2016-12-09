@@ -817,6 +817,8 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
 
             var canFireballWizard = shootingWizard != null && CanShootWithFireball(_self, _self.X, _self.Y, shootingWizard, 0);
             var canFireballBuilding = shootingBuilding != null;
+            var wantedDist = distance + shootingTarget.Radius;
+            var realDist = shootingTarget is Building ? (wantedDist > _self.CastRange ? _self.CastRange : wantedDist) : distance;
             //_self.GetDistanceTo(shootingBuilding) - _self.Radius > _game.FireballExplosionMinDamageRange;
 
 
@@ -845,12 +847,12 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             }
             else if (_self.RemainingActionCooldownTicks == 0 && _self.Skills.Any(x => x == SkillType.Fireball) &&
                      (canFireballWizard || canFireballBuilding || canFiballUnit) &&
-                     (_self.GetDistanceTo(shootingTarget) - _self.Radius > _game.FireballExplosionMinDamageRange) &&
+                     (realDist - _self.Radius > _game.FireballExplosionMinDamageRange) &&
                      _self.RemainingCooldownTicksByAction[(int)ActionType.Fireball] == 0)
             {
                 _move.Action = ActionType.Fireball;
                 _move.CastAngle = angle;
-                _move.MinCastDistance = distance - shootingTarget.Radius + _game.FireballRadius;
+                _move.MinCastDistance = shootingTarget is Building ? realDist - 1 : distance - shootingTarget.Radius + _game.FireballRadius;
             }
             else if (_self.RemainingActionCooldownTicks == 0 && _self.Skills.Any(x => x == SkillType.FrostBolt) &&
                      shootingWizard != null && CanShootWithFrostBolt(_self, _self.X, _self.Y, shootingWizard, 0) &&
@@ -1440,7 +1442,23 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             var startX = source.X;
             var startY = source.Y;
 
-            return CanShootWithMissle(source, startX, startY, target, turnTime, checkBack, checkForward, checkSide);
+            var canShootWithMissle = CanShootWithMissle(
+                source,
+                startX,
+                startY,
+                target,
+                turnTime,
+                checkBack,
+                checkForward,
+                checkSide);
+
+            var canShootWithFireball = source.Skills.Any(x => x == SkillType.Fireball) &&
+                                       CanShootWithFireball(source, startX, startY, target, turnTime);
+
+            var canShootWithFrostBolt = source.Skills.Any(x => x == SkillType.FrostBolt) &&
+                                      CanShootWithFrostBolt(source, startX, startY, target, turnTime);
+
+            return canShootWithMissle || canShootWithFrostBolt || canShootWithFireball;
         }
 
         private bool NeedRunBack(LivingUnit source, Wizard target, IList<LivingUnit> friends, bool isNextStep)
