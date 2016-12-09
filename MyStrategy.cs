@@ -1089,7 +1089,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
 
         private bool CanStayForBonus(double gotBonusTime)
         {
-            var dangerousAnemies = GetDangerousAnemies(_self, 0d).Where(x => x is Wizard);
+            var dangerousAnemies = GetDangerousAnemies(_self, _self.Radius * 2).Where(x => x is Wizard);
             var coolDownDamage = 0d;
             
             foreach (Wizard anemy in dangerousAnemies)
@@ -1586,11 +1586,11 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             var friendsCount = building.Type == BuildingType.GuardianTower ? 2 : 3;
             if (_self.Life < building.Damage)
             {
-                return nearFriends.Any(x => x.Life > _self.Life && !CanFriendGoBack(x, building)) || canGoBack;
+                return nearFriends.Count(x => x.Life > _self.Life && !CanFriendGoBack(x, building)) >=2 || canGoBack;
             }
             else if (_self.Life > building.Damage)
             {
-                if (nearFriends.Any(x => x.Life >= building.Damage && x.Life < _self.Life && !CanFriendGoBack(x, building))) return true;
+                if (nearFriends.Count(x => x.Life >= building.Damage && x.Life < _self.Life && !CanFriendGoBack(x, building)) >= 2) return true;
                 var myHpFriends = nearFriends.Where(x => x.Life == _self.Life);
                
                 return myHpFriends.Count() >= friendsCount || canGoBack;
@@ -4310,7 +4310,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                 if (!IsOkDistanceToShoot(_self, target, 0d)) continue;
                 //if (IsBlockingTree(_self, target, _game.MagicMissileRadius)) continue;
 
-                var canShootWizard = CanShootWizard(_self, target, true, false, false);
+                var canShootWizard = CanShootWizard(_self, target, true, true, true);
 
                 var life = target.Life;
 
