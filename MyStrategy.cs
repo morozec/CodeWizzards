@@ -214,6 +214,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
 
             UpdateWizardsLanes();
 
+            var isNearToBase = _self.X <= 2 * ROW_WIDTH && _self.Y >= _world.Height - 2 * ROW_WIDTH;
 
 
             if (_world.TickIndex <= 600)
@@ -225,6 +226,11 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                     _isLineSet = true;
                 }
             }
+            else if (isNearToBase)
+            {
+                _line = GetNearToBaseLine();
+            }
+
 
             if (_bonusPoints[0].getDistanceTo(_self) < (_self.Radius + _game.BonusRadius)*2)
             {
@@ -464,7 +470,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                         //}
                         else
                         {
-                            var nearestBaseTarget = GetNearestMyBaseAnemy();
+                            var nearestBaseTarget = GetNearestMyBaseAnemy(_line);
                             //                            var isAnemyBase = nearestBaseTarget is Building && (nearestBaseTarget as Building).Type == BuildingType.FactionBase;
 
                             if (nearestBaseTarget != null)
@@ -1076,7 +1082,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
         }
 
 
-        private LivingUnit GetNearestMyBaseAnemy()
+        private LivingUnit GetNearestMyBaseAnemy(LaneType lane)
         {
             var units = new List<LivingUnit>();
             units.AddRange(_world.Buildings);
@@ -1093,7 +1099,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
 
                 if (unit is Minion && (unit as Minion).Faction == Faction.Neutral) continue;
 
-                if (!IsStrongOnLine(unit, _line)) continue;
+                if (!IsStrongOnLine(unit, lane)) continue;
                 var dist = _selfBase.GetDistanceTo(unit);
                 if (dist < minDist)
                 {
@@ -5131,6 +5137,48 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             return null;
         }
 
+        private LaneType GetNearToBaseLine()
+        {
+            var laneTypes = new List<LaneType>()
+            {
+                LaneType.Middle,
+                LaneType.Top,
+                LaneType.Bottom
+            };
+
+            var dangerousLines = new List<LaneType>();
+            foreach (var laneType in laneTypes)
+            {
+                if (_world.Buildings.Any(x => x.Faction == _self.Faction 
+                    && x.Type != BuildingType.FactionBase && IsStrongOnLine(x, laneType)))
+                {
+                    continue;
+                }
+                dangerousLines.Add(laneType);
+            }
+
+            if (!dangerousLines.Any()) return GetAgressiveLineToGo(false).Value;
+
+            var resultLane = dangerousLines.First();
+            var minDist = double.MaxValue;
+            foreach (var lane in dangerousLines)
+            {
+                var nearestAnemy = GetNearestMyBaseAnemy(lane);
+                if (nearestAnemy != null)
+                {
+                    var dist = nearestAnemy.GetDistanceTo(_world.Buildings.First(
+                        x => x.Faction == _self.Faction && x.Type == BuildingType.FactionBase));
+                    if (dist < minDist )
+                    {
+                        minDist = dist;
+                        resultLane = lane;
+                    }
+                }
+            }
+
+            return resultLane;
+        }
+       
         private LaneType GetOptimalLine(LaneType excludingLaneType)
         {
             var optimalLine = _line;
