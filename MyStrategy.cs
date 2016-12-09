@@ -2502,34 +2502,34 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                 }
             }
 
-            if (_isLineSet)
-            {
-                for (int i = 0; i < _n; ++i)
-                {
-                    for (int j = 0; j < _m; ++j)
-                    {
-                        var square = _table[i, j];
+            //if (_isLineSet)
+            //{
+            //    for (int i = 0; i < _n; ++i)
+            //    {
+            //        for (int j = 0; j < _m; ++j)
+            //        {
+            //            var square = _table[i, j];
 
-                        if (square.X <= ROW_WIDTH*2 && square.Y >= _world.Height - ROW_WIDTH*2) continue;
-                        if (square.Y <= ROW_WIDTH*2 && square.X >= _world.Width - ROW_WIDTH*2) continue;
+            //            if (square.X <= ROW_WIDTH*2 && square.Y >= _world.Height - ROW_WIDTH*2) continue;
+            //            if (square.Y <= ROW_WIDTH*2 && square.X >= _world.Width - ROW_WIDTH*2) continue;
 
-                        if (_line == LaneType.Top && square.Y > _world.Width - ROW_WIDTH - square.X)
-                        {
-                            square.Weight = 999999;
-                        }
-                        if (_line == LaneType.Bottom && square.Y < _world.Width + ROW_WIDTH - square.X)
-                        {
-                            square.Weight = 999999;
-                        }
-                        if (_line == LaneType.Middle && (square.X <= ROW_WIDTH || square.Y <= ROW_WIDTH ||
-                                                         square.X >= _world.Width - ROW_WIDTH ||
-                                                         square.Y >= _world.Height - ROW_WIDTH))
-                        {
-                            square.Weight = 999999;
-                        }
-                    }
-                }
-            }
+            //            if (_line == LaneType.Top && square.Y > _world.Width - ROW_WIDTH - square.X)
+            //            {
+            //                square.Weight = 999999;
+            //            }
+            //            if (_line == LaneType.Bottom && square.Y < _world.Width + ROW_WIDTH - square.X)
+            //            {
+            //                square.Weight = 999999;
+            //            }
+            //            if (_line == LaneType.Middle && (square.X <= ROW_WIDTH || square.Y <= ROW_WIDTH ||
+            //                                             square.X >= _world.Width - ROW_WIDTH ||
+            //                                             square.Y >= _world.Height - ROW_WIDTH))
+            //            {
+            //                square.Weight = 999999;
+            //            }
+            //        }
+            //    }
+            //}
         }
 
         //private void MakeStaticAStar()
