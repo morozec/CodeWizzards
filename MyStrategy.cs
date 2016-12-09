@@ -1133,7 +1133,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                             var delta = 2;
 
                             if (selfTime < nearstWizardTime - delta &&
-                                selfTime < (_game.BonusAppearanceIntervalTicks - _gotBonus0Time) - delta)
+                                selfTime < (_game.BonusAppearanceIntervalTicks - gotBonusTime) - delta)
                             {
                                 wizardPreventPoint = GetGoStraightPoint(wizardCp.X, wizardCp.Y, 0);
                             }
