@@ -412,9 +412,13 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                                 target = closestTarget;
                             }
 
-                            _thisTickResPoint = new Point2D(target.X, target.Y);
-                            goTo(new Point2D(target.X, target.Y), _game.StaffRange + target.Radius - TOLERANCE,
-                                _game.StaffRange + target.Radius - TOLERANCE, false);
+                            if (target != null) //TODO!!!
+                            {
+                                _thisTickResPoint = new Point2D(target.X, target.Y);
+
+                                goTo(new Point2D(target.X, target.Y), _game.StaffRange + target.Radius - TOLERANCE,
+                                    _game.StaffRange + target.Radius - TOLERANCE, false);
+                            }
                         }
 
                         else
@@ -1097,7 +1101,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                     continue;
                 }
 
-                if (unit is Minion && (unit as Minion).Faction == Faction.Neutral) continue;
+                if (unit is Minion && (unit as Minion).Faction == Faction.Neutral && IsCalmNeutralMinion(unit as Minion)) continue;
 
                 if (!IsStrongOnLine(unit, lane)) continue;
                 var dist = _selfBase.GetDistanceTo(unit);
@@ -4289,7 +4293,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
 
                 if (target is Building && !IsStrongOnLine(target, _line)) continue;
                 
-                if (target is Minion && (target as Minion).Faction == Faction.Neutral) continue;
+                if (target is Minion && (target as Minion).Faction == Faction.Neutral && IsCalmNeutralMinion(target as Minion)) continue;
 
                 var dist = _self.GetDistanceTo(target);
                 if (dist < minDist)
@@ -4896,8 +4900,8 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             var building = target as Building;
             if (building == null || building.Type != BuildingType.FactionBase) return false;
 
-            var isWeakBuilding = target.Life <= target.MaxLife*0.33;
-            var isOkHp = _self.Life > _self.MaxMana*0.5;
+            var isWeakBuilding = target.Life <= target.MaxLife*0.5;
+            var isOkHp = _self.Life > _self.MaxLife*0.25;
 
             var anemyMinions = _world.Minions.Where(x => x.Faction != _self.Faction);
             var isFarMinios = true;
