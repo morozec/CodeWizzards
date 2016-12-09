@@ -5193,6 +5193,11 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
 
             foreach (var lane in _myWizards.Keys.Where(x => x != excludingLaneType))
             {
+                if (_myWizards[lane].Count == 0 && _anemyWizards[lane].Count == 1)
+                {
+                    return lane; //сдерживаем одинокого
+                }
+
                 var coeff = _anemyWizards[lane].Count == 0
                     ? _myWizards[lane].Count
                     : _myWizards[lane].Count*1d/_anemyWizards[lane].Count;
