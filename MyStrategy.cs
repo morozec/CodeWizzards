@@ -4974,12 +4974,14 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
         {
             if (!_self.IsMaster) return;
 
+            var resultLine = _isLineSet ? _line : LaneType.Middle;
+
             _move.Messages = new Message[]
             {
-                new Message(LaneType.Middle, null, new byte[0]),
-                new Message(LaneType.Middle, null, new byte[0]),
-                new Message(LaneType.Middle, null, new byte[0]),
-                new Message(LaneType.Middle, null, new byte[0]),
+                new Message(resultLine, null, new byte[0]),
+                new Message(resultLine, null, new byte[0]),
+                new Message(resultLine, null, new byte[0]),
+                new Message(resultLine, null, new byte[0]),
             };
         }
 
