@@ -338,7 +338,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             _anemyBaseX = _world.Width - _selfBase.X;
             _anemyBaseY = _world.Height - _selfBase.Y;
 
-            var nearestStaffTarget = GetNearestStaffRangeTarget();
+            var nearestStaffTarget = GetNearestStaffRangeTarget(_self);
             var shootingTarget = GetShootingTarget();
 
             var goBonusResult = CheckAndGoForBonus(nearestStaffTarget, shootingTarget);
@@ -637,9 +637,129 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
 
         private double GetShootingPower(Wizard wizard)
         {
-            double defaultDamage = _game.MagicMissileDirectDamage;
-            if (wizard.Statuses.Any(x => x.Type == StatusType.Empowered)) defaultDamage *= _game.EmpoweredDamageFactor;
-            return defaultDamage;
+            var defaultDamage = _game.MagicMissileDirectDamage;
+            double resultDamage = defaultDamage;
+
+            if (wizard.Skills.Any(x => x == SkillType.MagicalDamageBonusAura2))
+            {
+                resultDamage += 4;
+            }
+            else if (wizard.Skills.Any(x => x == SkillType.MagicalDamageBonusPassive2))
+            {
+                resultDamage += 3;
+            }
+            else if (wizard.Skills.Any(x => x == SkillType.MagicalDamageBonusAura1))
+            {
+                resultDamage += 2;
+            }
+            else if (wizard.Skills.Any(x => x == SkillType.MagicalDamageBonusPassive1))
+            {
+                resultDamage += 1;
+            }
+
+
+            var nearWizards =
+                _world.Wizards.Where(
+                    w =>
+                        w.Id != wizard.Id && w.Faction == wizard.Faction &&
+                        w.GetDistanceTo(wizard) <= _game.AuraSkillRange);
+
+            SkillType? maxAura = null;
+            foreach (var w in nearWizards)
+            {
+                if (w.Skills.Contains(SkillType.MagicalDamageBonusAura2))
+                {
+                    maxAura = SkillType.MagicalDamageBonusAura2;
+                    break;
+                }
+                if (w.Skills.Contains(SkillType.MagicalDamageBonusAura1))
+                {
+                    maxAura = SkillType.MagicalDamageBonusAura1;
+                }
+            }
+
+            if (maxAura == SkillType.MagicalDamageBonusAura2)
+            {
+                resultDamage += 2;
+            }
+            else if (maxAura == SkillType.MagicalDamageBonusAura1)
+            {
+                resultDamage += 1;
+            }
+
+            if (wizard.Statuses.Any(x => x.Type == StatusType.Empowered))
+            {
+                resultDamage *= 1.5;
+            }
+
+
+            return resultDamage;
+
+
+            //double defaultDamage = _game.MagicMissileDirectDamage;
+            //if (wizard.Statuses.Any(x => x.Type == StatusType.Empowered)) defaultDamage *= _game.EmpoweredDamageFactor;
+            //return defaultDamage;
+        }
+
+        private double GetStaffPower(Wizard wizard)
+        {
+            var defaultDamage = _game.StaffDamage;
+            double resultDamage = defaultDamage;
+
+            if (wizard.Skills.Any(x => x == SkillType.StaffDamageBonusAura2))
+            {
+                resultDamage += 3 * 4;
+            }
+            else if (wizard.Skills.Any(x => x == SkillType.StaffDamageBonusPassive2))
+            {
+                resultDamage += 3 * 3;
+            }
+            else if (wizard.Skills.Any(x => x == SkillType.StaffDamageBonusAura1))
+            {
+                resultDamage += 3 * 2;
+            }
+            else if (wizard.Skills.Any(x => x == SkillType.StaffDamageBonusPassive1))
+            {
+                resultDamage += 3 * 1;
+            }
+
+
+            var nearWizards =
+                _world.Wizards.Where(
+                    w =>
+                        w.Id != wizard.Id && w.Faction == wizard.Faction &&
+                        w.GetDistanceTo(wizard) <= _game.AuraSkillRange);
+
+            SkillType? maxAura = null;
+            foreach (var w in nearWizards)
+            {
+                if (w.Skills.Contains(SkillType.StaffDamageBonusAura2))
+                {
+                    maxAura = SkillType.StaffDamageBonusAura2;
+                    break;
+                }
+                if (w.Skills.Contains(SkillType.StaffDamageBonusAura1))
+                {
+                    maxAura = SkillType.StaffDamageBonusAura1;
+                }
+            }
+
+            if (maxAura == SkillType.StaffDamageBonusAura2)
+            {
+                resultDamage += 3 * 2;
+            }
+            else if (maxAura == SkillType.StaffDamageBonusAura1)
+            {
+                resultDamage += 3 * 1;
+            }
+
+            if (wizard.Statuses.Any(x => x.Type == StatusType.Empowered))
+            {
+                resultDamage *= 1.5;
+            }
+
+
+            return resultDamage;
         }
 
         private void MakeGoBack(BulletStartData bullet, double runBackTime)
@@ -967,6 +1087,34 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             return fullTime;
         }
 
+        private bool CanStayForBonus(double gotBonusTime)
+        {
+            var dangerousAnemies = GetDangerousAnemies(_self, 0d).Where(x => x is Wizard);
+            var coolDownDamage = 0d;
+            
+            foreach (Wizard anemy in dangerousAnemies)
+            {
+                if (_self.Life > anemy.Life) return true;
+
+                var nearestStaffRangeTarget = GetNearestStaffRangeTarget(anemy);
+
+                var shootingDamage = GetShootingPower(anemy);
+                var staffDamage = 0d;
+                if (nearestStaffRangeTarget != null && nearestStaffRangeTarget.Id == _self.Id)
+                {
+                    staffDamage = GetStaffPower(anemy);
+                }
+
+                coolDownDamage += (shootingDamage + staffDamage);
+            }
+
+            var twoCooldownHp = coolDownDamage*2;
+
+            var timeToTwoCooldownHp = (_self.Life - twoCooldownHp)/coolDownDamage*_game.MagicMissileCooldownTicks;
+
+            return timeToTwoCooldownHp > _game.BonusAppearanceIntervalTicks - gotBonusTime;
+        }
+
         private GoBonusResult CheckAndGoForBonus(LivingUnit nearestStaffRangeTarget, LivingUnit shootingTarget)
         {
             var goBonusResult = new GoBonusResult()
@@ -997,7 +1145,9 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                 friends.AddRange(currentFriends);
             }
 
-            if (dangerousAnemies.Count() > friends.Count ||
+            var isMoreFriends = friends.Count > dangerousAnemies.Count();
+            var isMoreAnemies = dangerousAnemies.Count() > friends.Count;
+            if (isMoreAnemies ||
                 _self.Life < _self.MaxLife * LOW_HP_FACTOR && IsInDangerousArea(_self, eps))
             {
                 return goBonusResult;
@@ -1058,29 +1208,42 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             {
                 if (path0Weight < path1Weight)
                 {
-                    GoToBonus(_bonusPoints[0], relaxCoeff, relax0Coeff, needTurn, path0, _gotBonus0Time, ref isWoodCut);
+                    if (isMoreFriends || CanStayForBonus(_gotBonus0Time))
+                    {
+                        GoToBonus(_bonusPoints[0], relaxCoeff, relax0Coeff, needTurn, path0, _gotBonus0Time, ref isWoodCut);
+                        goBonusResult.IsGo = true;
+                        goBonusResult.IsWoodCut = isWoodCut;
+                    }
                 }
                 else
                 {
-                    GoToBonus(_bonusPoints[1], relaxCoeff, relax1Coeff, needTurn, path1, _gotBonus1Time, ref isWoodCut);
+                    if (isMoreFriends || CanStayForBonus(_gotBonus1Time))
+                    {
+                        GoToBonus(_bonusPoints[1], relaxCoeff, relax1Coeff, needTurn, path1, _gotBonus1Time, ref isWoodCut);
+                        goBonusResult.IsGo = true;
+                        goBonusResult.IsWoodCut = isWoodCut;
+                    }
                 }
-                goBonusResult.IsGo = true;
-                goBonusResult.IsWoodCut = isWoodCut;
+                
             }
             else if (path0 != null && dt1 > path0Time)
             {
-                GoToBonus(_bonusPoints[0], relaxCoeff, relax0Coeff, needTurn, path0, _gotBonus0Time, ref isWoodCut);
-
-                goBonusResult.IsGo = true;
-                goBonusResult.IsWoodCut = isWoodCut;
+                if (isMoreFriends || CanStayForBonus(_gotBonus0Time))
+                {
+                    GoToBonus(_bonusPoints[0], relaxCoeff, relax0Coeff, needTurn, path0, _gotBonus0Time, ref isWoodCut);
+                    goBonusResult.IsGo = true;
+                    goBonusResult.IsWoodCut = isWoodCut;
+                }
 
             }
             else if (path1 != null && dt0 > path1Time)
             {
-                GoToBonus(_bonusPoints[1], relaxCoeff, relax1Coeff, needTurn, path1, _gotBonus1Time, ref isWoodCut);
-
-                goBonusResult.IsGo = true;
-                goBonusResult.IsWoodCut = isWoodCut;
+                if (isMoreFriends || CanStayForBonus(_gotBonus1Time))
+                {
+                    GoToBonus(_bonusPoints[1], relaxCoeff, relax1Coeff, needTurn, path1, _gotBonus1Time, ref isWoodCut);
+                    goBonusResult.IsGo = true;
+                    goBonusResult.IsWoodCut = isWoodCut;
+                }
             }
             return goBonusResult;
 
@@ -3216,7 +3379,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
         }
 
 
-        private LivingUnit GetNearestStaffRangeTarget()
+        private LivingUnit GetNearestStaffRangeTarget(Wizard source)
         {
             var targets = new List<LivingUnit>();
             targets.AddRange(_world.Buildings);
@@ -3229,7 +3392,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
 
             foreach (var target in targets)
             {
-                if (target.Faction == _self.Faction)
+                if (target.Faction == source.Faction)
                 {
                     continue;
                 }
@@ -3240,17 +3403,17 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                 //var angle = _self.GetAngleTo(target);
                 //if (Math.Abs(angle) > _game.StaffSector / 2.0D) continue;
 
-                var distance = _self.GetDistanceTo(target) - target.Radius;
+                var distance = source.GetDistanceTo(target) - target.Radius;
                 if (distance > _game.StaffRange) continue;
 
 
-                if (_self.GetDistanceTo(target) <= minDist)
+                if (source.GetDistanceTo(target) <= minDist)
                 {
-                    if (_self.GetDistanceTo(target) < minDist || Math.Abs(_self.GetAngleTo(target)) < minAngle)
+                    if (source.GetDistanceTo(target) < minDist || Math.Abs(source.GetAngleTo(target)) < minAngle)
                     {
                         nearestTarget = target;
-                        minDist = _self.GetDistanceTo(target);
-                        minAngle = Math.Abs(_self.GetAngleTo(target));
+                        minDist = source.GetDistanceTo(target);
+                        minAngle = Math.Abs(source.GetAngleTo(target));
                     }
                 }
             }
@@ -4135,7 +4298,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                 if (!IsOkDistanceToShoot(_self, target, 0d)) continue;
                 //if (IsBlockingTree(_self, target, _game.MagicMissileRadius)) continue;
 
-                var canShootWizard = CanShootWizard(_self, target, true, true, true);
+                var canShootWizard = CanShootWizard(_self, target, true, false, false);
 
                 var life = target.Life;
 
@@ -4548,22 +4711,22 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             SkillType? maxAura = null;
             foreach (var w in nearWizards)
             {
-                if (w.Skills.Contains(SkillType.MovementBonusFactorPassive2))
+                if (w.Skills.Contains(SkillType.MovementBonusFactorAura2))
                 {
-                    maxAura = SkillType.MovementBonusFactorPassive2;
+                    maxAura = SkillType.MovementBonusFactorAura2;
                     break;
                 }
-                if (w.Skills.Contains(SkillType.MovementBonusFactorPassive1))
+                if (w.Skills.Contains(SkillType.MovementBonusFactorAura1))
                 {
-                    maxAura = SkillType.MovementBonusFactorPassive1;
+                    maxAura = SkillType.MovementBonusFactorAura1;
                 }
             }
 
-            if (maxAura == SkillType.MovementBonusFactorPassive2)
+            if (maxAura == SkillType.MovementBonusFactorAura2)
             {
                 resultSpeed += defaultSpeed * 0.1;
             }
-            else if (maxAura == SkillType.MovementBonusFactorPassive1)
+            else if (maxAura == SkillType.MovementBonusFactorAura1)
             {
                 resultSpeed += defaultSpeed * 0.05;
             }
