@@ -3947,7 +3947,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                 {
                     var newSortedUnits = units.OrderBy(x => x.GetDistanceTo(neutral));
                     var newNearestUnit = newSortedUnits.First();
-                    if (neutral.GetDistanceTo(newNearestUnit) > 500) continue;
+                    //if (neutral.GetDistanceTo(newNearestUnit) > 500) continue;
                     if (newNearestUnit.Faction == _self.Faction)
                     {
                         friends.Add(newNearestUnit);
