@@ -145,6 +145,10 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
 
         private IDictionary<long, BulletStartData> _bulletStartDatas;
 
+        private IDictionary<LaneType, IList<long>> _myWizards;
+        private IDictionary<LaneType, IList<long>> _anemyWizards;
+
+
         private readonly SkillType[] _skillsOrder = new SkillType[]
         {
 
@@ -208,6 +212,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             UpdateBulletStartDatas();
             SendMessage();
 
+            UpdateWizardsLanes();
 
 
 
@@ -223,12 +228,12 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
 
             if (_bonusPoints[0].getDistanceTo(_self) < (_self.Radius + _game.BonusRadius)*2)
             {
-                _line = GetAgressiveLineToGo(LaneType.Bottom);
+                _line = GetOptimalLine(LaneType.Bottom);
                 _isLineSet = false;
             }
             if (_bonusPoints[1].getDistanceTo(_self) < (_self.Radius + _game.BonusRadius)*2)
             {
-                _line = GetAgressiveLineToGo(LaneType.Top);
+                _line = GetOptimalLine(LaneType.Top);
                 _isLineSet = false;
             }
 
@@ -627,6 +632,37 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             //goTo(nextWaypoint, _self.Radius * 4, false, true);
 
             //Debug.endPost();
+        }
+
+        private void UpdateWizardsLanes()
+        {
+            foreach (var wizard in _world.Wizards.Where(x => !x.IsMe))
+            {
+                var line = GetLineType(wizard);
+                if (line == null) continue;
+                if (wizard.Faction == _self.Faction)
+                {
+                    if (!_myWizards[line.Value].Any(x => x == wizard.Id))
+                    {
+                        _myWizards[line.Value].Add(wizard.Id);
+                        foreach (var item in _myWizards.Where(x => x.Key != line.Value))
+                        {
+                            _myWizards[item.Key].Remove(wizard.Id);
+                        }
+                    }
+                }
+                else
+                {
+                    if (!_anemyWizards[line.Value].Any(x => x == wizard.Id))
+                    {
+                        _anemyWizards[line.Value].Add(wizard.Id);
+                        foreach (var item in _anemyWizards.Where(x => x.Key != line.Value))
+                        {
+                            _anemyWizards[item.Key].Remove(wizard.Id);
+                        }
+                    }
+                }
+            }
         }
 
         private bool IsWeakWizard(LivingUnit unit)
@@ -3635,6 +3671,20 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                 _random = new Random(DateTime.Now.Millisecond);
                 _bulletStartDatas = new Dictionary<long, BulletStartData>();
 
+                _myWizards = new Dictionary<LaneType, IList<long>>()
+                {
+                    {LaneType.Top, new List<long>()},
+                    {LaneType.Middle, new List<long>()},
+                    {LaneType.Bottom, new List<long>()},
+                };
+
+                _anemyWizards = new Dictionary<LaneType, IList<long>>()
+                {
+                    {LaneType.Top, new List<long>()},
+                    {LaneType.Middle, new List<long>()},
+                    {LaneType.Bottom, new List<long>()},
+                };
+
                 var radiusSum = _self.Radius + _game.BonusRadius;
                 _bonus0TopPoint = new Point2D(
                     _bonusPoints[0].X - radiusSum * Math.Cos(Math.PI / 4),
@@ -4640,6 +4690,42 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             return (pos3 == PointPosition.Left && pos4 == PointPosition.Right);
         }
 
+        private bool IsTotallyOnLine(LivingUnit livingUnit, LaneType laneType)
+        {
+            var isNearToBase = livingUnit.X <= 2 * ROW_WIDTH && livingUnit.Y >= _world.Height - 2 * ROW_WIDTH;
+
+            if (isNearToBase) return false;
+
+            var isOnTop = livingUnit.Y <= ROW_WIDTH || livingUnit.X <= ROW_WIDTH;
+                     
+            if (laneType == LaneType.Top)
+            {
+                return isOnTop;
+            }
+
+            var isOnBottom = livingUnit.Y >= _world.Height - ROW_WIDTH || livingUnit.X >= _world.Width - ROW_WIDTH;
+                            
+            if (laneType == LaneType.Bottom)
+            {
+                return isOnBottom;
+            }
+
+            var isOnMainDiagonal = livingUnit.Y >= _world.Width - ROW_WIDTH - livingUnit.X &&
+                                   livingUnit.Y <= _world.Width + ROW_WIDTH - livingUnit.X;
+
+            //Mid
+            return isOnMainDiagonal;
+        }
+
+        private LaneType? GetLineType(LivingUnit unit)
+        {
+            if (IsTotallyOnLine(unit, LaneType.Top)) return LaneType.Top;
+            if (IsTotallyOnLine(unit, LaneType.Middle)) return LaneType.Middle;
+            if (IsTotallyOnLine(unit, LaneType.Bottom)) return LaneType.Bottom;
+            return null;
+
+        }
+
         private bool IsStrongOnLine(LivingUnit livingUnit, LaneType laneType)
         {
             var isNearToBase = livingUnit.X <= 2 * ROW_WIDTH && livingUnit.Y >= _world.Height - 2 * ROW_WIDTH;
@@ -5039,6 +5125,31 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             }
 
             return null;
+        }
+
+        private LaneType GetOptimalLine(LaneType excludingLaneType)
+        {
+            var optimalLine = _line;
+            var myWiardsOnOptimalLine = _myWizards[optimalLine].Count;
+            var maxCoeff = _anemyWizards[optimalLine].Count == 0
+                    ? _myWizards[optimalLine].Count
+                    : _myWizards[optimalLine].Count * 1d / _anemyWizards[optimalLine].Count;
+
+            foreach (var lane in _myWizards.Keys.Where(x => x != excludingLaneType))
+            {
+                var coeff = _anemyWizards[lane].Count == 0
+                    ? _myWizards[lane].Count
+                    : _myWizards[lane].Count*1d/_anemyWizards[lane].Count;
+
+                if (coeff > maxCoeff || coeff >= maxCoeff && _myWizards[lane].Count < myWiardsOnOptimalLine)
+                {
+                    optimalLine = lane;
+                    myWiardsOnOptimalLine = _myWizards[lane].Count;
+                }
+
+            }
+
+            return optimalLine;
         }
 
         private LaneType GetAgressiveLineToGo(LaneType excludingLaneType)
