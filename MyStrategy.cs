@@ -3049,7 +3049,11 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             {
                 if (anemy is Minion && (anemy as Minion).Faction == Faction.Neutral && IsCalmNeutralMinion(anemy as Minion)) continue;
 
-                var canShoot = IsOkDistanceToShoot(anemy, unit, eps);
+                var correctEps = eps;
+                if (anemy is Wizard && (anemy as Wizard).Skills.Any(x => x == SkillType.Fireball))
+                    correctEps = eps + _self.Radius*2;
+
+                var canShoot = IsOkDistanceToShoot(anemy, unit, correctEps);
                 if (canShoot) result.Add(anemy);
 
             }
@@ -5331,19 +5335,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                 _line = newLine;
             }
         }
-
-        private bool CanGoOnStaffRange(LivingUnit closestTarget)
-        {
-            if (closestTarget == null) return false;
-            var newPoint = GetStraightRelaxPoint(closestTarget.X, closestTarget.Y,
-                _game.StaffRange + closestTarget.Radius);
-            var newMe = new Wizard(_self.Id, newPoint.X, newPoint.Y, _self.SpeedX, _self.SpeedY, _self.Angle,
-                _self.Faction, _self.Radius, _self.Life, _self.MaxLife, _self.Statuses, _self.OwnerPlayerId, _self.IsMe,
-                _self.Mana, _self.MaxMana, _self.VisionRange, _self.CastRange, _self.Xp, _self.Level, _self.Skills,
-                _self.RemainingActionCooldownTicks, _self.RemainingCooldownTicksByAction, _self.IsMaster, _self.Messages);
-            return !GetDangerousAnemies(newMe, _self.Radius * 2).Any(x => x is Wizard || x is Building);
-        }
-
+        
         private SkillType GetSkillTypeToLearn()
         {
             var skills = _self.Skills;
