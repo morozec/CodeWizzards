@@ -1127,6 +1127,8 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             
             //не идем, если атакуем дохлого волшебника
             if (IsOkToRunForWeakWizard(shootingTarget)) return goBonusResult;
+            //если близко к чужой базе
+            if (IsCloseToWin()) return goBonusResult;
 
             //не идем, если атакуем дохлую башню
             var nearestStaffRangeTargetBuilding = nearestStaffRangeTarget as Building;
@@ -4817,6 +4819,11 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             var isFarWizards = anemyWizards.All(x => !CanShootWizard(x, _self, true, true, true));
 
             return isWeakBuilding && isOkHp && isFarMinios && isFarWizards;
+        }
+
+        private bool IsCloseToWin()
+        {
+            return _self.GetDistanceTo(_anemyBaseX, _anemyBaseY) < 1200;
         }
 
         private bool IsOkToRunForWeakWizard(LivingUnit target)
