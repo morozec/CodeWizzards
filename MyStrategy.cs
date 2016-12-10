@@ -894,7 +894,8 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             else if (_self.RemainingActionCooldownTicks == 0 && _self.Skills.Any(x => x == SkillType.Fireball) &&
                      (canFireballWizard || canFireballBuilding || canFiballUnit) &&
                      (realDist - _self.Radius > _game.FireballExplosionMinDamageRange) &&
-                     _self.RemainingCooldownTicksByAction[(int)ActionType.Fireball] == 0 && shootingTarget.Faction != Faction.Neutral)
+                     _self.RemainingCooldownTicksByAction[(int)ActionType.Fireball] == 0 && shootingTarget.Faction != Faction.Neutral
+                    && !IsBlockingTree(_self, shootingTarget, _game.FireballRadius))
             {
                 _move.Action = ActionType.Fireball;
                 _move.CastAngle = angle;
@@ -902,7 +903,8 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             }
             else if (_self.RemainingActionCooldownTicks == 0 && _self.Skills.Any(x => x == SkillType.FrostBolt) &&
                      shootingWizard != null && CanShootWithFrostBolt(_self, _self.X, _self.Y, shootingWizard, 0) &&
-                     _self.RemainingCooldownTicksByAction[(int)ActionType.FrostBolt] == 0)
+                     _self.RemainingCooldownTicksByAction[(int)ActionType.FrostBolt] == 0
+                && !IsBlockingTree(_self, shootingTarget, _game.FrostBoltRadius))
             {
                 _move.Action = ActionType.FrostBolt;
                 _move.CastAngle = angle;
