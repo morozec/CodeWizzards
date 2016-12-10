@@ -5202,31 +5202,39 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
 
             return resultLane;
         }
+
+        private double GetLineCoeff(int myWizardsCount, int anemyWizardsCount)
+        {
+            var correctMyWizardsCount = myWizardsCount;
+            var correctAnemyWizardsCount = anemyWizardsCount;
+
+            if (myWizardsCount == 0 || anemyWizardsCount == 0)
+            {
+                correctAnemyWizardsCount++;
+                correctAnemyWizardsCount++;
+            }
+            return correctAnemyWizardsCount * 1d / correctAnemyWizardsCount;
+        }
        
         private LaneType GetOptimalLine(LaneType excludingLaneType)
         {
-            var exceludingLineCoeff = _anemyWizards[excludingLaneType].Count == 0
-                ? _myWizards[excludingLaneType].Count + 0.1
-                : _myWizards[excludingLaneType].Count * 1d / _anemyWizards[excludingLaneType].Count;
+            var exceludingLineCoeff = GetLineCoeff(_myWizards[excludingLaneType].Count,
+                _anemyWizards[excludingLaneType].Count);
 
             var isAgressiveExcludingLine = exceludingLineCoeff > 1;
 
             var optimalLine = _line;
             var myWiardsOnOptimalLine = _myWizards[optimalLine].Count;
-            var optimalCoeff = _anemyWizards[optimalLine].Count == 0
-                    ? _myWizards[optimalLine].Count + 0.1
-                    : _myWizards[optimalLine].Count * 1d / _anemyWizards[optimalLine].Count;
+            var optimalCoeff = GetLineCoeff(_myWizards[optimalLine].Count, _anemyWizards[optimalLine].Count);
 
             foreach (var lane in _myWizards.Keys.Where(x => x != excludingLaneType))
             {
-                if (_myWizards[lane].Count == 0 && _anemyWizards[lane].Count == 1)
-                {
-                    return lane; //сдерживаем одинокого
-                }
+//                if (_myWizards[lane].Count == 0 && _anemyWizards[lane].Count == 1)
+//                {
+//                    return lane; //сдерживаем одинокого
+//                }
 
-                var coeff = _anemyWizards[lane].Count == 0
-                    ? _myWizards[lane].Count
-                    : _myWizards[lane].Count*1d/_anemyWizards[lane].Count;
+                var coeff = GetLineCoeff(_myWizards[lane].Count, _anemyWizards[lane].Count);
 
                 if (isAgressiveExcludingLine)
                 {
