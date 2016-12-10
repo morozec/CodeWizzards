@@ -1177,6 +1177,8 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             if (IsOkToRunForWeakWizard(shootingTarget)) return goBonusResult;
             //если близко к чужой базе
             if (IsCloseToWin()) return goBonusResult;
+            //Если на центре и не сломали башню
+            if (IsMidLineAndMidTowerAlive()) return goBonusResult;
 
             //не идем, если атакуем дохлую башню
             var nearestStaffRangeTargetBuilding = nearestStaffRangeTarget as Building;
@@ -4926,6 +4928,22 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
         private bool IsCloseToWin()
         {
             return _self.GetDistanceTo(_anemyBaseX, _anemyBaseY) < 1200;
+        }
+
+        private bool IsMidLineAndMidTowerAlive()
+        {
+            if (_line != LaneType.Middle) return false;
+            var midTowersCount = 0;
+            for (int i = 0; i < _anemyBuildings.Count; ++i)
+            {
+                if (!_IsAnemyBuildingAlive[i]) continue;
+                if (_anemyBuildings[i].Type == BuildingType.FactionBase) continue;
+                if (!IsStrongOnLine(_anemyBuildings[i], _line)) continue;
+
+                midTowersCount++;
+            }
+
+            return midTowersCount == 2;
         }
 
         private bool IsOkToRunForWeakWizard(LivingUnit target)
