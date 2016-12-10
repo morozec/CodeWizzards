@@ -5187,10 +5187,16 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
        
         private LaneType GetOptimalLine(LaneType excludingLaneType)
         {
+            var exceludingLineCoeff = _anemyWizards[excludingLaneType].Count == 0
+                ? _myWizards[excludingLaneType].Count + 0.1
+                : _myWizards[excludingLaneType].Count * 1d / _anemyWizards[excludingLaneType].Count;
+
+            var isAgressiveExcludingLine = exceludingLineCoeff > 1;
+
             var optimalLine = _line;
             var myWiardsOnOptimalLine = _myWizards[optimalLine].Count;
-            var maxCoeff = _anemyWizards[optimalLine].Count == 0
-                    ? _myWizards[optimalLine].Count
+            var optimalCoeff = _anemyWizards[optimalLine].Count == 0
+                    ? _myWizards[optimalLine].Count + 0.1
                     : _myWizards[optimalLine].Count * 1d / _anemyWizards[optimalLine].Count;
 
             foreach (var lane in _myWizards.Keys.Where(x => x != excludingLaneType))
@@ -5204,10 +5210,21 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                     ? _myWizards[lane].Count
                     : _myWizards[lane].Count*1d/_anemyWizards[lane].Count;
 
-                if (coeff > maxCoeff || coeff >= maxCoeff && _myWizards[lane].Count < myWiardsOnOptimalLine)
+                if (isAgressiveExcludingLine)
                 {
-                    optimalLine = lane;
-                    myWiardsOnOptimalLine = _myWizards[lane].Count;
+                    if (coeff < optimalCoeff || coeff <= optimalCoeff && _myWizards[lane].Count < myWiardsOnOptimalLine)
+                    {
+                        optimalLine = lane;
+                        myWiardsOnOptimalLine = _myWizards[lane].Count;
+                    }
+                }
+                else
+                {
+                    if (coeff > optimalCoeff || coeff >= optimalCoeff && _myWizards[lane].Count < myWiardsOnOptimalLine)
+                    {
+                        optimalLine = lane;
+                        myWiardsOnOptimalLine = _myWizards[lane].Count;
+                    }
                 }
 
             }
