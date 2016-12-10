@@ -1225,7 +1225,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             //если близко к чужой базе
             if (IsCloseToWin()) return goBonusResult;
             //Если на центре и не сломали башню
-            if (IsMidLineAndMidTowerAlive()) return goBonusResult;
+            //if (IsMidLineAndMidTowerAlive()) return goBonusResult;
 
             //не идем, если атакуем дохлую башню
             var nearestStaffRangeTargetBuilding = nearestStaffRangeTarget as Building;
