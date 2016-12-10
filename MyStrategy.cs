@@ -1317,9 +1317,9 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             //Debug.circle(x2, y2, 10, 150);
 
             var goStraightPoint = GetGoStraightPoint(bonusPoint.X, bonusPoint.Y, relaxCoeff - TOLERANCE * 10000);
-            var goVsp1PointPoint = GetGoStraightPoint(x1, y1, relaxCoeff/2);
-            var goVsp2PointPoint = GetGoStraightPoint(x2, y2, relaxCoeff/2);
-            if (goStraightPoint != null || goVsp1PointPoint != null || goVsp2PointPoint != null)
+//            var goVsp1PointPoint = GetGoStraightPoint(x1, y1, relaxCoeff/2);
+//            var goVsp2PointPoint = GetGoStraightPoint(x2, y2, relaxCoeff/2);
+            if (goStraightPoint != null)
             {
 
                 var nearstWizard = GetClosestToBonusWizard(bonusPoint);
@@ -1360,8 +1360,8 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
 
                 if (realRelaxCoeff == 0)
                 {
-                    if (goStraightPoint != null)
-                    {
+//                    if (goStraightPoint != null)
+//                    {
                         _thisTickResPoint = new Point2D(bonusPoint.X, bonusPoint.Y);
                         isWoodCut = goTo(
                             bonusPoint,
@@ -1369,27 +1369,27 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                             relaxCoeff - TOLERANCE * 100,
                             needTurn,
                             path);
-                    }
-                    else if (goVsp1PointPoint != null)
-                    {
-                        _thisTickResPoint = new Point2D(x1, y1);
-                        isWoodCut = goTo(
-                            new Point2D(x1, y1),
-                            relaxCoeff / 2,
-                            relaxCoeff / 2,
-                            needTurn,
-                            path);
-                    }
-                    else //goVsp2PointPoint != null
-                    {
-                        _thisTickResPoint = new Point2D(x2, y2);
-                        isWoodCut = goTo(
-                            new Point2D(x2, y2),
-                            relaxCoeff / 2,
-                            relaxCoeff / 2,
-                            needTurn,
-                            path);
-                    }
+//                    }
+//                    else if (goVsp1PointPoint != null)
+//                    {
+//                        _thisTickResPoint = new Point2D(x1, y1);
+//                        isWoodCut = goTo(
+//                            new Point2D(x1, y1),
+//                            relaxCoeff / 2,
+//                            relaxCoeff / 2,
+//                            needTurn,
+//                            path);
+//                    }
+//                    else //goVsp2PointPoint != null
+//                    {
+//                        _thisTickResPoint = new Point2D(x2, y2);
+//                        isWoodCut = goTo(
+//                            new Point2D(x2, y2),
+//                            relaxCoeff / 2,
+//                            relaxCoeff / 2,
+//                            needTurn,
+//                            path);
+//                    }
                 }
                 else if (wizardPreventPoint != null)
                 {
