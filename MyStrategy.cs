@@ -62,6 +62,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
 
         private static double SHOOTING_SQUARE_WEIGHT = 7;
         private static double LIGHT_SHOOTING_SQUARE_WEIGHT = 3;
+        private static double CLOSE_TO_WIN_DISTANCE = 1200;
 
         /**
          * �������� ����� ��� ������ �����, ����������� ��������� ���������� ������������ ����������.
@@ -4344,20 +4345,23 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             #endregion
 
             #region Спокойный нейтрал
-          
-            var neutrals = _world.Minions.Where(x => x.Faction == Faction.Neutral);
-            minHp = double.MaxValue;
-            foreach (var target in neutrals)
-            {
-                if (!IsCalmNeutralMinion(target) || !ShouldAttackNeutralMinion(target)) continue;
-                if (!IsOkDistanceToShoot(_self, target, 0d)) continue;
-                if (IsBlockingTree(_self, target, _game.MagicMissileRadius)) continue;
 
-                var life = target.Life;
-                if (life < minHp)
+            if (!IsCloseToWin() || GetLineAliveAnemyTowersCount(_line) > 0)
+            {
+                var neutrals = _world.Minions.Where(x => x.Faction == Faction.Neutral);
+                minHp = double.MaxValue;
+                foreach (var target in neutrals)
                 {
-                    minHp = life;
-                    shootingTarget = target;
+                    if (!IsCalmNeutralMinion(target) || !ShouldAttackNeutralMinion(target)) continue;
+                    if (!IsOkDistanceToShoot(_self, target, 0d)) continue;
+                    if (IsBlockingTree(_self, target, _game.MagicMissileRadius)) continue;
+
+                    var life = target.Life;
+                    if (life < minHp)
+                    {
+                        minHp = life;
+                        shootingTarget = target;
+                    }
                 }
             }
 
@@ -4927,21 +4931,27 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
 
         private bool IsCloseToWin()
         {
-            return _self.GetDistanceTo(_anemyBaseX, _anemyBaseY) < 1200;
+            return _self.GetDistanceTo(_anemyBaseX, _anemyBaseY) < CLOSE_TO_WIN_DISTANCE;
+        }
+
+        private int GetLineAliveAnemyTowersCount(LaneType lane)
+        {
+            var towersCount = 0;
+            for (int i = 0; i < _anemyBuildings.Count; ++i)
+            {
+                if (!_IsAnemyBuildingAlive[i]) continue;
+                if (_anemyBuildings[i].Type == BuildingType.FactionBase) continue;
+                if (!IsStrongOnLine(_anemyBuildings[i], lane)) continue;
+
+                towersCount++;
+            }
+            return towersCount;
         }
 
         private bool IsMidLineAndMidTowerAlive()
         {
             if (_line != LaneType.Middle) return false;
-            var midTowersCount = 0;
-            for (int i = 0; i < _anemyBuildings.Count; ++i)
-            {
-                if (!_IsAnemyBuildingAlive[i]) continue;
-                if (_anemyBuildings[i].Type == BuildingType.FactionBase) continue;
-                if (!IsStrongOnLine(_anemyBuildings[i], _line)) continue;
-
-                midTowersCount++;
-            }
+            var midTowersCount = GetLineAliveAnemyTowersCount(_line);
 
             return midTowersCount == 2;
         }
