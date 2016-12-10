@@ -5299,10 +5299,10 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
 
             if (myWizardsCount == 0 || anemyWizardsCount == 0)
             {
-                correctAnemyWizardsCount++;
+                correctMyWizardsCount++;
                 correctAnemyWizardsCount++;
             }
-            return correctAnemyWizardsCount * 1d / correctAnemyWizardsCount;
+            return correctMyWizardsCount * 1d / correctAnemyWizardsCount;
         }
        
         private LaneType GetOptimalLine(LaneType excludingLaneType)
