@@ -149,6 +149,8 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
         private IDictionary<LaneType, IList<long>> _myWizards;
         private IDictionary<LaneType, IList<long>> _anemyWizards;
 
+        private List<Wizard> _allMyWizards;
+        private List<Wizard> _allAnemyWizards;
 
         private readonly SkillType[] _skillsOrder = new SkillType[]
         {
@@ -647,6 +649,50 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
 
         private void UpdateWizardsLanes()
         {
+            #region Удаление моих мертвых
+            var myDeadWizards = new List<Wizard>();
+            foreach (var wizard in _allMyWizards)
+            {
+                if (!_world.Wizards.Any(x => x.Id == wizard.Id))
+                {
+                    myDeadWizards.Add(wizard);
+                }
+            }
+
+            foreach (var myDeadWizard in myDeadWizards)
+            {
+                foreach (var item in _myWizards)
+                {
+                    _myWizards[item.Key].Remove(myDeadWizard.Id);
+                }
+            }
+            #endregion
+
+            foreach (var wizard in _world.Wizards.Where(x => x.Faction != _self.Faction))
+            {
+                _allAnemyWizards.RemoveAll(x => x.Id == wizard.Id);
+                _allAnemyWizards.Add(wizard);
+            }
+
+            var anemyDeadWizards = new List<Wizard>();
+            foreach (var wizard in _allAnemyWizards)
+            {
+                if (!_world.Wizards.Any(x => x.Id == wizard.Id) && IsPointVisible(wizard.X, wizard.Y, 12d))
+                {
+                    anemyDeadWizards.Add(wizard);
+                }
+            }
+
+            foreach (var anemyDeadWizard in anemyDeadWizards)
+            {
+                foreach (var item in _anemyWizards)
+                {
+                    _anemyWizards[item.Key].Remove(anemyDeadWizard.Id);
+                }
+            }
+
+
+
             foreach (var wizard in _world.Wizards.Where(x => !x.IsMe))
             {
                 var line = GetLineType(wizard);
@@ -1939,6 +1985,35 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             //return stillCanShoot;
 
 
+        }
+
+        private bool IsPointVisible(double x, double y, double eps)
+        {
+            foreach (var unit in _world.Buildings.Where(u => u.Faction == _self.Faction))
+            {
+                var dist = unit.GetDistanceTo(x, y);
+                if (dist + eps <= unit.VisionRange)
+                {
+                    return true;
+                }
+            }
+            foreach (var unit in _world.Wizards.Where(u => u.Faction == _self.Faction))
+            {
+                var dist = unit.GetDistanceTo(x, y);
+                if (dist + eps <= unit.VisionRange)
+                {
+                    return true;
+                }
+            }
+            foreach (var unit in _world.Minions.Where(u => u.Faction == _self.Faction))
+            {
+                var dist = unit.GetDistanceTo(x, y);
+                if (dist + eps <= unit.VisionRange)
+                {
+                    return true;
+                }
+            }
+            return false;
         }
 
         private bool IsSquareVisible(Square square)
@@ -3703,6 +3778,10 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                     {LaneType.Middle, new List<long>()},
                     {LaneType.Bottom, new List<long>()},
                 };
+
+                _allMyWizards = new List<Wizard>();
+                _allAnemyWizards = new List<Wizard>();
+                _allMyWizards.AddRange(_world.Wizards.Where(x => !x.IsMe && x.Faction == _self.Faction));
 
                 var radiusSum = _self.Radius + _game.BonusRadius;
                 _bonus0TopPoint = new Point2D(
