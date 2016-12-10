@@ -235,19 +235,22 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             }
 
 
-            if (_bonusPoints[0].getDistanceTo(_self) < (_self.Radius + _game.BonusRadius)*2)
-            {
-                _line = GetOptimalLine(LaneType.Bottom);
-                _isLineSet = false;
-            }
-            if (_bonusPoints[1].getDistanceTo(_self) < (_self.Radius + _game.BonusRadius)*2)
-            {
-                _line = GetOptimalLine(LaneType.Top);
-                _isLineSet = false;
-            }
+             if (world.TickIndex > 2000)
+             {
+                 if (_bonusPoints[0].getDistanceTo(_self) < (_self.Radius + _game.BonusRadius) * 2)
+                 {
+                     _line = GetOptimalLine(LaneType.Bottom);
+                     _isLineSet = false;
+                 }
+                 if (_bonusPoints[1].getDistanceTo(_self) < (_self.Radius + _game.BonusRadius) * 2)
+                 {
+                     _line = GetOptimalLine(LaneType.Top);
+                     _isLineSet = false;
+                 }
+             }
 
 
-            if (!_isLineSet && _world.TickIndex > 600)
+             if (!_isLineSet && _world.TickIndex > 600)
             {
                 if (IsStrongOnLine(_self, _line)) _isLineSet = true;
             }
