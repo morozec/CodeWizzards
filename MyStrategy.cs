@@ -216,45 +216,10 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             UpdateBulletStartDatas();
             SendMessage();
 
-            UpdateWizardsLanes();
-
-            var isNearToBase = _self.X <= 2 * ROW_WIDTH && _self.Y >= _world.Height - 2 * ROW_WIDTH;
-
-
-            if (_world.TickIndex <= 600)
-            {
-                var line = GetAgressiveLineToGo(_world.TickIndex < 600);
-                if (line != null)
-                {
-                    _line = line.Value;
-                    _isLineSet = true;
-                }
-            }
-            else if (isNearToBase)
-            {
-                _line = GetNearToBaseLine();
-            }
-
-
-             if (world.TickIndex > 2000)
+             if (world.Players.Count() != 2)
              {
-                 if (_bonusPoints[0].getDistanceTo(_self) < (_self.Radius + _game.BonusRadius) * 2)
-                 {
-                     _line = GetOptimalLine(LaneType.Bottom);
-                     _isLineSet = false;
-                 }
-                 if (_bonusPoints[1].getDistanceTo(_self) < (_self.Radius + _game.BonusRadius) * 2)
-                 {
-                     _line = GetOptimalLine(LaneType.Top);
-                     _isLineSet = false;
-                 }
+                 InitializeLineActions();
              }
-
-
-             if (!_isLineSet && _world.TickIndex > 600)
-            {
-                if (IsStrongOnLine(_self, _line)) _isLineSet = true;
-            }
 
             //if (_world.TickIndex == 501 && !_isLineSet)
             //{
@@ -649,6 +614,48 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             //goTo(nextWaypoint, _self.Radius * 4, false, true);
 
             //Debug.endPost();
+        }
+
+        private void InitializeLineActions()
+        {
+            UpdateWizardsLanes();
+
+            var isNearToBase = _self.X <= 2 * ROW_WIDTH && _self.Y >= _world.Height - 2 * ROW_WIDTH;
+
+            if (_world.TickIndex <= 600)
+            {
+                var line = GetAgressiveLineToGo(_world.TickIndex < 600);
+                if (line != null)
+                {
+                    _line = line.Value;
+                    _isLineSet = true;
+                }
+            }
+            else if (isNearToBase)
+            {
+                _line = GetNearToBaseLine();
+            }
+
+
+            if (_world.TickIndex > 2000)
+            {
+                if (_bonusPoints[0].getDistanceTo(_self) < (_self.Radius + _game.BonusRadius) * 2)
+                {
+                    _line = GetOptimalLine(LaneType.Bottom);
+                    _isLineSet = false;
+                }
+                if (_bonusPoints[1].getDistanceTo(_self) < (_self.Radius + _game.BonusRadius) * 2)
+                {
+                    _line = GetOptimalLine(LaneType.Top);
+                    _isLineSet = false;
+                }
+            }
+
+
+            if (!_isLineSet && _world.TickIndex > 600)
+            {
+                if (IsStrongOnLine(_self, _line)) _isLineSet = true;
+            }
         }
 
         private void UpdateWizardsLanes()
@@ -1220,11 +1227,17 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
 
         private GoBonusResult CheckAndGoForBonus(LivingUnit nearestStaffRangeTarget, LivingUnit shootingTarget)
         {
-            var goBonusResult = new GoBonusResult()
+           var goBonusResult = new GoBonusResult()
             {
                 IsGo = false,
                 IsWoodCut = false
             };
+
+            //если игра 1 на 1
+            if (_world.Players.Count() == 2)
+            {
+                return goBonusResult;
+            }
             
             //не идем, если атакуем дохлого волшебника
             if (IsOkToRunForWeakWizard(shootingTarget))
@@ -4228,7 +4241,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
 
         private bool goTo(Point2D point, double relaxCoeff, double strightRelaxCoeff, bool needTurn, IList<Point> path = null)
         {
-            if (!_isLineSet && _world.TickIndex < 600)
+            if (!_isLineSet && _world.TickIndex < 600 && _world.Players.Count() != 2)
             {
                 point = new Point2D(900, _world.Height - 1000);
             }
