@@ -692,7 +692,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                 if (!_world.Wizards.Any(x => x.Id == wizard.Id))
                 {
                     if (IsPointVisible(wizard.X, wizard.Y, 12d)) anemyDeadWizards.Add(wizard);
-                    else _allAnemyWizards.Remove((wizard));
+                    _allAnemyWizards.Remove((wizard));
                 }
             }
 
