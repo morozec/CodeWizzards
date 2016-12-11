@@ -5129,10 +5129,12 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
 
             if (!needRunBackAnemies.Any()) return true;//0
             if (needRunBackAnemies.Count > 1) return false;//>=2
+            //одинокий миьон
             if (needRunBackAnemies[0] is Minion)
             {
                 return !anemyWizard.Any() &&
-                       anemyMinions.All(x => x.Id == needRunBackAnemies[0].Id || x.GetDistanceTo(_self) > _self.CastRange);
+                       anemyMinions.All(x => x.Id == needRunBackAnemies[0].Id || x.GetDistanceTo(_self) > _self.CastRange)
+                       && (_self.Life > _self.MaxLife * 0.5 || _self.GetDistanceTo(needRunBackAnemies[0]) > 120);
             }
            
             return false;
