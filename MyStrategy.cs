@@ -63,6 +63,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
         private static double SHOOTING_SQUARE_WEIGHT = 7;
         private static double LIGHT_SHOOTING_SQUARE_WEIGHT = 3;
         private static double CLOSE_TO_WIN_DISTANCE = 1200;
+        private static double CLOSE_TO_TOWER_DISTANCE = 700;
 
         /**
          * �������� ����� ��� ������ �����, ����������� ��������� ���������� ������������ ����������.
@@ -1229,8 +1230,8 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             if (IsOkToRunForWeakWizard(shootingTarget)) return goBonusResult;
             //если близко к чужой базе
             if (IsCloseToWin()) return goBonusResult;
-            //Если на центре и не сломали башню
-            //if (IsMidLineAndMidTowerAlive()) return goBonusResult;
+            //Если можем сломать башню
+            if (CanDestroyTower()) return goBonusResult;
 
             //не идем, если атакуем дохлую башню
             var nearestStaffRangeTargetBuilding = nearestStaffRangeTarget as Building;
@@ -4430,7 +4431,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
 
             #region Спокойный нейтрал
 
-            if (!IsCloseToWin() || GetLineAliveAnemyTowersCount(_line) > 0)
+            if (!IsCloseToWin() || GetLineAliveAnemyTowers(_line).Count > 0)
             {
                 var neutrals = _world.Minions.Where(x => x.Faction == Faction.Neutral);
                 minHp = double.MaxValue;
@@ -5018,26 +5019,29 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             return _self.GetDistanceTo(_anemyBaseX, _anemyBaseY) < CLOSE_TO_WIN_DISTANCE;
         }
 
-        private int GetLineAliveAnemyTowersCount(LaneType lane)
+        private IList<Building> GetLineAliveAnemyTowers(LaneType lane)
         {
-            var towersCount = 0;
+            var towers = new List<Building>();
             for (int i = 0; i < _anemyBuildings.Count; ++i)
             {
                 if (!_IsAnemyBuildingAlive[i]) continue;
                 if (_anemyBuildings[i].Type == BuildingType.FactionBase) continue;
                 if (!IsStrongOnLine(_anemyBuildings[i], lane)) continue;
 
-                towersCount++;
+                towers.Add(_anemyBuildings[i]);
             }
-            return towersCount;
+            return towers;
         }
 
-        private bool IsMidLineAndMidTowerAlive()
+        private bool CanDestroyTower()
         {
-            if (_line != LaneType.Middle) return false;
-            var midTowersCount = GetLineAliveAnemyTowersCount(_line);
+            var lineCoeff = GetLineCoeff(_myWizards[_line].Count, _anemyWizards[_line].Count);
+            if (lineCoeff < 1) return false;
 
-            return midTowersCount == 2;
+            var towers = GetLineAliveAnemyTowers(_line);
+            if (towers.All(x => x.GetDistanceTo(_self) > CLOSE_TO_TOWER_DISTANCE)) return false;
+
+            return true;
         }
 
         private bool IsOkToRunForWeakWizard(LivingUnit target)
