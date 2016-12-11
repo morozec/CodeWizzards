@@ -1235,7 +1235,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             var shootingTargetBuilding = shootingTarget as Building;
             if (nearestStaffRangeTargetBuilding != null &&
                 nearestStaffRangeTargetBuilding.Life <= nearestStaffRangeTargetBuilding.MaxLife * 0.5 ||
-                shootingTargetBuilding != null && shootingTargetBuilding.Life <= shootingTargetBuilding.MaxLife * 0.25)
+                shootingTargetBuilding != null && shootingTargetBuilding.Life <= shootingTargetBuilding.MaxLife * 0.5)
             {
                 return goBonusResult;
             }
