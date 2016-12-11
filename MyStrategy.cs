@@ -679,7 +679,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             }
 
             var anemyDeadWizards = new List<Wizard>();
-            for (int i = _allAnemyWizards.Count; i >= 0; --i)
+            for (int i = _allAnemyWizards.Count - 1; i >= 0; --i)
             {
                 var wizard = _allAnemyWizards[i];
                 if (!_world.Wizards.Any(x => x.Id == wizard.Id))
