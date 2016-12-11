@@ -1227,7 +1227,12 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             };
             
             //не идем, если атакуем дохлого волшебника
-            if (IsOkToRunForWeakWizard(shootingTarget)) return goBonusResult;
+            if (IsOkToRunForWeakWizard(shootingTarget))
+            {
+                SetBonusZoneNotPasseble(_bonusPoints[0]);
+                SetBonusZoneNotPasseble(_bonusPoints[1]);
+                return goBonusResult;
+            }
             //если близко к чужой базе
             if (IsCloseToWin()) return goBonusResult;
             //Если можем сломать башню
@@ -1875,7 +1880,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             return null;
         }
 
-        private bool MakeBonusPath(Point2D bonusPoint, bool needTurn)
+        private void SetBonusZoneNotPasseble(Point2D bonusPoint)
         {
             var x1 = bonusPoint.X - _game.BonusRadius - _self.Radius;
             var y1 = bonusPoint.Y - _game.BonusRadius - _self.Radius;
@@ -1898,6 +1903,12 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                     _table[i, j].Weight = 999999;
                 }
             }
+
+        }
+
+        private bool MakeBonusPath(Point2D bonusPoint, bool needTurn)
+        {
+            SetBonusZoneNotPasseble(bonusPoint);
 
             var resPoint = new Point2D(2 * bonusPoint.X - _self.X, 2 * bonusPoint.Y - _self.Y);
 
