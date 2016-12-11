@@ -678,11 +678,13 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             }
 
             var anemyDeadWizards = new List<Wizard>();
-            foreach (var wizard in _allAnemyWizards)
+            for (int i = _allAnemyWizards.Count; i >= 0; --i)
             {
-                if (!_world.Wizards.Any(x => x.Id == wizard.Id) && IsPointVisible(wizard.X, wizard.Y, 12d))
+                var wizard = _allAnemyWizards[i];
+                if (!_world.Wizards.Any(x => x.Id == wizard.Id))
                 {
-                    anemyDeadWizards.Add(wizard);
+                    if (IsPointVisible(wizard.X, wizard.Y, 12d)) anemyDeadWizards.Add(wizard);
+                    else _allAnemyWizards.Remove((wizard));
                 }
             }
 
