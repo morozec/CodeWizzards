@@ -34,10 +34,10 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
     {
 
 
-        static MyStrategy()
-        {
-            Debug.connect("localhost", 13579);
-        }
+        //static MyStrategy()
+        //{
+        //    Debug.connect("localhost", 13579);
+        //}
 
         private static double WAYPOINT_RADIUS = 100.0D;
         private static double ANEMY_WAYPOINT_RADIUS = 200.0D;
@@ -193,7 +193,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
 
         public void Move(Wizard self, World world, Game game, Move move)
          {
-             Debug.beginPost();
+             //Debug.beginPost();
             //for (int i = 0; i < _n; ++i)
             //{
             //    for (int j = 0; j < _m; ++j)
@@ -4286,10 +4286,10 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                 path = GetCorrectPath(path);
             }
 
-            foreach (var p in path)
-            {
-                Debug.circle((p as Square).X + _squareSize / 2, (p as Square).Y + _squareSize / 2, _squareSize / 2, 150);
-            }
+            //foreach (var p in path)
+            //{
+            //    Debug.circle((p as Square).X + _squareSize / 2, (p as Square).Y + _squareSize / 2, _squareSize / 2, 150);
+            //}
 
 
             double resX;
