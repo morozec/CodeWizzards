@@ -485,29 +485,31 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                             else
                             {
                                 //�� ����� ��� �����
-                                Building nearTower = null; // башня врага, которую не видим
-                                for (int i = 0; i < _anemyBuildings.Count; ++i)
-                                {
-                                    if (!_IsAnemyBuildingAlive[i]) continue;
-                                    if (!IsStrongOnLine(_anemyBuildings[i], _line)) continue;
-                                    if (_anemyBuildings[i].GetDistanceTo(_self) <
-                                        _anemyBuildings[i].AttackRange + 2 * _self.Radius)
-                                    {
-                                        nearTower = _anemyBuildings[i];
-                                        break;
-                                    }
-                                }
+                                //Building nearTower = null; // башня врага, которую не видим
+                                //for (int i = 0; i < _anemyBuildings.Count; ++i)
+                                //{
+                                //    if (!_IsAnemyBuildingAlive[i]) continue;
+                                //    if (!IsStrongOnLine(_anemyBuildings[i], _line)) continue;
+                                //    if (_anemyBuildings[i].GetDistanceTo(_self) <
+                                //        _anemyBuildings[i].AttackRange + 2 * _self.Radius)
+                                //    {
+                                //        nearTower = _anemyBuildings[i];
+                                //        break;
+                                //    }
+                                //}
 
-                                if (nearTower == null)
-                                {
-                                    var nextWaypoint = getNextWaypoint();
-                                    _thisTickResPoint = nextWaypoint;
-                                    goTo(nextWaypoint, _self.Radius * 4, 0d, true);
-                                }
-                                else
-                                {
-                                    _move.Turn = _self.GetAngleTo(nearTower);
-                                }
+                                //if (nearTower == null || _isOneOneOne)
+                                //{
+                                   
+                                //}
+                                //else
+                                //{
+                                //    _move.Turn = _self.GetAngleTo(nearTower);
+                                //}
+
+                                var nextWaypoint = getNextWaypoint();
+                                _thisTickResPoint = nextWaypoint;
+                                goTo(nextWaypoint, _self.Radius * 4, 0d, true);
                             }
                         }
                     }
@@ -1700,7 +1702,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             var building = source as Building;
             if (building != null)
             {
-                return !CanGoToBuilding(building, friends);
+                return !CanGoToBuilding(building, friends) && !_isOneOneOne;
             }
 
 
