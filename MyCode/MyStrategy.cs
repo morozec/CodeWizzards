@@ -262,12 +262,14 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                
                 if (shootingTarget != null)
                 {
+                    var canShoot = CanShoot(shootingTarget);
+
                     turnTarget = shootingTarget;
                     if (!goBonusResult.IsGo)
                     {
                         var isWeakWizard = IsWeakWizard(shootingTarget);
                         LivingUnit target;
-                        if (isWeakWizard)
+                        if (isWeakWizard || !canShoot)
                         {
                             target = shootingTarget;
                         }
@@ -290,7 +292,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                     }
 
 
-                    if (CanShoot(shootingTarget))
+                    if (canShoot)
                     {
                         InitializeShootingAction(shootingTarget, false);
                     }
@@ -354,9 +356,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
 
 
             //Debug.circle(nextX, nextY, 10, 150);
-
-            var canGoOnStaffRange = CanGoToStaffRange(shootingTarget, nextX, nextY);
-
+            
             if (bullet != null)
             {
                 var time = GetBulletTime(bullet, _self);
@@ -384,13 +384,14 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                     _move.Turn = 0;
                     return;
                 }
-                else
-                {
-                    goToResult = GoBack();
-                    speedContainer = GetSpeedContainer(goToResult.X, goToResult.Y);
-                }
+                //else
+                //{
+                //    goToResult = GoBack();
+                //    speedContainer = GetSpeedContainer(goToResult.X, goToResult.Y);
+                //}
             }
 
+            var canGoOnStaffRange = CanGoToStaffRange(shootingTarget, nextX, nextY);
             if (!goBonusResult.IsGo && (!canGoOnStaffRange || NeedGoBack()))
             {
                 goToResult = GoBack();
@@ -1384,6 +1385,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             var building = source as Building;
             if (building != null)
             {
+                //return false;
                 return !CanGoToBuilding(building, friends);
             }
 
@@ -2677,41 +2679,44 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                     new Point2D(mapSize - 200.0D, 200.0D)
             });
                 if (_isOneOneOne && _self.Id % 5 == 1) _line = LaneType.Top;
-                else _line = LaneType.Middle;
+                else _line = LaneType.Middle
 
-                //                    switch ((int) self.Id)
-                //                   {
-                //                        case 1:
-                //                        case 2:
-                //                        case 6:
-                //                        case 7:
-                //                            _line = LaneType.Top;
-                //                            break;
-                //                        case 3:
-                //                        case 8:
-                //
-                //                            _line = LaneType.Middle;
-                //                            break;
-                //                        case 4:
-                //                        case 5:
-                //                        case 9:
-                //                        case 10:
-                //                            _line = LaneType.Bottom;
-                //                            break;
-                //
-                //                    }
+            //_line = LaneType.Top;
 
 
+                    //                    switch ((int) self.Id)
+                    //                   {
+                    //                        case 1:
+                    //                        case 2:
+                    //                        case 6:
+                    //                        case 7:
+                    //                            _line = LaneType.Top;
+                    //                            break;
+                    //                        case 3:
+                    //                        case 8:
+                    //
+                    //                            _line = LaneType.Middle;
+                    //                            break;
+                    //                        case 4:
+                    //                        case 5:
+                    //                        case 9:
+                    //                        case 10:
+                    //                            _line = LaneType.Bottom;
+                    //                            break;
+                    //
+                    //                    }
 
-                // ���� ��������� ������� �� �������������, ��� �������� ���� �������� ����� ����������� �� ��������
-                // ��������� �� ��������� �������� �����. ������ �������� ����� ����� ���������, ������ �� ������
-                // �������� ���� ��������, ���� ������ �������� ���������� �������� �����.
 
-                /*Point2D lastWaypoint = waypoints[waypoints.length - 1];
 
-                Preconditions.checkState(ArrayUtils.isSorted(waypoints, (waypointA, waypointB) -> Double.compare(
-                        waypointB.getDistanceTo(lastWaypoint), waypointA.getDistanceTo(lastWaypoint)
-                )));*/
+                    // ���� ��������� ������� �� �������������, ��� �������� ���� �������� ����� ����������� �� ��������
+                    // ��������� �� ��������� �������� �����. ������ �������� ����� ����� ���������, ������ �� ������
+                    // �������� ���� ��������, ���� ������ �������� ���������� �������� �����.
+
+                    /*Point2D lastWaypoint = waypoints[waypoints.length - 1];
+
+                    Preconditions.checkState(ArrayUtils.isSorted(waypoints, (waypointA, waypointB) -> Double.compare(
+                            waypointB.getDistanceTo(lastWaypoint), waypointA.getDistanceTo(lastWaypoint)
+                    )));*/
             }
         }
         private void InitializeTick(Wizard self, World world, Game game, Move move)
@@ -3180,21 +3185,25 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             foreach (var target in wizards)
             {
                 if (target.Faction == _self.Faction) continue;
-                if (!IsOkDistanceToShoot(_self, target, 0d)) continue;
+                //if (!IsOkDistanceToShoot(_self, target, 0d)) continue;
                 //if (IsBlockingTree(_self, target, _game.MagicMissileRadius)) continue;
 
-                var canShootWizard = CanShootWizard(_self, target, true, true, true);
+                if (_self.GetDistanceTo(target) > _self.CastRange * 1.5) continue;
+                if (IsOkToRunForWizard(_self, target)) continue;
+                
+
+                //var canShootWizard = CanShootWizard(_self, target, true, true, true);
 
                 var life = target.Life;
 
-                if (canShootWizard)
-                {
+                //if (canShootWizard)
+                //{
                     if (life < minHp)
                     {
                         minHp = life;
                         shootingTarget = target;
                     }
-                }
+                //}
             }
 
             if (shootingTarget != null) return shootingTarget;
@@ -3271,11 +3280,61 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             return null;
         }
 
+        private bool IsOkToRunForWizard(Wizard source, Wizard target)
+        {
+            var sourceCooldown = source.RemainingCooldownTicksByAction[(int) ActionType.MagicMissile];
+            var targetCooldown = target.RemainingCooldownTicksByAction[(int) ActionType.MagicMissile];
+            if (sourceCooldown > targetCooldown)
+            {
+                return false;
+            }
+
+            var newSourceX = source.X +
+                             GetWizardMaxForwardSpeed(source)*Math.Cos(source.Angle + source.GetAngleTo(target));
+            var newSourceY = source.Y +
+                             GetWizardMaxForwardSpeed(source) * Math.Sin(source.Angle + source.GetAngleTo(target));
+
+            var newTargetX = target.X - GetWizardMaxBackSpeed(target)*Math.Cos(target.Angle + target.GetAngleTo(source));
+            var newTargetY = target.Y - GetWizardMaxBackSpeed(target)*Math.Sin(target.Angle + target.GetAngleTo(source));
+
+            var newTarget = new Wizard(
+                       target.Id,
+                       newTargetX,
+                       newTargetY,
+                       target.SpeedX,
+                       target.SpeedY,
+                       target.Angle,
+                       target.Faction,
+                       target.Radius,
+                       target.Life,
+                       target.MaxLife,
+                       target.Statuses,
+                       target.OwnerPlayerId,
+                       target.IsMe,
+                       target.Mana,
+                       target.MaxMana,
+                       target.VisionRange,
+                       target.CastRange,
+                       target.Xp,
+                       target.Level,
+                       target.Skills,
+                       target.RemainingActionCooldownTicks,
+                       target.RemainingCooldownTicksByAction,
+                       target.IsMaster,
+                       target.Messages);
+
+            return CanShootWithMissle(source, newSourceX, newSourceY, newTarget, 0, true, true, true);
+        }
+
         private bool CanShoot(LivingUnit unit)
         {
             //TODO
             var angle = _self.GetAngleTo(unit);
             if (Math.Abs(angle) >= _game.StaffSector / 2.0D) return false;
+
+            var wizardTarget = unit as Wizard;
+            if (unit is Wizard) return CanShootWizard(_self, wizardTarget, true, true, true);
+
             //if (IsBlockingTree(_self, unit, _game.MagicMissileRadius)) return false;
             return IsOkDistanceToShoot(_self, unit, 0d);
         }
