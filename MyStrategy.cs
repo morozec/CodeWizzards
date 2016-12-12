@@ -153,6 +153,8 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
         private List<Wizard> _allMyWizards;
         private List<Wizard> _allAnemyWizards;
 
+        private bool _isOneOneOne = false;
+
         private readonly SkillType[] _skillsOrder = new SkillType[]
         {
 
@@ -216,7 +218,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             UpdateBulletStartDatas();
             SendMessage();
 
-             if (world.Players.Count() != 2)
+             if (!_isOneOneOne)
              {
                  InitializeLineActions();
              }
@@ -1234,7 +1236,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             };
 
             //если игра 1 на 1
-            if (_world.Players.Count() == 2)
+            if (_isOneOneOne)
             {
                 return goBonusResult;
             }
@@ -3793,6 +3795,13 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             if (_random == null)
             {
                 _random = new Random(DateTime.Now.Millisecond);
+
+                if (_world.Players[0].Name == _world.Players[1].Name && _world.Players[0].Name == _world.Players[2].Name &&
+                    _world.Players[0].Name == _world.Players[3].Name && _world.Players[0].Name == _world.Players[4].Name)
+                {
+                    _isOneOneOne = true;
+                }
+
                 _bulletStartDatas = new Dictionary<long, BulletStartData>();
 
                 _myWizards = new Dictionary<LaneType, IList<long>>()
@@ -4241,7 +4250,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
 
         private bool goTo(Point2D point, double relaxCoeff, double strightRelaxCoeff, bool needTurn, IList<Point> path = null)
         {
-            if (!_isLineSet && _world.TickIndex < 600 && _world.Players.Count() != 2)
+            if (!_isLineSet && _world.TickIndex < 600 && !_isOneOneOne)
             {
                 point = new Point2D(900, _world.Height - 1000);
             }
