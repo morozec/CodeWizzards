@@ -12,24 +12,6 @@ using IPA.AStar;
 
 namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
 {
-    enum CloseBorder
-    {
-        None,
-        Left,
-        Top,
-        Right,
-        Bottom,
-    }
-
-    enum PointPosition
-    {
-        Left,
-        Right,
-        OnLine
-    }
-
-
-
     public sealed class MyStrategy : IStrategy
     {
 
@@ -40,37 +22,15 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
         //}
 
         private static double WAYPOINT_RADIUS = 100.0D;
-        private static double ANEMY_WAYPOINT_RADIUS = 200.0D;
-
         private static double LOW_HP_FACTOR = 0.33D;
-        private static double LOW_HP_BONUS_FACTOR = 0.5D;
-
-        private static double BORDER_RADIUS = 100D;
-        private static int ANEMY_BASE_SAFE_FRIEND_COUNT = 3;
-        private static int DEFAULT_WEIGHT = 42;
-        private static double ANEMY_BASE_SAFE_DISTANCE = 1000;
         private static double ROW_WIDTH = 400;
         private static double TOLERANCE = 1E-3;
-        private static int BONUS_PATH_COUNT = 20;
-        private static double STACK_FACTOR = 2d;
         private static double BONUS_ADD_TIME = 300;
-
         private static double BONUS_ADD_TIME_PER_SUARE = 1.1;
-
-        private static double WOOD_WEIGHT = 2;
-        private static int CHECK_MASTER_TIME = 200;
-
-        private static double SHOOTING_SQUARE_WEIGHT = 7;
         private static double LIGHT_SHOOTING_SQUARE_WEIGHT = 3;
         private static double CLOSE_TO_WIN_DISTANCE = 1200;
         private static double CLOSE_TO_TOWER_DISTANCE = 700;
-
-        /**
-         * �������� ����� ��� ������ �����, ����������� ��������� ���������� ������������ ����������.
-         * <p>
-         * ���� �� ������, ��������� � ��������� ����� � ������� �����������.
-         * ���� �������� ���� ��������� �������, ��������� � ���������� �����.
-         */
+        
         private IDictionary<LaneType, Point2D[]> _waypointsByLine = new Dictionary<LaneType, Point2D[]>();
 
         private Random _random;
@@ -106,19 +66,13 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
         private double _anemyBaseY;
 
         private Building _selfBase;
-        private double _criticalGoBackDistance;
-        private double _criticalNearestTargetDistance;
         private bool _isAStarBuilt = false;
         private double _gotBonus0Time = 0d;
         private double _gotBonus1Time = 0d;
 
         private Point2D[] _bonusPoints = new Point2D[2] { new Point2D(1200d, 1200d), new Point2D(2800d, 2800d) };
-        private Point2D _bonus0TopPoint;
-        private Point2D _bonus0BottomPoint;
-        private Point2D _bonus1TopPoint;
-        private Point2D _bonus1BottomPoint;
 
-        private HashSet<long> _seenTreesIds = new HashSet<long>();
+
         private IList<Building> _myBuildings;
         private IList<Building> _anemyBuildings;
         private IList<bool> _IsMyBuildingAlive;
@@ -127,9 +81,6 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
         private IList<Point> _lastTickPath;
         private Point2D _lastTickResPoint;
         private Point2D _thisTickResPoint;
-
-        private double _lastTickX;
-        private double _lastTickY;
 
         private bool _needChangeLine;
         private bool _see0Bonus;
@@ -187,7 +138,6 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             SkillType.MovementBonusFactorPassive2,
             SkillType.MovementBonusFactorAura2,
             SkillType.Haste,
-            
         };
 
 
@@ -211,8 +161,8 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
 
 
 
-            initializeTick(self, world, game, move);
-            initializeStrategy(self, game);
+            InitializeTick(self, world, game, move);
+            InitializeStrategy(self, game);
 
             _move.SkillToLearn = GetSkillTypeToLearn();
             UpdateBulletStartDatas();
@@ -222,20 +172,6 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
              {
                  InitializeLineActions();
              }
-
-            //if (_world.TickIndex == 501 && !_isLineSet)
-            //{
-            //    _line = GetLineToGo();
-            //}
-
-            //if (_world.TickIndex == 301)
-            //{
-            //    var emptyLane = GetEmptyLane();
-            //    if (emptyLane != null) _line = emptyLane.Value;
-            //}
-            //CheckMasterLine();
-            //CheckNeedChangeLine();
-
 
             _see0Bonus =
                 _world.Wizards.Any(w => w.Faction == _self.Faction && w.GetDistanceTo(_bonusPoints[0].X, _bonusPoints[0].Y) <= w.VisionRange);
@@ -260,20 +196,6 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             }
 
 
-            //if (_gotBonus0Time > _game.BonusAppearanceIntervalTicks && see0Bonus &&
-            //    !_world.Bonuses.Any(b => Math.Abs(b.X - _bonusPoints[0].X) < TOLERANCE && Math.Abs(b.Y - _bonusPoints[0].Y) < TOLERANCE))
-            //{
-            //    _gotBonus0Time = 0;
-            //}
-            //if (_gotBonus1Time > _game.BonusAppearanceIntervalTicks && see1Bonus &&
-            //    !_world.Bonuses.Any(b => Math.Abs(b.X - _bonusPoints[1].X) < TOLERANCE && Math.Abs(b.Y - _bonusPoints[1].Y) < TOLERANCE))
-            //{
-            //    _gotBonus1Time = 0;
-            //}
-
-
-
-            //� ������ ������, ������� ��������
             if ((_world.TickIndex - _gotBonus0Time) % _game.BonusAppearanceIntervalTicks > 0)
             {
                 _gotBonus0Time += (_world.TickIndex - _gotBonus0Time) % _game.BonusAppearanceIntervalTicks;
@@ -283,40 +205,17 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                 _gotBonus1Time += (_world.TickIndex - _gotBonus1Time) % _game.BonusAppearanceIntervalTicks;
             }
 
-
-
-            //if (!_isAStarBuilt)
-            //{
-            //    MakeStaticAStar();
-            //    _isAStarBuilt = true;
-            //}
-            //UpdateStaticAStar();
-
+        
 
             if (!_isAStarBuilt)
             {
                 MakeDinamycAStar();
-                //MakeStaticAStar();
                 _isAStarBuilt = true;
             }
             UpdateDinamycAStar();
             UpdateLastTickPathTrees();
+            
 
-
-            //foreach (var tree in _trees)
-            //{
-            //    Debug.circle(tree.X, tree.Y, tree.Radius, 150);        
-            //}
-
-            //_staticStartSquare = _staticTable[GetStaticSquareI(_self.X), GetStaticSquareJ(_self.Y)];
-
-
-
-     
-
-
-
-            _criticalGoBackDistance = _self.CastRange * 1.5;
             _selfBase =
                       _world.Buildings.Single(x => x.Faction == _self.Faction && x.Type == BuildingType.FactionBase);
 
@@ -327,15 +226,8 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             var shootingTarget = GetShootingTarget();
 
             var goBonusResult = CheckAndGoForBonus(nearestStaffTarget, shootingTarget);
-            //var goBonusResult = new GoBonusResult()
-            //{
-            //    IsGo = false,
-            //    IsWoodCut = false
-            //};
-
-            var runBackTime = 0d;
             
-            var canGoOnStaffRange = CanGoToStaffRangeNew(shootingTarget, ref runBackTime);
+            var canGoOnStaffRange = CanGoToStaffRange(shootingTarget);
 
             if (nearestStaffTarget != null)
             {
@@ -350,7 +242,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                 var bullet = GetBulletFlyingInMe();
                 if (!goBonusResult.IsGo && (!canGoOnStaffRange || bullet != null || NeedGoBack())) // && NeedGoBack(CanGoOnStaffRange(nearestStaffTarget))
                 {
-                    MakeGoBack(bullet, runBackTime);
+                    MakeGoBack(bullet);
                 }
 
             }
@@ -358,8 +250,6 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             {
 
                 var closestTarget = GetClosestTarget();
-                //var canGoOnStaffRange = CanGoOnStaffRange(closestTarget);
-
                 Point2D radiusPoint = null;
                
                 if (shootingTarget != null)
@@ -390,7 +280,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                             {
                                 _thisTickResPoint = new Point2D(target.X, target.Y);
 
-                                goTo(new Point2D(target.X, target.Y), _game.StaffRange + target.Radius - TOLERANCE,
+                                GoTo(new Point2D(target.X, target.Y), _game.StaffRange + target.Radius - TOLERANCE,
                                     _game.StaffRange + target.Radius - TOLERANCE, false);
                             }
                         }
@@ -404,8 +294,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                             if (radiusPoint != null)
                             {
                                 _thisTickResPoint = radiusPoint;
-                                //Debug.circle(radiusPoint.X, radiusPoint.Y, _self.Radius, 200);
-                                goTo(radiusPoint, _self.Radius * 2, 0d, false);
+                                GoTo(radiusPoint, _self.Radius * 2, 0d, false);
                             }
                         }
 
@@ -416,14 +305,6 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                     {
                         InitializeShootingAction(shootingTarget, false);
                     }
-                    //else
-                    //{
-                    //    if (!isGoForBonus)
-                    //    {
-                    //        move.StrafeSpeed = 0d;
-                    //        move.Speed = 0d;
-                    //    }
-                    //}
                 }
                 else
                 {
@@ -435,22 +316,11 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                                             _self.GetDistanceTo(closestTarget) <= _self.CastRange * 1.5;
                             var basePoint = new Point2D(100.0D, _world.Height - 100.0D);
                             _thisTickResPoint = basePoint;
-                            goTo(basePoint, _self.CastRange, 0d, !doNotTurn);
+                            GoTo(basePoint, _self.CastRange, 0d, !doNotTurn);
                         }
-
-                        //if (!IsOnLine(_self))
-                        //{
-                        //    var closestTarget = GetClosestTarget();
-                        //    var doNotTurn = closestTarget != null &&
-                        //                    _self.GetDistanceTo(closestTarget) <= _self.CastRange*1.5;
-                        //    goTo(new Point2D(100.0D, _world.Height - 100.0D), _self.CastRange, false, !doNotTurn);
-
-                        //}
                         else
                         {
                             var nearestBaseTarget = GetNearestMyBaseAnemy(_line);
-                            //                            var isAnemyBase = nearestBaseTarget is Building && (nearestBaseTarget as Building).Type == BuildingType.FactionBase;
-
                             if (nearestBaseTarget != null)
                             {
                                 var needTurn = true;
@@ -467,14 +337,12 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                                 _thisTickResPoint = new Point2D(nearestBaseTarget.X, nearestBaseTarget.Y);
                                 if (radiusPoint != null)
                                 {
-                                    //Debug.circle(radiusPoint.X, radiusPoint.Y, _self.Radius, 200);
-                                    goTo(radiusPoint, _self.Radius * 2, _self.Radius * 2, needTurn);
+                                    GoTo(radiusPoint, _self.Radius * 2, _self.Radius * 2, needTurn);
                                     _lastTickResPoint = new Point2D(nearestBaseTarget.X, nearestBaseTarget.Y);
-                                    //��������� ������� �����, � �� �������� ����� ����
                                 }
                                 else
                                 {
-                                    goTo(
+                                    GoTo(
                                         new Point2D(nearestBaseTarget.X, nearestBaseTarget.Y),
                                         _self.Radius + nearestBaseTarget.Radius + 10000 * TOLERANCE,
                                         _self.Radius + nearestBaseTarget.Radius + 10000 * TOLERANCE,
@@ -484,32 +352,9 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                             }
                             else
                             {
-                                //�� ����� ��� �����
-                                //Building nearTower = null; // башня врага, которую не видим
-                                //for (int i = 0; i < _anemyBuildings.Count; ++i)
-                                //{
-                                //    if (!_IsAnemyBuildingAlive[i]) continue;
-                                //    if (!IsStrongOnLine(_anemyBuildings[i], _line)) continue;
-                                //    if (_anemyBuildings[i].GetDistanceTo(_self) <
-                                //        _anemyBuildings[i].AttackRange + 2 * _self.Radius)
-                                //    {
-                                //        nearTower = _anemyBuildings[i];
-                                //        break;
-                                //    }
-                                //}
-
-                                //if (nearTower == null || _isOneOneOne)
-                                //{
-                                   
-                                //}
-                                //else
-                                //{
-                                //    _move.Turn = _self.GetAngleTo(nearTower);
-                                //}
-
-                                var nextWaypoint = getNextWaypoint();
+                                var nextWaypoint = GetNextWaypoint();
                                 _thisTickResPoint = nextWaypoint;
-                                goTo(nextWaypoint, _self.Radius * 2, 0d, true);
+                                GoTo(nextWaypoint, _self.Radius * 2, 0d, true);
                             }
                         }
                     }
@@ -525,99 +370,12 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                 var bullet = GetBulletFlyingInMe();
                 if (!goBonusResult.IsGo && (!canGoOnStaffRange || bullet != null || NeedGoBack()))
                 {
-                    MakeGoBack(bullet, runBackTime);
+                    MakeGoBack(bullet);
                 }
             }
 
-            _lastTickX = _self.X;
-            _lastTickY = _self.Y;
-
             _gotBonus0Time++;
             _gotBonus1Time++;
-
-            //if (isGoForBonus) return;
-
-            //var nearestBaseTarget = GetNearestMyBaseAnemy();
-            //if (nearestBaseTarget != null)
-            //{
-            //    goTo(
-            //        new Point2D(nearestBaseTarget.X, nearestBaseTarget.Y),
-            //        _self.CastRange - _self.Radius,
-            //        false,
-            //        _self.GetDistanceTo(nearestBaseTarget) > _self.CastRange * 1.5);
-            //    return;
-            //}
-
-
-
-
-
-
-
-
-            //���� ����� ���������� ...
-            //if (nearestTarget != null)
-            //{
-            //    // ... �� �������������� � ����.
-            //    double angle = self.GetAngleTo(nearestTarget);
-            //    move.Turn = angle;
-            //    double distance = self.GetDistanceTo(nearestTarget);
-
-            //    if (distance <= _self.CastRange && Math.Abs(angle) < game.StaffSector/2.0D)
-            //    {
-            //        // ... �� �������.
-
-            //        move.Speed = 0;
-
-            //        if (self.RemainingActionCooldownTicks == 0 &&
-            //            self.RemainingCooldownTicksByAction[(int) ActionType.MagicMissile] == 0)
-            //        {
-            //            move.Action = ActionType.MagicMissile;
-            //            move.CastAngle = angle;
-            //            move.MinCastDistance = distance - nearestTarget.Radius + game.MagicMissileRadius;
-            //        }
-            //    }
-
-            //    var isGoForBonus = CheckAndGoForBonus(distance);
-            //    if (isGoForBonus) return;
-
-
-            //    if (distance > _self.CastRange)
-            //    {
-            //        var nearestBaseTarget = GetNearestMyBaseAnemy();
-            //        goTo(
-            //            new Point2D(nearestBaseTarget.X, nearestBaseTarget.Y),
-            //            _self.CastRange - _self.Radius,
-            //            false,
-            //            distance > _self.CastRange*1.5);
-            //    }
-
-            //    if (NeedGoBack())
-            //    {
-            //        var closestTarget = GetClosestTarget();
-            //        if (closestTarget != null) _move.Turn = _self.GetAngleTo(closestTarget);
-            //        GoBack();
-            //    }
-            //    return;
-            //}
-            //else
-            //{
-            //    var isGoForBonus = CheckAndGoForBonus(double.MaxValue);
-            //    if (isGoForBonus) return;
-
-            //    if (NeedGoBack())
-            //    {
-            //        var closestTarget = GetClosestTarget();
-            //        if (closestTarget != null) _move.Turn = _self.GetAngleTo(closestTarget);
-            //        GoBack();
-            //        return;
-            //    }
-            //}
-
-
-            //goTo(nextWaypoint, _self.Radius * 4, false, true);
-
-            //Debug.endPost();
         }
 
         private void InitializeLineActions()
@@ -804,11 +562,6 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
 
 
             return resultDamage;
-
-
-            //double defaultDamage = _game.MagicMissileDirectDamage;
-            //if (wizard.Statuses.Any(x => x.Type == StatusType.Empowered)) defaultDamage *= _game.EmpoweredDamageFactor;
-            //return defaultDamage;
         }
 
         private double GetStaffPower(Wizard wizard)
@@ -872,7 +625,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             return resultDamage;
         }
 
-        private void MakeGoBack(BulletStartData bullet, double runBackTime)
+        private void MakeGoBack(BulletStartData bullet)
         {
             if (bullet != null)
             {
@@ -905,16 +658,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             }
             else
             {
-
-                //                if (CanGoBackStraightPoint(_self, runBackTime))
-                //                {
-                //                    _move.Speed = -GetWizardMaxBackSpeed(_self);
-                //                    _move.StrafeSpeed = 0;
-                //                }
-                //                else
-                //                {
                 GoBack();
-                //}
             }
         }
 
@@ -929,8 +673,6 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             var canFireballBuilding = shootingBuilding != null;
             var wantedDist = distance + shootingTarget.Radius;
             var realDist = shootingTarget is Building ? (wantedDist > _self.CastRange ? _self.CastRange : wantedDist) : distance;
-            //_self.GetDistanceTo(shootingBuilding) - _self.Radius > _game.FireballExplosionMinDamageRange;
-
 
             var nearAnemies = new List<LivingUnit>();
             nearAnemies.AddRange(
@@ -982,21 +724,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                 _move.MinCastDistance = distance - shootingTarget.Radius + _game.MagicMissileRadius;
             }
         }
-
-        private IEnumerable<LivingUnit> GetBeforeFriends(LivingUnit target)
-        {
-            var friends = new List<LivingUnit>();
-            friends.AddRange(_world.Wizards.Where(x => x.Faction == _self.Faction && !x.IsMe));
-            friends.AddRange(_world.Minions.Where(x => x.Faction == _self.Faction));
-            var selfDist = _self.GetDistanceTo(target);
-            return friends.Where(f => f.GetDistanceTo(target) <= selfDist);
-        }
-
-        private bool IsOnBase()
-        {
-            return _self.X <= 2 * ROW_WIDTH && _self.Y >= _world.Height - 2 * ROW_WIDTH;
-        }
-
+        
         private Point2D GetStraightRelaxPoint(double x, double y, double relaxCoeff)
         {
             var length = _self.GetDistanceTo(x, y) - relaxCoeff;
@@ -1026,8 +754,6 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             return new Point2D(relaxP.X, relaxP.Y);
         }
 
-
-
         private bool CanGoBackStraightPoint(Wizard target, double time)
         {
             var newX = target.X - GetWizardMaxBackSpeed(target) * time * Math.Cos(target.Angle);
@@ -1039,8 +765,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
 
             return GetGoStraightPoint(newX, newY, 0) != null;
         }
-
-
+        
         /// <summary>
         /// Может ли волшебник отойти от пули bsd. time - время на отход
         /// </summary>
@@ -1084,8 +809,6 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                 newY > _world.Height - target.Radius)
                 return false;
 
-            //var canGo = CanGoSide(bsd, myX, myY);
-
             var isIntersect = Square.Intersect(
                 bsd.StartX,
                 bsd.StartY,
@@ -1098,9 +821,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
 
             return !isIntersect && GetGoStraightPoint(newX, newY, 0) != null;
         }
-
-
-
+        
         private bool CanGoLeft(Wizard target, BulletStartData bsd, double time)
         {
 
@@ -1110,8 +831,6 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             if (newX < target.Radius || newY < target.Radius || newX > _world.Width - target.Radius ||
                 newY > _world.Height - target.Radius)
                 return false;
-
-            //var canGo = CanGoSide(bsd, myX, myY);
 
             var isIntersect = Square.Intersect(
                 bsd.StartX,
@@ -1136,8 +855,6 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                 newY > _world.Height - target.Radius)
                 return false;
 
-            //var canGo = CanGoSide(bsd, myX, myY);
-
             var isIntersect = Square.Intersect(
                 bsd.StartX,
                 bsd.StartY,
@@ -1150,8 +867,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
 
             return !isIntersect && GetGoStraightPoint(newX, newY, 0) != null;
         }
-
-
+        
         private LivingUnit GetNearestMyBaseAnemy(LaneType lane)
         {
             var units = new List<LivingUnit>();
@@ -1282,13 +998,11 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                 return goBonusResult;
             }
 
-            //if (_self.Life < _self.MaxLife * LOW_HP_BONUS_FACTOR) return goBonusResult;
             var maxLength = 17 * _self.Radius * 2;
             var pathMaxLength = maxLength / _squareSize;
             var closestTarget = GetClosestTarget();
             var needTurn = closestTarget == null || _self.GetDistanceTo(closestTarget) > _self.CastRange + _self.Radius * 5;
-
-
+            
             IList<Point> path0 = null;
             var length0 = _self.GetDistanceTo(_bonusPoints[0].X, _bonusPoints[0].Y);
             double path0Weight = double.MaxValue, path1Weight = double.MaxValue;
@@ -1377,25 +1091,19 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             return goBonusResult;
 
         }
-
-
         private void GoToBonus(Point2D bonusPoint, double relaxCoeff, double realRelaxCoeff, bool needTurn,
             IList<Point> path, double gotBonusTime, ref bool isWoodCut)
         {
+            #region Эксперимент с боковыми точками - провалился
             var angle = Math.PI/2 - _self.Angle;
             var x1 = bonusPoint.X + _game.BonusRadius * Math.Cos(angle);
             var y1 = bonusPoint.X - _game.BonusRadius * Math.Sin(angle);
 
             var x2 = bonusPoint.X - _game.BonusRadius * Math.Cos(angle);
             var y2 = bonusPoint.X + _game.BonusRadius * Math.Sin(angle);
-            
-            //Debug.circle(bonusPoint.X, bonusPoint.Y, _game.BonusRadius, 150);
-            //Debug.circle(x1, y1, 10, 150);
-            //Debug.circle(x2, y2, 10, 150);
+            #endregion
 
             var goStraightPoint = GetGoStraightPoint(bonusPoint.X, bonusPoint.Y, relaxCoeff - TOLERANCE * 10000);
-//            var goVsp1PointPoint = GetGoStraightPoint(x1, y1, relaxCoeff/2);
-//            var goVsp2PointPoint = GetGoStraightPoint(x2, y2, relaxCoeff/2);
             if (goStraightPoint != null)
             {
 
@@ -1415,7 +1123,6 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                     var wizardCp = crossPoints.OrderBy(x => x.getDistanceTo(nearstWizard)).FirstOrDefault();
                     if (wizardCp != null)
                     {
-                        //                    var myCp = crossPoints.OrderBy(x => x.getDistanceTo(_self)).FirstOrDefault();
                         var strPoint = GetGoStraightPoint(wizardCp.X, wizardCp.Y, 0);
                         if (strPoint != null)
                         {
@@ -1437,41 +1144,18 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
 
                 if (realRelaxCoeff == 0)
                 {
-//                    if (goStraightPoint != null)
-//                    {
-                        _thisTickResPoint = new Point2D(bonusPoint.X, bonusPoint.Y);
-                        isWoodCut = goTo(
-                            bonusPoint,
-                            relaxCoeff - TOLERANCE * 100,
-                            relaxCoeff - TOLERANCE * 100,
-                            needTurn,
-                            path);
-//                    }
-//                    else if (goVsp1PointPoint != null)
-//                    {
-//                        _thisTickResPoint = new Point2D(x1, y1);
-//                        isWoodCut = goTo(
-//                            new Point2D(x1, y1),
-//                            relaxCoeff / 2,
-//                            relaxCoeff / 2,
-//                            needTurn,
-//                            path);
-//                    }
-//                    else //goVsp2PointPoint != null
-//                    {
-//                        _thisTickResPoint = new Point2D(x2, y2);
-//                        isWoodCut = goTo(
-//                            new Point2D(x2, y2),
-//                            relaxCoeff / 2,
-//                            relaxCoeff / 2,
-//                            needTurn,
-//                            path);
-//                    }
+                    _thisTickResPoint = new Point2D(bonusPoint.X, bonusPoint.Y);
+                    isWoodCut = GoTo(
+                        bonusPoint,
+                        relaxCoeff - TOLERANCE * 100,
+                        relaxCoeff - TOLERANCE * 100,
+                        needTurn,
+                        path);
                 }
                 else if (wizardPreventPoint != null)
                 {
                     _thisTickResPoint = new Point2D(wizardPreventPoint.X, wizardPreventPoint.Y);
-                    goTo(wizardPreventPoint, 0, 0, false);
+                    GoTo(wizardPreventPoint, 0, 0, false);
                     if (needTurn)
                     {
                         _move.Turn = _self.GetAngleTo(bonusPoint.X, bonusPoint.Y);
@@ -1480,7 +1164,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                 else
                 {
                     _thisTickResPoint = new Point2D(bonusPoint.X, bonusPoint.Y);
-                    isWoodCut = goTo(
+                    isWoodCut = GoTo(
                         bonusPoint,
                         relaxCoeff,
                         relaxCoeff,
@@ -1493,7 +1177,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                 if (realRelaxCoeff == 0 || bonusPoint.getDistanceTo(_self) > _self.CastRange / 2)
                 {
                     _thisTickResPoint = new Point2D(bonusPoint.X, bonusPoint.Y);
-                    isWoodCut = goTo(bonusPoint, relaxCoeff - TOLERANCE * 100, relaxCoeff - TOLERANCE * 100, needTurn,
+                    isWoodCut = GoTo(bonusPoint, relaxCoeff - TOLERANCE * 100, relaxCoeff - TOLERANCE * 100, needTurn,
                         path);
                 }
                 else
@@ -1590,41 +1274,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
 
         private bool NeedRunBack(LivingUnit source, Wizard target, IList<LivingUnit> friends, bool isNextStep)
         {
-            var dist = source.GetDistanceTo(target) - target.Radius;
             var minion = source as Minion;
-            //if (minion != null && minion.Type == MinionType.FetishBlowdart)
-            //{
-            //    var angle = minion.GetAngleTo(_self);
-            //    var deltaAngle = Math.Abs(angle) - _game.FetishBlowdartAttackSector / 2;
-            //    double turnTime;
-            //    if (deltaAngle <= 0)
-            //    {
-            //        turnTime = 0;
-            //    }
-            //    else
-            //    {
-            //        turnTime = (int)(deltaAngle / _game.MinionMaxTurnAngle) + 1;
-            //    }
-
-            //    var bsd = new BulletStartData(
-            //        minion.X,
-            //        minion.Y,
-            //        _game.FetishBlowdartAttackRange,
-            //        _self.X - minion.X,
-            //        _self.Y - minion.Y,
-            //        _self.Radius,
-            //        _game.DartSpeed);
-
-            //    var nextTickTime = dist / bsd.Speed + minion.RemainingActionCooldownTicks + turnTime - 2;
-
-            //    var canGoBack = CanGoBack(bsd, nextTickTime);
-            //    var canGoLeft = CanGoLeft(bsd, nextTickTime);
-            //    var canGoRight = CanGoRight(bsd, nextTickTime);
-            //    if (!canGoBack && !canGoLeft && !canGoRight) return true;
-            //    return false;
-
-            //}
-
             if (minion != null)
             {
                 var orderedFriends = friends.OrderBy(x => x.GetDistanceTo(source));
@@ -1696,7 +1346,6 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
 
                 var canShootWithMissle = CanShootWithMissle(wizard, startX, startY, newTarget, turnTime, true, false, false);
                 if (canShootWithMissle) return true;
-
             }
 
             var building = source as Building;
@@ -1705,17 +1354,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                 return !CanGoToBuilding(building, friends);
             }
 
-
-            //if (minion != null && minion.Type == MinionType.OrcWoodcutter)
-            //{
-            //    var estTime =
-            //}
-
             return false;
-
-            //var Wizard = unit as Wizard;
-
-
         }
 
         private bool CanGoToBuilding (Building building, IList<LivingUnit> friends)
@@ -1779,7 +1418,6 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
 
 
             var bulletTime = GetBulletTime(bsd, target);
-            //var thisTickTime = dist/_game.MagicMissileSpeed + minion.RemainingActionCooldownTicks + turnTime;
             var nextTickTime = bulletTime +
                                wizard.RemainingCooldownTicksByAction[(int)ActionType.MagicMissile] + turnTime;
 
@@ -1805,7 +1443,6 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
 
 
             var bulletTime = GetBulletTime(bsd, target);
-            //var thisTickTime = dist/_game.MagicMissileSpeed + minion.RemainingActionCooldownTicks + turnTime;
             var nextTickTime = bulletTime +
                                wizard.RemainingCooldownTicksByAction[(int)ActionType.FrostBolt] + turnTime;
 
@@ -1827,15 +1464,13 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
 
 
             var bulletTime = GetBulletTime(bsd, target);
-            //var thisTickTime = dist/_game.MagicMissileSpeed + minion.RemainingActionCooldownTicks + turnTime;
             var nextTickTime = bulletTime +
                                wizard.RemainingCooldownTicksByAction[(int)ActionType.Fireball] + turnTime;
 
             var canGoBack = CanGoBack(target, bsd, nextTickTime, true);
             return !canGoBack;
         }
-
-
+        
         private int GetBulletTime(BulletStartData bulletStartData, Wizard target)
         {
             Point2D currBulletPoint;
@@ -1930,40 +1565,9 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             var resPoint = new Point2D(2 * bonusPoint.X - _self.X, 2 * bonusPoint.Y - _self.Y);
 
             _thisTickResPoint = new Point2D(resPoint.X, resPoint.Y);
-            return goTo(resPoint, _self.Radius * 2, _self.Radius * 2, needTurn);
+            return GoTo(resPoint, _self.Radius * 2, _self.Radius * 2, needTurn);
         }
-
-        private bool MakeBonus1Path(bool needTurn)
-        {
-            var x1 = _bonusPoints[1].X - _game.BonusRadius - _self.Radius;
-            var y1 = _bonusPoints[1].Y - _game.BonusRadius - _self.Radius;
-            var x2 = _bonusPoints[1].X + _game.BonusRadius + _self.Radius;
-            var y2 = _bonusPoints[1].Y + _game.BonusRadius + _self.Radius;
-
-            var i1 = GetSquareI(x1);
-            if (i1 < 0) i1 = 0;
-            var j1 = GetSquareJ(y1);
-            if (j1 < 0) j1 = 0;
-            var i2 = GetSquareI(x2);
-            if (i2 > _n - 1) i2 = _n - 1;
-            var j2 = GetSquareJ(y2);
-            if (j2 > _m - 1) j2 = _m - 1;
-
-            for (int i = i1; i <= i2 && i < _n; ++i)
-            {
-                for (int j = j1; j <= j2 && j < _m; ++j)
-                {
-                    _table[i, j].Weight = 999999;
-                }
-            }
-
-            var resPoint = new Point2D(2 * _bonusPoints[1].X - _self.X, 2 * _bonusPoints[1].Y - _self.Y);
-
-            _thisTickResPoint = new Point2D(resPoint.X, resPoint.Y);
-            return goTo(resPoint, _self.Radius * 2, _self.Radius * 2, needTurn);
-        }
-
-
+        
         private Wizard GetClosestToBonusWizard(Point2D bonusPoint)
         {
             var wizards = _world.Wizards.Where(x => !x.IsMe);
@@ -1983,42 +1587,10 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             }
             return nearestWizard;
         }
-
-
-
+        
         private bool NeedGoBack()
         {
             return _self.Life < _self.MaxLife * LOW_HP_FACTOR && IsInDangerousArea(_self, _self.Radius * 2);
-
-            //if (_self.Life < _self.MaxLife * LOW_HP_FACTOR && IsInDangerousArea(_self, _self.Radius * 2)) return true;
-            //if (canGoOnStaffRange && _self.Life >= _self.MaxLife * LOW_HP_BONUS_FACTOR) return false;
-
-            //var bsd = GetBulletFlyingInMe();
-            //if (bsd != null) return true;
-
-            //var isInDangerousArea = IsInDangerousArea(_self, -_self.Radius/2);
-            //if (!isInDangerousArea) return false;
-
-
-            //var remainingCooldown = _self.RemainingCooldownTicksByAction[(int)ActionType.MagicMissile];
-            //LivingUnit target = null;
-            //var shootingTarget = GetShootingTarget();
-            //if (shootingTarget != null)
-            //{
-            //    target = shootingTarget;
-            //}
-            //else
-            //{
-            //    var nearestToBaseTarget = GetNearestMyBaseAnemy();
-            //    if (nearestToBaseTarget != null) target = nearestToBaseTarget;
-            //}
-            //if (target == null) return false;
-
-            //var delta = _game.WizardForwardSpeed * (remainingCooldown - 2);
-            //var stillCanShoot = IsOkDistanceToShoot(_self, target, delta);
-            //return stillCanShoot;
-
-
         }
 
         private bool IsPointVisible(double x, double y, double eps)
@@ -2049,45 +1621,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             }
             return false;
         }
-
-        private bool IsSquareVisible(Square square)
-        {
-            foreach (var unit in _world.Buildings.Where(x => x.Faction == _self.Faction))
-            {
-                var farX = unit.X > square.X + square.Side / 2 ? square.X : square.X + square.Side;
-                var farY = unit.Y > square.Y + square.Side / 2 ? square.Y : square.Y + square.Side;
-
-                var dist = unit.GetDistanceTo(farX, farY);
-                if (dist <= unit.VisionRange)
-                {
-                    return true;
-                }
-            }
-            foreach (var unit in _world.Wizards.Where(x => x.Faction == _self.Faction))
-            {
-                var farX = unit.X > square.X + square.Side / 2 ? square.X : square.X + square.Side;
-                var farY = unit.Y > square.Y + square.Side / 2 ? square.Y : square.Y + square.Side;
-
-                var dist = unit.GetDistanceTo(farX, farY);
-                if (dist <= unit.VisionRange)
-                {
-                    return true;
-                }
-            }
-            foreach (var unit in _world.Minions.Where(x => x.Faction == _self.Faction))
-            {
-                var farX = unit.X > square.X + square.Side / 2 ? square.X : square.X + square.Side;
-                var farY = unit.Y > square.Y + square.Side / 2 ? square.Y : square.Y + square.Side;
-
-                var dist = unit.GetDistanceTo(farX, farY);
-                if (dist <= unit.VisionRange)
-                {
-                    return true;
-                }
-            }
-            return false;
-        }
-
+        
         private void MakeDinamycAStar()
         {
             _squares = new List<Square>();
@@ -2165,8 +1699,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
 
 
         }
-
-
+        
         private void RemoveCutTrees()
         {
             foreach (var unit in _world.Minions.Where(x => x.Faction == _self.Faction))
@@ -2185,8 +1718,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                     t => unit.GetDistanceTo(t) <= unit.VisionRange && _world.Trees.All(tt => tt.Id != t.Id));
             }
         }
-
-
+        
         private void UpdateDinamycAStar()
         {
             RemoveCutTrees();
@@ -2711,316 +2243,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             //    }
             //}
         }
-
-        //private void MakeStaticAStar()
-        //{
-        //    _staticSquares = new List<Square>();
-        //    _staticSquareSize = _self.Radius*2;
-        //    _staticN = (int) Math.Truncate(_world.Width/_squareSize);
-        //    _staticM = (int) Math.Truncate(_world.Height/_squareSize);
-        //    _staticTable = new Square[_staticN, _staticM];
-
-
-        //    _staticStartX = (_world.Width - _staticN * _staticSquareSize) /2;
-        //    _staticStartY = (_world.Height - _staticM * _staticSquareSize) /2;
-
-        //    for (int i = 0; i < _staticN; ++i)
-        //    {
-        //        for (int j = 0; j < _staticM; ++j)
-        //        {
-        //            var square = new Square(
-        //                _staticSquareSize,
-        //                _staticStartX + i* _staticSquareSize,
-        //                _staticStartY + j* _staticSquareSize,
-        //                999999d,
-        //                i + ":" + j, 
-        //                _game);
-
-        //            _staticSquares.Add(square);
-
-        //            _staticTable[i, j] = square;
-        //        }
-        //    }
-
-
-
-
-        //    for (int i = 0; i < _staticN; ++i)
-        //    {
-        //        for (int j = 0; j < _staticM; ++j)
-        //        {
-        //            var neighbors = new List<Square>();
-        //            if (i != 0)
-        //            {
-        //                neighbors.Add(_staticTable[i - 1, j]);
-        //            }
-        //            if (i != _n - 1)
-        //            {
-        //                neighbors.Add(_staticTable[i + 1, j]);
-        //            }
-        //            if (j != 0)
-        //            {
-        //                neighbors.Add(_staticTable[i, j - 1]);
-        //            }
-        //            if (j != _m - 1)
-        //            {
-        //                neighbors.Add(_staticTable[i, j + 1]);
-        //            }
-
-        //            if (i != 0 && j != 0)
-        //            {
-        //                neighbors.Add(_staticTable[i - 1, j - 1]);
-        //            }
-
-        //            if (i != _n - 1 && j != _m - 1)
-        //            {
-        //                neighbors.Add(_staticTable[i + 1, j + 1]);
-        //            }
-
-        //            if (i != 0 && j != _m - 1)
-        //            {
-        //                neighbors.Add(_staticTable[i - 1, j + 1]);
-        //            }
-
-        //            if (i != _n - 1 && j != 0)
-        //            {
-        //                neighbors.Add(_staticTable[i + 1, j - 1]);
-        //            }
-
-        //            var square = _staticTable[i, j];
-
-        //            square.Neighbors = neighbors;
-        //        }
-        //    }
-
-        //    for (int i = 0; i < _staticN; ++i)
-        //    {
-        //        for (int j = 0; j < _staticM; ++j)
-        //        {
-        //            var square = _staticTable[i, j];
-
-        //            var x = square.X + square.Side / 2;
-        //            var y = square.Y + square.Side / 2;
-
-        //            if (x <= ROW_WIDTH || y <= ROW_WIDTH ||
-        //                x >= _world.Width - ROW_WIDTH || y >= _world.Height - ROW_WIDTH)
-        //            {
-        //                square.Weight = 1;
-        //            }
-        //            else
-        //            {
-        //                if (y >= x - ROW_WIDTH && y <= x + ROW_WIDTH ||
-        //                    y >= _world.Width - ROW_WIDTH - x && y <= _world.Width + ROW_WIDTH - x)
-        //                {
-        //                    square.Weight = 1;
-        //                }
-        //            }
-        //        }
-        //    }
-        //}
-
-
-        private void UpdateStaticAStar()
-        {
-            var startSquareI = GetSquareI(_self.X);
-            var startSquareJ = GetSquareJ(_self.Y);
-
-            _startSquare = _table[startSquareI, startSquareJ];
-
-
-            for (int k = 0; k < _myBuildings.Count; ++k)
-            {
-                if (!_IsMyBuildingAlive[k]) continue;
-                if (!_world.Buildings.Any(b => b.X == _myBuildings[k].X && b.Y == _myBuildings[k].Y))
-                {
-                    _IsMyBuildingAlive[k] = false;
-
-                    var x1 = _myBuildings[k].X - _myBuildings[k].Radius;
-                    var y1 = _myBuildings[k].Y - _myBuildings[k].Radius;
-                    var x2 = _myBuildings[k].X + _myBuildings[k].Radius;
-                    var y2 = _myBuildings[k].Y + _myBuildings[k].Radius;
-
-                    var i1 = GetSquareI(x1);
-                    var j1 = GetSquareJ(y1);
-                    var i2 = GetSquareI(x2);
-                    var j2 = GetSquareJ(y2);
-
-                    for (int i = i1; i <= i2 && i < _n; ++i)
-                    {
-                        for (int j = j1; j <= j2 && j < _m; ++j)
-                        {
-                            _traversedSquares[i, j] = false;
-                        }
-                    }
-                }
-            }
-
-
-            for (int k = 0; k < _anemyBuildings.Count; ++k)
-            {
-                if (!_IsAnemyBuildingAlive[k]) continue;
-                var isBuildingExists = _world.Buildings.Any(b => b.X == _anemyBuildings[k].X && b.Y == _anemyBuildings[k].Y);
-                if (isBuildingExists) continue;
-
-                foreach (var unit in _world.Wizards.Where(x => x.Faction == _self.Faction))
-                {
-                    if (unit.VisionRange > unit.GetDistanceTo(_anemyBuildings[k].X, _anemyBuildings[k].Y))
-                    {
-                        _IsAnemyBuildingAlive[k] = false;
-                        break;
-                    }
-                }
-
-                foreach (var unit in _world.Minions.Where(x => x.Faction == _self.Faction))
-                {
-                    if (unit.VisionRange > unit.GetDistanceTo(_anemyBuildings[k].X, _anemyBuildings[k].Y))
-                    {
-                        _IsAnemyBuildingAlive[k] = false;
-                        break;
-                    }
-                }
-
-
-                if (!_IsAnemyBuildingAlive[k])
-                {
-                    var x1 = _anemyBuildings[k].X - _anemyBuildings[k].Radius;
-                    var y1 = _anemyBuildings[k].Y - _anemyBuildings[k].Radius;
-                    var x2 = _anemyBuildings[k].X + _anemyBuildings[k].Radius;
-                    var y2 = _anemyBuildings[k].Y + _anemyBuildings[k].Radius;
-
-                    var i1 = GetSquareI(x1);
-                    var j1 = GetSquareJ(y1);
-                    var i2 = GetSquareI(x2);
-                    var j2 = GetSquareJ(y2);
-
-                    for (int i = i1; i <= i2 && i < _n; ++i)
-                    {
-                        for (int j = j1; j <= j2 && j < _m; ++j)
-                        {
-                            _traversedSquares[i, j] = false;
-                        }
-                    }
-                }
-            }
-
-            for (int i = 0; i < _n; ++i)
-            {
-                for (int j = 0; j < _m; ++j)
-                {
-                    var square = _table[i, j];
-                    if (_traversedSquares[i, j])
-                    {
-                        square.Weight = 999999;
-                    }
-                    else if (!IsSquareVisible(square))
-                    {
-                        var x = square.X + square.Side / 2;
-                        var y = square.Y + square.Side / 2;
-
-                        if (x <= ROW_WIDTH || y <= ROW_WIDTH ||
-                            x >= _world.Width - ROW_WIDTH || y >= _world.Height - ROW_WIDTH)
-                        {
-                            square.Weight = DEFAULT_WEIGHT;
-                        }
-                        else
-                        {
-                            var pos1 =
-                                GetPointPosition(
-                                    new Vector()
-                                    {
-                                        P1 = new Point2D(0, _world.Height - ROW_WIDTH),
-                                        P2 = new Point2D(_world.Width - ROW_WIDTH, 0)
-                                    }, x, y);
-
-                            var pos2 =
-                                GetPointPosition(
-                                    new Vector()
-                                    {
-                                        P1 = new Point2D(0, _world.Height + ROW_WIDTH),
-                                        P2 = new Point2D(_world.Width + ROW_WIDTH, 0)
-                                    }, x, y);
-
-                            var pos3 =
-                                GetPointPosition(
-                                    new Vector()
-                                    {
-                                        P1 = new Point2D(0, ROW_WIDTH),
-                                        P2 = new Point2D(_world.Width - ROW_WIDTH, _world.Height)
-                                    }, x, y);
-
-                            var pos4 =
-                                GetPointPosition(
-                                    new Vector()
-                                    {
-                                        P1 = new Point2D(ROW_WIDTH, 0),
-                                        P2 = new Point2D(_world.Width, _world.Height - ROW_WIDTH)
-                                    }, x, y);
-
-                            if (pos1 == PointPosition.Right && pos2 == PointPosition.Left ||
-                                pos3 == PointPosition.Left && pos4 == PointPosition.Right)
-                            {
-                                square.Weight = DEFAULT_WEIGHT;
-                            }
-                            else
-                            {
-                                square.Weight = 999999;
-                            }
-                        }
-                    }
-                    else
-                    {
-                        square.Weight = DEFAULT_WEIGHT;
-                        var minIndex = Math.Min(i, j);
-                        if (minIndex <= 3)
-                        {
-                            square.Weight = DEFAULT_WEIGHT - (4 - minIndex);
-                        }
-                        var maxIndex = Math.Max(i, j);
-                        if (maxIndex >= _n - 4)
-                        {
-                            square.Weight = DEFAULT_WEIGHT - (4 - (_n - 1 - maxIndex));
-                        }
-                    }
-                }
-            }
-
-            var units = new List<LivingUnit>();
-            units.AddRange(_world.Wizards.Where(x => !x.IsMe));
-            units.AddRange(_world.Minions);
-            var newTrees = _world.Trees.Where(t => !_seenTreesIds.Contains(t.Id));
-            units.AddRange(newTrees);
-            foreach (var tree in newTrees)
-            {
-                _seenTreesIds.Add(tree.Id);
-            }
-
-            foreach (var unit in units)
-            {
-                var x1 = unit.X - unit.Radius;
-                var y1 = unit.Y - unit.Radius;
-                var x2 = unit.X + unit.Radius;
-                var y2 = unit.Y + unit.Radius;
-
-                var i1 = GetSquareI(x1);
-                var j1 = GetSquareJ(y1);
-                var i2 = GetSquareI(x2);
-                var j2 = GetSquareJ(y2);
-
-                for (int i = i1; i <= i2 && i < _n; ++i)
-                {
-                    for (int j = j1; j <= j2 && j < _m; ++j)
-                    {
-                        _table[i, j].Weight = 999999;
-                        if (unit is Tree) _traversedSquares[i, j] = true;
-                    }
-                }
-            }
-
-
-        }
-
-
-
+        
         private Point2D GetRadiusPoint(double borderDist, double radius, LivingUnit target)
         {
             var isOkPos = _self.X <= ROW_WIDTH * 1.25 || _self.Y <= ROW_WIDTH * 1.25 ||
@@ -3154,7 +2377,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
 
             return null;
         }
-
+        
         private IEnumerable<LivingUnit> GetDangerousAnemies(LivingUnit unit, double eps)
         {
             var anemies = new List<LivingUnit>();
@@ -3189,141 +2412,6 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             return GetDangerousAnemies(unit, eps).Any();
         }
 
-        private Point2D GetRadiusPoint(double borderDist, double radius, LivingUnit nearestTarget, LivingUnit distCompareUnit, bool isCheckCloseToBorder)
-        {
-            var isTop = isCheckCloseToBorder && _self.Y <= borderDist;
-            var isLeft = isCheckCloseToBorder && _self.X <= borderDist;
-            var isBottom = isCheckCloseToBorder && _self.Y >= _world.Height - borderDist;
-            var isRight = isCheckCloseToBorder && _self.X >= _world.Width - borderDist;
-
-
-            //var isBadAngleToBase = Math.Abs(_self.GetAngleTo(_selfBase)) < Math.PI / 2 &&
-            //                       _self.GetDistanceTo(_selfBase) > _self.CastRange * 1.5;
-
-            var minBaseDist = double.MaxValue;
-            double resX = 0, resY = 0;
-
-            if ((borderDist + radius > nearestTarget.Y) &&
-                (!isTop && !isLeft && !isRight && !isBottom))
-            {
-                var destY = borderDist;
-                var desc = nearestTarget.X * nearestTarget.X - (nearestTarget.X * nearestTarget.X +
-                                                              Math.Pow(destY - nearestTarget.Y, 2) - radius * radius);
-                var destX1 = nearestTarget.X + Math.Sqrt(desc);
-                var destX2 = nearestTarget.X - Math.Sqrt(desc);
-
-                var dist1 = distCompareUnit.GetDistanceTo(destX1, destY);
-                if (destX1 > 0 && dist1 < minBaseDist)
-                {
-                    minBaseDist = dist1;
-                    resX = destX1;
-                    resY = destY;
-                }
-
-                var dist2 = distCompareUnit.GetDistanceTo(destX2, destY);
-                if (destX2 > 0 && dist2 < minBaseDist)
-                {
-                    minBaseDist = dist2;
-                    resX = destX2;
-                    resY = destY;
-                }
-            }
-            if ((borderDist + radius > nearestTarget.X) &&
-                (!isTop && !isLeft && !isRight && !isBottom))
-            {
-                var destX = borderDist;
-                var desc = nearestTarget.Y * nearestTarget.Y - (nearestTarget.Y * nearestTarget.Y +
-                                                              Math.Pow(destX - nearestTarget.X, 2) - radius * radius);
-                var destY1 = nearestTarget.Y + Math.Sqrt(desc);
-                var destY2 = nearestTarget.Y - Math.Sqrt(desc);
-
-                var dist1 = distCompareUnit.GetDistanceTo(destX, destY1);
-                if (destY1 > 0 && dist1 < minBaseDist)
-                {
-                    minBaseDist = dist1;
-                    resX = destX;
-                    resY = destY1;
-                }
-
-                var dist2 = distCompareUnit.GetDistanceTo(destX, destY2);
-                if (destY2 > 0 && dist2 < minBaseDist)
-                {
-                    minBaseDist = dist2;
-                    resX = destX;
-                    resY = destY2;
-                }
-            }
-            if ((_world.Height - borderDist - radius < nearestTarget.Y) &&
-                (!isTop && !isLeft && !isRight && !isBottom))
-            {
-                var destY = _world.Height - borderDist;
-                var desc = nearestTarget.X * nearestTarget.X - (nearestTarget.X * nearestTarget.X +
-                                                              Math.Pow(destY - nearestTarget.Y, 2) -
-                                                              radius * radius);
-                var destX1 = nearestTarget.X + Math.Sqrt(desc);
-                var destX2 = nearestTarget.X - Math.Sqrt(desc);
-
-                var dist1 = distCompareUnit.GetDistanceTo(destX1, destY);
-                if (destX1 > 0 && dist1 < minBaseDist)
-                {
-                    minBaseDist = dist1;
-                    resX = destX1;
-                    resY = destY;
-                }
-
-                var dist2 = distCompareUnit.GetDistanceTo(destX2, destY);
-                if (destX2 > 0 && dist2 < minBaseDist)
-                {
-                    minBaseDist = dist2;
-                    resX = destX2;
-                    resY = destY;
-                }
-
-            }
-            if ((_world.Width - borderDist - radius < nearestTarget.X) && (!isTop &&
-                                                                                                !isLeft && !isRight &&
-                                                                                                !isBottom))
-            {
-                var destX = _world.Width - borderDist;
-                var desc = nearestTarget.Y * nearestTarget.Y - (nearestTarget.Y * nearestTarget.Y +
-                                                              Math.Pow(destX - nearestTarget.X, 2) -
-                                                              radius * radius);
-                var destY1 = nearestTarget.Y + Math.Sqrt(desc);
-                var destY2 = nearestTarget.Y - Math.Sqrt(desc);
-
-                var dist1 = distCompareUnit.GetDistanceTo(destX, destY1);
-                if (destY1 > 0 && dist1 < minBaseDist)
-                {
-                    minBaseDist = dist1;
-                    resX = destX;
-                    resY = destY1;
-                }
-
-                var dist2 = distCompareUnit.GetDistanceTo(destX, destY2);
-                if (destY2 > 0 && dist2 < minBaseDist)
-                {
-                    minBaseDist = dist2;
-                    resX = destX;
-                    resY = destY2;
-                }
-            }
-
-            if (minBaseDist < double.MaxValue)
-            {
-                return new Point2D(resX, resY);
-            }
-            return null;
-        }
-
-        private PointPosition GetPointPosition(Vector v, double pointX,
-            double pointY)
-        {
-            var res = (pointY - v.P1.Y) * (v.P2.X - v.P1.X) - (pointX - v.P1.X) * (v.P2.Y - v.P1.Y);
-            if (res == 0) return PointPosition.OnLine;
-            if (res < 0) return PointPosition.Left;
-            return PointPosition.Right;
-        }
-
         private double GetVectorsAngle(Vector a, Vector b)
         {
             var cos = GetScalarVectorMult(a, b) / a.Length / b.Length;
@@ -3338,78 +2426,11 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             return angle;
         }
 
-        private double GetCriticalGoBackDistance(LivingUnit target)
-        {
-
-            var dist = _self.CastRange;
-            if (target != null)
-            {
-                var hasNearWizards =
-                    _world.Wizards.Any(
-                        w => w.Faction != _self.Faction && _self.GetDistanceTo(w) < _criticalGoBackDistance);
-
-                var buildings = _world.Buildings.Where(b => b.Faction != _self.Faction).ToList();
-                buildings.AddRange(_anemyBuildings.Where((t, i) => _IsAnemyBuildingAlive[i]));
-
-                var hasNearBuilding =
-                    buildings.Any(b => _self.GetDistanceTo(b) < _criticalGoBackDistance);
-
-
-                if (hasNearWizards || hasNearBuilding)
-                {
-                    dist = _self.CastRange * 1.5;
-                }
-            }
-            return dist;
-        }
-
-
         private void GoBack()
         {
-            //_move.Speed = -_game.WizardBackwardSpeed;
-            //_move.StrafeSpeed = 0;
-
-            var beforePrevWaypoint = getBeforePreviousWaypoint();
+            var beforePrevWaypoint = GetBeforePreviousWaypoint();
             _thisTickResPoint = beforePrevWaypoint;
-            goTo(beforePrevWaypoint, _self.Radius * 4, 0, false);
-
-         
-                //var friends = new List<LivingUnit>();
-                //friends.AddRange(_world.Wizards.Where(x => !x.IsMe && x.Faction == _self.Faction && IsStrongOnLine(x, _line)));
-                //friends.AddRange(_world.Buildings.Where(x => x.Faction == _self.Faction && IsStrongOnLine(x, _line)));
-                //friends.AddRange(_world.Minions.Where(x => x.Faction == _self.Faction && IsStrongOnLine(x, _line)));
-
-                //var anemies = new List<LivingUnit>();
-                //anemies.AddRange(_world.Wizards.Where(x => x.Faction != _self.Faction));
-                //anemies.AddRange(
-                //    _world.Minions.Where(
-                //        x =>
-                //            x.Faction != _self.Faction && (x.Faction != Faction.Neutral || !IsCalmNeutralMinion(x))));
-
-                //for (int i = 0; i < _anemyBuildings.Count; ++i)
-                //{
-                //    if (!_IsAnemyBuildingAlive[i]) continue;
-                //    anemies.Add(_anemyBuildings[i]);
-                //}
-
-                //var sortedFriends = friends.OrderBy(x => x.GetDistanceTo(_anemyBaseX, _anemyBaseY));
-                //var friendToGo =
-                //    sortedFriends.FirstOrDefault(
-                //        f =>
-                //            anemies.All(
-                //                a =>
-                //                    a.GetDistanceTo(_self) > _self.GetDistanceTo(f) || a.GetDistanceTo(f) > _self.GetDistanceTo(f)));
-
-                //if (friendToGo != null)
-                //{
-                //    goTo(new Point2D(friendToGo.X, friendToGo.Y), _self.Radius*2, _self.Radius*2, false);
-                //}
-                //else
-                //{
-                //    goTo(beforePrevWaypoint, _self.Radius * 2, _self.Radius * 2, false);
-                //}
-
-            
+            GoTo(beforePrevWaypoint, _self.Radius * 4, 0, false);
         }
 
         private int GetSquareI(double x)
@@ -3427,85 +2448,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             if (res > _m - 1) return _m - 1;
             return res;
         }
-
-        private int GetStaticSquareI(double x)
-        {
-            var res = (int)((x - _staticStartX) / _staticSquareSize);
-            if (res < 0) return 0;
-            if (res > _staticN - 1) return _staticN - 1;
-            return res;
-        }
-
-        private int GetStaticSquareJ(double y)
-        {
-            var res = (int)((y - _staticStartY) / _staticSquareSize);
-            if (res < 0) return 0;
-            if (res > _staticM - 1) return _staticM - 1;
-            return res;
-        }
-
-        private LivingUnit GetObstacle(double speedX, double speedY)
-        {
-            var time = 50;
-
-            var leftX = _self.X + _self.Radius * Math.Sin(_self.Angle);
-            var leftY = _self.Y - _self.Radius * Math.Cos(_self.Angle);
-
-            var rightX = _self.X - _self.Radius * Math.Sin(_self.Angle);
-            var rightY = _self.Y + _self.Radius * Math.Cos(_self.Angle);
-
-            var topX = _self.X + _self.Radius * Math.Cos(_self.Angle);
-            var topY = _self.Y + _self.Radius * Math.Sin(_self.Angle);
-
-            var bottomX = _self.X - _self.Radius * Math.Cos(_self.Angle);
-            var bottomY = _self.Y - _self.Radius * Math.Sin(_self.Angle);
-
-            var nextLeftX = leftX + speedX * time;
-            var nextLeftY = leftY + speedY * time;
-
-            var nextRightX = rightX + speedX * time;
-            var nextRightY = rightY + speedY * time;
-
-            var nextTopX = topX + speedX * time;
-            var nextTopY = topY + speedY * time;
-
-            var nextBottomX = bottomX + speedX * time;
-            var nextBottomY = bottomY + speedY * time;
-
-            var targets = new List<LivingUnit>();
-            targets.AddRange(_world.Buildings);
-            targets.AddRange(_world.Wizards);
-            targets.AddRange(_world.Minions);
-            targets.AddRange(_world.Trees);
-
-            foreach (
-                var target in
-                targets.Where(x => x.Id != _self.Id &&
-                    (x.Faction == _self.Faction || x.Faction == Faction.Neutral || x.Faction == Faction.Other)))
-            {
-                var isCross = IsCross(target.X, target.Y, target.Radius, leftX, leftY, nextLeftX,
-                                  nextLeftY) ||
-                              IsCross(target.X, target.Y, target.Radius, rightX, rightY, nextRightX,
-                                  nextRightY) ||
-                              IsCross(target.X, target.Y, target.Radius, topX, topY, nextTopX,
-                                  nextTopY) ||
-                              IsCross(target.X, target.Y, target.Radius, bottomX, bottomY, nextBottomX,
-                                  nextBottomY);
-                if (isCross) return target;
-            }
-
-            return null;
-        }
-
-        /// <summary>
-        /// ����� ������� �. ������������ ���. (x-x0)^2+(y-y0)^2=R^2 � ��. y=kx+b
-        /// </summary>
-        /// <param name="x0"></param>
-        /// <param name="y0"></param>
-        /// <param name="r"></param>
-        /// <param name="k"></param>
-        /// <param name="b"></param>
-        /// <returns></returns>
+        
         private IList<Point2D> GetCrossPoints(double x0, double y0, double r, double k, double b)
         {
             var res = new List<Point2D>();
@@ -3535,46 +2478,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             return GetCrossPoints(x0, y0, r, k, b);
 
         }
-
-
-        private bool IsCross(double x, double y, double r, double x01, double y01, double x02, double y02)
-        {
-            var rr = r * r;
-
-            //�������� �� ���������� ������ �� ������ ������� � �����
-            if ((x01 - x) * (x01 - x) + (y01 - y) * (y01 - y) <= rr) return true;
-            if ((x02 - x) * (x02 - x) + (y02 - y) * (y02 - y) <= rr) return true;
-
-            //axis-aligned
-            //if (x01-x02==0)
-            if (x01 == x02)
-            {
-                if ((y01 < y && y02 > y || y01 > y && y02 < y) && Math.Abs(x01 - x) <= r) return true;
-                return false;
-            }
-            //if (y01-y02==0)
-            if (y01 == y02)
-            {
-                if ((x01 < x && x02 > x || x01 > x && x02 < x) && Math.Abs(y01 - y) <= r) return true;
-                return false;
-            }
-
-            //������� ����� (xp,yp) ����������� �������������� �� ������ ����� � �����,
-            //������� ����������� �������.
-            var a = (y01 - y02) / (x01 - x02);
-            var b = y01 - a * x01;
-            var xp = (y - b + x / a) / (a + 1 / a);
-            var yp = a * xp + b;
-
-            //����������� �������?
-            if (x01 < xp && x02 > xp || x02 < xp && x01 > xp)
-                //��������� ������ �����?
-                if ((xp - x) * (xp - x) + (yp - y) * (yp - y) <= rr) return true;
-
-            return false;
-        }
-
-
+        
         private LivingUnit GetNearestStaffRangeTarget(Wizard source)
         {
             var targets = new List<LivingUnit>();
@@ -3616,150 +2520,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
 
             return nearestTarget;
         }
-
-        private LivingUnit GetNearestTree()
-        {
-            var targets = new List<LivingUnit>();
-            targets.AddRange(_world.Trees);
-
-            LivingUnit nearestTarget = null;
-            var minDist = double.MaxValue;
-            var minAngle = double.MaxValue;
-
-            foreach (var target in targets)
-            {
-
-                var distance = _self.GetDistanceTo(target) - target.Radius;
-                if (distance > _game.StaffRange) continue;
-
-                if (_self.GetDistanceTo(target) <= minDist)
-                {
-                    if (_self.GetDistanceTo(target) < minDist || Math.Abs(_self.GetAngleTo(target)) < minAngle)
-                    {
-                        nearestTarget = target;
-                        minDist = _self.GetDistanceTo(target);
-                        minAngle = Math.Abs(_self.GetAngleTo(target));
-                    }
-                }
-            }
-
-            return nearestTarget;
-        }
-
-        private LaneType GetNewLaneType()
-        {
-            var hasTopTowers = GetAliveAnemyTowers(LaneType.Top).Any();
-            var hasBottomTowers = GetAliveAnemyTowers(LaneType.Bottom).Any();
-            var hasMidTowers = GetAliveAnemyTowers(LaneType.Middle).Any();
-            if (_line == LaneType.Top && !hasTopTowers)
-            {
-                if (hasMidTowers) return LaneType.Middle;
-                if (hasBottomTowers) return LaneType.Bottom;
-                return LaneType.Top;
-            }
-            if (_line == LaneType.Bottom && !hasBottomTowers)
-            {
-                if (hasMidTowers) return LaneType.Middle;
-                if (hasTopTowers) return LaneType.Top;
-                return LaneType.Bottom;
-            }
-            if (_line == LaneType.Middle && !hasMidTowers)
-            {
-                if (hasTopTowers) return LaneType.Top;
-                if (hasBottomTowers) return LaneType.Bottom;
-                return LaneType.Middle;
-            }
-            return _line;
-        }
-
-        private double GetCorrectAngle()
-        {
-            var angle = _self.Angle;
-            while (angle < 0 || angle >= Math.PI * 2)
-            {
-                if (angle < 0) angle += Math.PI * 2;
-                if (angle >= Math.PI * 2) angle -= Math.PI * 2;
-            }
-            return angle;
-        }
-
-        private double GetDistanceToLine(double a, double b, double c, double x, double y)
-        {
-            return Math.Abs(a * x + b * y + c) / Math.Sqrt(a * a + b * b);
-        }
-
-        private CloseBorder GetCloseBorder()
-        {
-            //var dist = GetDistanceToLine(1, 1, -_world.Width + 300, _self.X, _self.Y);
-            //if (dist < BORDER_RADIUS * 2) return CloseBorder.Middle;
-
-            var angle = GetCorrectAngle();
-            var isVertical = angle < Math.PI / 4 || angle > 3 * Math.PI / 4 && angle < 5 * Math.PI / 4 ||
-                             angle > 7 * Math.PI / 4;
-
-            var isRightClose = _self.X >= _world.Width - BORDER_RADIUS * 2;
-            var isBottomClose = _self.Y >= _world.Height - BORDER_RADIUS * 2;
-
-            var isLeftClose = _self.X <= BORDER_RADIUS * 2;
-            var isTopClose = _self.Y <= BORDER_RADIUS * 2;
-
-
-            if (isRightClose && !isBottomClose) return CloseBorder.Right;
-            if (!isRightClose && isBottomClose) return CloseBorder.Bottom;
-            if (isRightClose && isBottomClose)
-            {
-                return isVertical ? CloseBorder.Right : CloseBorder.Bottom;
-            }
-
-            if (isLeftClose && !isTopClose) return CloseBorder.Left;
-            if (!isLeftClose && isTopClose) return CloseBorder.Top;
-            if (isLeftClose && isTopClose)
-            {
-                return isVertical ? CloseBorder.Left : CloseBorder.Top;
-            }
-
-            return CloseBorder.None;
-
-
-            //if (_self.X <= BORDER_RADIUS * 2 && isVertical) return CloseBorder.Left;
-            //if (_self.X >= _world.Width - BORDER_RADIUS * 2 && isVertical) return CloseBorder.Right;
-            //if (_self.Y <= BORDER_RADIUS * 2 && !isVertical) return CloseBorder.Top;
-            //if (_self.Y >= _world.Height - BORDER_RADIUS * 2 && !isVertical) return CloseBorder.Bottom;
-
-            //return CloseBorder.None;
-        }
-
-
-
-        //private bool HasFightingFriendBefore(Wizard self, World world, LivingUnit target)
-        //{
-        //    if (target == null) return false;
-
-        //    List<LivingUnit> friends = new List<LivingUnit>();
-        //    friends.AddRange(world.Wizards.Where(x => x.Faction == self.Faction));
-        //    friends.AddRange(world.Minions.Where(x => x.Faction == self.Faction));
-        //    friends.AddRange(world.Buildings.Where(x => x.Faction == self.Faction));
-
-        //    foreach (var friend in friends)
-        //    {
-        //        var addDist = friend is Wizard ? 0d : self.CastRange / 2;
-
-        //        if (self.GetDistanceTo(target) < self.CastRange * 2 && 
-        //            line == LineType.Top && (friend.X < 600 && friend.Y < self.Y - addDist
-        //            || friend.Y < 600 && friend.X > self.X + addDist))
-        //        {
-        //            return true;
-        //        }
-        //    }
-
-        //    return false;
-        //}
-
-        //private bool HasFriendBefore(Wizard self, World world)
-        //{
-        //    return GetFaarestBeforeFriend(self, world) != null;
-        //}
-
+        
         private IList<Building> GetAliveAnemyTowers(LaneType laneType)
         {
             var result = new List<Building>();
@@ -3773,26 +2534,8 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             }
             return result;
         }
-
-        private bool IsOkToBurnBase()
-        {
-            for (int i = 0; i < _anemyBuildings.Count; ++i)
-            {
-                if (_anemyBuildings[i].Type == BuildingType.GuardianTower && _IsAnemyBuildingAlive[i])
-                {
-                    return false;
-                }
-            }
-            return true;
-        }
-
-        /**
-     * ������������� ���������.
-     * <p>
-     * ��� ���� ����� ������ ����� ������������ �����������, ������ � ������ ������ �� ����� ���������������� ���������
-     * ��������� ����� ���������, ���������� �� ���������� ����.
-     */
-        private void initializeStrategy(Wizard self, Game game)
+     
+        private void InitializeStrategy(Wizard self, Game game)
         {
             if (_random == null)
             {
@@ -3824,25 +2567,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                 _allAnemyWizards = new List<Wizard>();
                 _allMyWizards.AddRange(_world.Wizards.Where(x => !x.IsMe && x.Faction == _self.Faction));
 
-                var radiusSum = _self.Radius + _game.BonusRadius;
-                _bonus0TopPoint = new Point2D(
-                    _bonusPoints[0].X - radiusSum * Math.Cos(Math.PI / 4),
-                    _bonusPoints[0].Y - radiusSum * Math.Cos(Math.PI / 4));
-                _bonus0BottomPoint = new Point2D(
-                    _bonusPoints[0].X + radiusSum * Math.Cos(Math.PI / 4),
-                    _bonusPoints[0].Y + radiusSum * Math.Cos(Math.PI / 4));
-
-                _bonus1TopPoint = new Point2D(
-                  _bonusPoints[1].X - radiusSum * Math.Cos(Math.PI / 4),
-                  _bonusPoints[1].Y - radiusSum * Math.Cos(Math.PI / 4));
-                _bonus1BottomPoint = new Point2D(
-                    _bonusPoints[1].X + radiusSum * Math.Cos(Math.PI / 4),
-                    _bonusPoints[1].Y + radiusSum * Math.Cos(Math.PI / 4));
-
                 _needChangeLine = false;
-
-                _criticalNearestTargetDistance = _game.GuardianTowerAttackRange + _self.Radius * 2;
-
                 _myBuildings = new List<Building>();
                 _anemyBuildings = new List<Building>();
                 _IsMyBuildingAlive = new List<bool>();
@@ -3957,55 +2682,22 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                 )));*/
             }
         }
-
-
-        /**
-    * ��������� ��� ������� ������ � ����� ������ ��� ��������� ������� � ���.
-    */
-        private void initializeTick(Wizard self, World world, Game game, Move move)
+        private void InitializeTick(Wizard self, World world, Game game, Move move)
         {
             _self = self;
             _world = world;
             _game = game;
             _move = move;
         }
-
-        /**
-  * ������ ����� ������������, ��� ��� �������� ����� �� ����� ����������� �� ���������� ��������� �� ���������
-  * �������� �����. ��������� �� �� �������, ������� ������ ���������� �����, ������� ��������� ����� � ���������
-  * ����� �� �����, ��� ���������. ��� � ����� ��������� �������� ������.
-  * <p>
-  * ������������� ���������, �� ��������� �� ��������� ���������� ������ � �����-���� �� �������� �����. ���� ���
-  * ���, �� �� ����� ���������� ��������� �������� �����.
-  */
-        private Point2D getNextWaypoint()
+     
+        private Point2D GetNextWaypoint()
         {
             int lastWaypointIndex = _waypointsByLine[_line].Length - 1;
             Point2D lastWaypoint = _waypointsByLine[_line][lastWaypointIndex];
 
-            //var thisLineAnemyUnits = new List<LivingUnit>();
-            //foreach (var w in _world.Wizards.Where(x => x.Faction != Faction.Neutral && x.Faction != _self.Faction))
-            //{
-            //    if (IsOnLine(w)) thisLineAnemyUnits.Add(w);
-            //}
-            //foreach (var m in _world.Minions.Where(x => x.Faction != Faction.Neutral && x.Faction != _self.Faction))
-            //{
-            //    if (IsOnLine(m)) thisLineAnemyUnits.Add(m);
-            //}
-
             for (int waypointIndex = 0; waypointIndex < lastWaypointIndex; ++waypointIndex)
             {
-
-
                 Point2D waypoint = _waypointsByLine[_line][waypointIndex];
-
-                //if (thisLineAnemyUnits.Any())
-                //{
-                //    if (thisLineAnemyUnits.Any(u => lastWaypoint.getDistanceTo(waypoint) < lastWaypoint.getDistanceTo(u)))
-                //    {
-                //        return waypointIndex > 0 ? _waypointsByLine[_line][waypointIndex] : _waypointsByLine[_line][0];
-                //    }
-                //}
 
                 if (waypoint.getDistanceTo(_self) <= WAYPOINT_RADIUS)
                 {
@@ -4020,35 +2712,8 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
 
             return lastWaypoint;
         }
-
-        /**
-         * �������� ������� ������ ��������� ��������� �������� ������ {@code getNextWaypoint}, ���� ����������� ������
-         * {@code waypoints}.
-         */
-        private Point2D getPreviousWaypoint()
-        {
-            Point2D firstWaypoint = _waypointsByLine[_line][0];
-
-            for (int waypointIndex = _waypointsByLine[_line].Length - 1; waypointIndex > 0; --waypointIndex)
-            {
-                Point2D waypoint = _waypointsByLine[_line][waypointIndex];
-
-                if (waypoint.getDistanceTo(_self) <= 2 * WAYPOINT_RADIUS)
-                {
-                    return _waypointsByLine[_line][waypointIndex - 1];
-                }
-
-                if (firstWaypoint.getDistanceTo(waypoint) < firstWaypoint.getDistanceTo(_self))
-                {
-                    return waypoint;
-                }
-            }
-
-            return firstWaypoint;
-        }
-
-
-        private Point2D getBeforePreviousWaypoint()
+    
+        private Point2D GetBeforePreviousWaypoint()
         {
             Point2D firstWaypoint = _waypointsByLine[_line][0];
 
@@ -4069,8 +2734,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
 
             return firstWaypoint;
         }
-
-
+        
         private double GetPathWeight(IList<Point> path)
         {
             var weight = 0d;
@@ -4090,13 +2754,6 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             units.AddRange(_world.Trees);
 
             if (path.Count < 2) return true;
-
-            //foreach (var unit in units)
-            //{
-            //    if (Square.Intersect(_self.X, _self.Y, (path[1] as Square).X + (path[1] as Square).Side/2,
-            //        (path[1] as Square).Y + (path[1] as Square).Side/2, unit.X, unit.Y, _self.Radius, unit.Radius))
-            //        return false;
-            //}
 
             for (int i = 0; i < path.Count - 1; ++i)
             {
@@ -4250,15 +2907,13 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             }
         }
 
-        private bool goTo(Point2D point, double relaxCoeff, double strightRelaxCoeff, bool needTurn, IList<Point> path = null)
+        private bool GoTo(Point2D point, double relaxCoeff, double strightRelaxCoeff, bool needTurn, IList<Point> path = null)
         {
             if (!_isLineSet && _world.TickIndex < 600 && !_isOneOneOne)
             {
                 point = new Point2D(900, _world.Height - 1000);
             }
             
-            //if (!_self.IsMaster && _world.TickIndex < CHECK_MASTER_TIME) return false;
-
             SpeedContainer speedContainer = null;
             var goStraightPoint = GetGoStraightPoint(point.X, point.Y, strightRelaxCoeff);
             if (goStraightPoint != null)
@@ -4295,34 +2950,12 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             double resX;
             double resY;
 
-            //var aStarDeltaToChangePoint = _self.Radius*Math.Sqrt(17)/2;
-            //var aStarDeltaToChangePointDiagonal = _self.Radius*Math.Sqrt(41)/2;
-            //var isDiagonalLine = path.Count > 1
-            //    ? (path[1] as Square).X != (path[0] as Square).X && (path[1] as Square).Y != (path[0] as Square).Y
-            //    : false;
-            //var distToPath1 = path.Count > 1
-            //    ? _self.GetDistanceTo((path[1] as Square).X + _squareSize/2, (path[1] as Square).Y + _squareSize/2)
-            //    : 0d;
-
-            //if (path.Count > 1 &&
-            //    (isDiagonalLine && distToPath1 >= aStarDeltaToChangePointDiagonal ||
-            //     !isDiagonalLine && distToPath1 >= aStarDeltaToChangePoint))
-            //{
-            //    resX = (path[0] as Square).X + _squareSize/2;
-            //    resY = (path[0] as Square).Y + _squareSize/2;
-            //}
+         
             if (path.Count <= 1)
             {
                 resX = point.X;
                 resY = point.Y;
             }
-            //else if (checkIsOkToGoBack && !IsOkToGoBack(path))
-            //// ���� ASTAR ����� � �����, �� ������� ���
-            //{
-            //    var prevWaypoint = getPreviousWaypoint();
-            //    resX = prevWaypoint.X;
-            //    resY = prevWaypoint.Y;
-            //}
             else
             {
                 resX = (path[1] as Square).X + _squareSize / 2;
@@ -4341,13 +2974,9 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                 woodCutTree = GetWoodCutTree(path[0] as Square, path[1] as Square);
                 if (woodCutTree != null)
                 {
-
                     var angle = _self.GetAngleTo(woodCutTree);
-                    //if (Math.Abs(angle) > _game.StaffSector/2)
-                    //{
                     _move.Turn = angle;
                     var distance = _self.GetDistanceTo(woodCutTree) - woodCutTree.Radius;
-                    //}
 
                     if (Math.Abs(angle) <= _game.StaffSector / 2.0D)
                     {
@@ -4390,21 +3019,12 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             return woodCutTree != null;
         }
 
-
         private LivingUnit GetClosestTarget()
         {
             var targets = new List<LivingUnit>();
             targets.AddRange(_world.Buildings);
             targets.AddRange(_world.Wizards);
             targets.AddRange(_world.Minions);
-
-            //for (int i = 0; i < _anemyBuildings.Count; ++i)
-            //{
-            //    if (_IsAnemyBuildingAlive[i])
-            //    {
-            //        targets.Add(_anemyBuildings[i]);
-            //    }
-            //}
 
             LivingUnit closestTarget = null;
             var minDist = double.MaxValue;
@@ -4660,19 +3280,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
 
             return 0;
         }
-
-        private double GetSquareWeight(LivingUnit unit)
-        {
-            var building = unit as Building;
-            var wizard = unit as Wizard;
-            if (wizard != null || building != null) return SHOOTING_SQUARE_WEIGHT;
-
-            var minion = unit as Minion;
-            if (minion != null) return LIGHT_SHOOTING_SQUARE_WEIGHT;
-
-            return 0d;
-        }
-
+    
         private bool IsBlockingTree(LivingUnit source, LivingUnit target, double bulletRadius)
         {
             foreach (var tree in _trees)
@@ -4682,156 +3290,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             }
             return false;
         }
-
-
-        //private bool IsOkDistanceToShootWizardWithMissile(LivingUnit source, LivingUnit target)
-        //{
-        //    var attackRange = 0d;
-        //    if (source is Wizard) attackRange = (source as Wizard).CastRange;
-        //    if (source is Building) attackRange = (source as Building).AttackRange;
-        //    if (source is Minion && (source as Minion).Type == MinionType.FetishBlowdart)
-        //        attackRange = _game.FetishBlowdartAttackRange;
-
-        //    var dist = source.GetDistanceTo(target);
-
-        //    var time = dist / _game.MagicMissileSpeed;
-
-        //    var realDist = dist + time*_game.WizardBackwardSpeed;
-        //    return attackRange >= realDist - target.Radius + _game.MagicMissileRadius * 1.5;
-        //}
-
-        private bool IsOkDistanceToShootWizardWithFrostBolt(LivingUnit source, Wizard target)
-        {
-            var attackRange = 0d;
-            if (source is Wizard) attackRange = (source as Wizard).CastRange;
-            if (source is Building) attackRange = (source as Building).AttackRange;
-            if (source is Minion && (source as Minion).Type == MinionType.FetishBlowdart)
-                attackRange = _game.FetishBlowdartAttackRange;
-
-            var dist = source.GetDistanceTo(target);
-            var time = dist / _game.FrostBoltSpeed;
-
-            var realDist = dist + time * GetWizardMaxBackSpeed(target);
-            return attackRange >= realDist - target.Radius + _game.FrostBoltRadius * 1.5;
-        }
-
-        /**
-         * ������� ��������� ���� ��� �����, ���������� �� � ���� � ������ �������������.
-         */
-        private
-        LivingUnit getNearestTarget()
-        {
-            var targets = new List<LivingUnit>();
-            targets.AddRange(_world.Buildings);
-            targets.AddRange(_world.Wizards);
-            targets.AddRange(_world.Minions);
-            //for (int i = 0; i < _anemyBuildings.Count; ++i)
-            //{
-            //    if (_IsAnemyBuildingAlive[i])
-            //    {
-            //        targets.Add(_anemyBuildings[i]);
-            //    }
-            //}
-
-            LivingUnit nearestTarget = null;
-            double nearestTargetDistance = Double.MaxValue;
-            var nearestTargetAngle = Double.MaxValue;
-            var minLife = double.MaxValue;
-
-
-
-            foreach (var target in targets)
-            {
-                if (target.Faction == _self.Faction)
-                {
-                    continue;
-                }
-
-                if (target is Minion && (target as Minion).Faction == Faction.Neutral && IsCalmNeutralMinion(target as Minion)) continue;
-
-
-                double distance = _self.GetDistanceTo(target);
-                var angle = Math.Abs(_self.GetAngleTo(target));
-                var life = target.Life;
-
-                //var hasBeforeFriends = HasBeforeFriends(0d, _self.CastRange / 3);
-                var isClose = distance < _self.CastRange;
-
-                if (Math.Abs(angle) < Math.PI / 4 && isClose &&
-                    life < minLife)
-                {
-                    nearestTarget = target;
-                    minLife = life;
-                }
-            }
-
-            if (nearestTarget == null)
-            {
-                nearestTargetDistance = Double.MaxValue;
-                foreach (var target in targets)
-                {
-                    if (target.Faction == _self.Faction)
-                    {
-                        continue;
-                    }
-                    if (target is Minion && (target as Minion).Faction == Faction.Neutral && IsCalmNeutralMinion(target as Minion)) continue;
-
-                    if (!IsOnLine(target)) continue;
-
-                    var building = target as Building;
-                    if (building != null && building.Type == BuildingType.FactionBase && !IsOkToBurnBase()) continue;
-
-
-                    double distance = _self.GetDistanceTo(target);
-                    if (distance < nearestTargetDistance)
-                    {
-                        nearestTarget = target;
-                        nearestTargetDistance = distance;
-                    }
-                }
-
-            }
-
-            return nearestTarget;
-        }
-
-        private bool IsOnCrossLine()
-        {
-            if (_self.X >= _world.Width / 2 - ROW_WIDTH && _self.X <= _world.Width / 2 + ROW_WIDTH &&
-                _self.Y >= _world.Height / 2 - ROW_WIDTH && _self.Y <= _world.Height / 2 + ROW_WIDTH)
-            {
-                return true;
-            }
-
-            if (_self.Y >= _world.Height - 2 * ROW_WIDTH && _self.X >= _self.Y)
-            {
-                return true;
-            }
-
-            if (_self.X <= 2 * ROW_WIDTH && _self.Y <= _self.X)
-            {
-                return true;
-            }
-
-            var pos3 =
-                GetPointPosition(
-                    new Vector()
-                    {
-                        P1 = new Point2D(0, ROW_WIDTH),
-                        P2 = new Point2D(_world.Width - ROW_WIDTH, _world.Height)
-                    }, _self.X, _self.Y);
-
-            var pos4 =
-                GetPointPosition(
-                    new Vector()
-                    {
-                        P1 = new Point2D(ROW_WIDTH, 0),
-                        P2 = new Point2D(_world.Width, _world.Height - ROW_WIDTH)
-                    }, _self.X, _self.Y);
-
-            return (pos3 == PointPosition.Left && pos4 == PointPosition.Right);
-        }
-
+       
         private bool IsTotallyOnLine(LivingUnit livingUnit, LaneType laneType)
         {
             var isNearToBase = livingUnit.X <= 2 * ROW_WIDTH && livingUnit.Y >= _world.Height - 2 * ROW_WIDTH;
@@ -4895,46 +3354,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             //Mid
             return isOnMainDiagonal;
         }
-
-        private bool IsOnLine(LivingUnit livingUnit)
-        {
-            var isNearToBase = livingUnit.X < 2 * ROW_WIDTH && livingUnit.Y > _world.Height - 2 * ROW_WIDTH ||
-                               livingUnit.Y < 2 * ROW_WIDTH && livingUnit.X > _world.Width - 2 * ROW_WIDTH;
-            if (isNearToBase) return true;
-
-
-            if (_line == LaneType.Top)
-            {
-                return livingUnit.Y < _world.Width - ROW_WIDTH - livingUnit.X;
-            }
-            if (_line == LaneType.Bottom)
-            {
-                return livingUnit.Y > _world.Width + ROW_WIDTH - livingUnit.X;
-            }
-
-            //Mid
-            return livingUnit.Y >= ROW_WIDTH && livingUnit.X >= ROW_WIDTH &&
-                   livingUnit.Y <= _world.Height - ROW_WIDTH && livingUnit.X <= _world.Width - ROW_WIDTH;
-
-
-        }
-
-        private bool CanKillWizard(Wizard target)
-        {
-            //var currTargetLife = target.Life;
-            //var currSelfLife = _self.Life;
-            //var t = 0;
-
-            //while (currTargetLife > 0 && currSelfLife > 0)
-            //{
-            //    if (CanShootWithFireball())
-            //}
-            //if (currSelfLife <= 0) return false;
-            //if (currTargetLife <= 0) return true;
-
-            return false;
-        }
-
+        
         #region SpeedCalc
 
         private double GetResultSpeed(Wizard wizard, double defaultSpeed)
@@ -5114,7 +3534,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             return isWeakWizard && isOkHp && isFarBuildings && isFarWizards && isFarMinios;
         }
 
-        private bool CanGoToStaffRangeNew(LivingUnit shootingTarget, ref double runBackTime)
+        private bool CanGoToStaffRange(LivingUnit shootingTarget)
         {
             if (IsOkToRunForWeakWizard(shootingTarget)) return true;
             if (IsOkToDestroyBase(shootingTarget)) return true;
@@ -5264,38 +3684,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                 new Message(resultLine, null, new byte[0]),
             };
         }
-
-        private LaneType? GetEmptyLane()
-        {
-            var laneTypes = new List<LaneType>()
-            {
-                LaneType.Top,
-                LaneType.Middle,
-                LaneType.Bottom
-            };
-            var emptyLines = new Dictionary<LaneType, bool>();
-            foreach (var lt in laneTypes)
-            {
-                emptyLines.Add(lt, true);
-            }
-
-
-            foreach (var wizard in _world.Wizards.Where(x => x.Faction == _self.Faction))
-            {
-                foreach (var lt in laneTypes)
-                {
-                    if (IsStrongOnLine(wizard, lt)) emptyLines[lt] = false;
-                }
-            }
-
-            foreach (var key in emptyLines.Keys)
-            {
-                if (emptyLines[key]) return key;
-            }
-
-            return null;
-        }
-
+        
         private LaneType GetNearToBaseLine()
         {
             var laneTypes = new List<LaneType>()
@@ -5337,7 +3726,6 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
 
             return resultLane;
         }
-
         private double GetLineCoeff(int myWizardsCount, int anemyWizardsCount)
         {
             var correctMyWizardsCount = myWizardsCount;
@@ -5392,57 +3780,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
 
             return optimalLine;
         }
-
-        private LaneType GetAgressiveLineToGo(LaneType excludingLaneType)
-        {
-            var laneTypes = new List<LaneType>()
-            {
-                LaneType.Middle,
-                LaneType.Top,
-                LaneType.Bottom
-            };
-            var laneWizards = new Dictionary<LaneType, int>()
-            {
-                {LaneType.Middle, 0},
-                {LaneType.Top, 0},
-                {LaneType.Bottom, 0},
-            };
-
-            foreach (var wizard in _world.Wizards.Where(x => x.Faction == _self.Faction && !x.IsMe))
-            {
-                foreach (var laneType in laneTypes)
-                {
-                    if (IsStrongOnLine(wizard, laneType))
-                    {
-                        laneWizards[laneType]++;
-                    }
-                }
-            }
-
-            var maxLaneWizards = 0;
-            foreach (var laneType in laneTypes)
-            {
-                if (laneWizards[laneType] > maxLaneWizards)
-                {
-                    maxLaneWizards = laneWizards[laneType];
-                }
-            }
-
-            var resultLanes = new List<LaneType>();
-            foreach (var laneType in laneTypes.Where(x => x != excludingLaneType))
-            {
-                if (laneWizards[laneType] == maxLaneWizards)
-                {
-                    resultLanes.Add(laneType);
-                }
-            }
-
-
-            if (!resultLanes.Any() || resultLanes.Contains(_line)) return _line;
-            return resultLanes[0]; //иначе там только одна другая линия
-
-        } 
-
+        
         private LaneType? GetAgressiveLineToGo(bool needTwoWizards)
         {
             var laneTypes = new List<LaneType>()
@@ -5489,88 +3827,6 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             }
 
             return resultLane;
-        }
-
-        private LaneType GetLineToGo()
-        {
-            var laneTypes = new List<LaneType>()
-            {
-                LaneType.Top,
-                LaneType.Middle,
-                LaneType.Bottom
-            };
-            var laneWizards = new Dictionary<LaneType, int>()
-            {
-                {LaneType.Top, 0},
-                {LaneType.Middle, 0},
-                {LaneType.Bottom, 0},
-            };
-
-            foreach (var wizard in _world.Wizards.Where(x => x.Faction == _self.Faction && !x.IsMe))
-            {
-                foreach (var laneType in laneTypes)
-                {
-                    if (IsStrongOnLine(wizard, laneType))
-                    {
-                        laneWizards[laneType]++;
-                    }
-                }
-            }
-
-            _isLineSet = true;
-
-            foreach (var item in laneWizards)
-            {
-                if (item.Value == 0) return item.Key;
-            }
-
-            if (laneWizards[LaneType.Middle] < 2)
-            {
-                return LaneType.Middle;
-            }
-
-            if (laneWizards[LaneType.Top] < 2)
-            {
-                return LaneType.Top;
-            }
-
-            return LaneType.Bottom;
-        }
-
-        private void CheckMasterLine()
-        {
-            if (_self.IsMaster) return;
-            if (_world.TickIndex == CHECK_MASTER_TIME)
-            {
-                var masterWizard = _world.Wizards.SingleOrDefault(x => x.Faction == _self.Faction && x.IsMaster);
-                if (masterWizard != null)
-                {
-                    if (IsStrongOnLine(masterWizard, LaneType.Bottom))
-                    {
-                        _line = LaneType.Bottom;
-                    }
-                    else if (IsStrongOnLine(masterWizard, LaneType.Top))
-                    {
-                        _line = LaneType.Top;
-                    }
-                    else if (IsStrongOnLine(masterWizard, LaneType.Middle))
-                    {
-                        _line = LaneType.Middle;
-                    }
-                }
-            }
-        }
-
-        private void CheckNeedChangeLine()
-        {
-            var newLine = GetNewLaneType();
-            _needChangeLine = newLine != _line;
-
-            if (IsOnBase() && _needChangeLine)
-            {
-                _needChangeLine = false;
-                _line = newLine;
-            }
         }
         
         private SkillType GetSkillTypeToLearn()
@@ -5638,13 +3894,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             public double EndX { get; private set; }
             public double EndY { get; private set; }
         }
-
-        private class PathContainer
-        {
-            public IList<Point2D> Path { get; set; }
-            public double Weight { get; set; }
-        }
-
+        
 
         private class Vector
         {
@@ -5670,12 +3920,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
         {
             return v1.X * v2.X + v1.Y * v2.Y;
         }
-
-
-
-        /**
-    * ��������������� ����� ��� �������� ������� �� �����.
-    */
+      
         private class Point2D
         {
             public double X { get; set; }
