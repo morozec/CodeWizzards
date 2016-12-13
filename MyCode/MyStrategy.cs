@@ -752,6 +752,9 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             var canFireballBuilding = shootingBuilding != null;
             var wantedDist = distance + shootingTarget.Radius;
             var realDist = shootingTarget is Building ? (wantedDist > _self.CastRange ? _self.CastRange : wantedDist) : distance;
+            var isSafeToShootFireball =
+                !_world.Wizards.Any(
+                    x => x.Faction == _self.Faction && realDist - x.Radius <= _game.FireballExplosionMinDamageRange);
 
             var nearAnemies = new List<LivingUnit>();
             nearAnemies.AddRange(
@@ -777,8 +780,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                 _move.Action = ActionType.Staff;
             }
             else if (_self.RemainingActionCooldownTicks == 0 && _self.Skills.Any(x => x == SkillType.Fireball) &&
-                     (canFireballWizard || canFireballBuilding || canFiballUnit) &&
-                     (realDist - _self.Radius > _game.FireballExplosionMinDamageRange) &&
+                     (canFireballWizard || canFireballBuilding || canFiballUnit) && isSafeToShootFireball &&
                      _self.RemainingCooldownTicksByAction[(int)ActionType.Fireball] == 0 && shootingTarget.Faction != Faction.Neutral
                     && !IsBlockingTree(_self, shootingTarget, _game.FireballRadius))
             {
