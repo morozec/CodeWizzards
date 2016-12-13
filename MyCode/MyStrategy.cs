@@ -19,6 +19,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
 
         private static double WAYPOINT_RADIUS = 100.0D;
         private static double LOW_HP_FACTOR = 0.33D;
+        private static double HP_FACTOR_TO_GO_TO_TOWERS = 0.75D;
         private static double ROW_WIDTH = 400;
         private static double TOLERANCE = 1E-3;
         private static double BONUS_ADD_TIME = 300;
@@ -102,7 +103,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
 
         private bool _isOneOneOne = false;
 
-        private readonly SkillType[] _skillsOrder = new SkillType[]
+        private readonly SkillType[] _agressiveSkillsOrder = new SkillType[]
         {
 
             SkillType.StaffDamageBonusPassive1,
@@ -116,6 +117,39 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             SkillType.RangeBonusPassive2,
             SkillType.RangeBonusAura2,
             SkillType.AdvancedMagicMissile,
+
+            SkillType.MagicalDamageBonusPassive1,
+            SkillType.MagicalDamageBonusAura1,
+            SkillType.MagicalDamageBonusPassive2,
+            SkillType.MagicalDamageBonusAura2,
+            SkillType.FrostBolt,
+
+            SkillType.MagicalDamageAbsorptionPassive1,
+            SkillType.MagicalDamageAbsorptionAura1,
+            SkillType.MagicalDamageAbsorptionPassive2,
+            SkillType.MagicalDamageAbsorptionAura2,
+            SkillType.Shield,
+
+            SkillType.MovementBonusFactorPassive1,
+            SkillType.MovementBonusFactorAura1,
+            SkillType.MovementBonusFactorPassive2,
+            SkillType.MovementBonusFactorAura2,
+            SkillType.Haste,
+        };
+
+        private readonly SkillType[] _devensiveSkillsOrder = new SkillType[]
+        {
+            SkillType.RangeBonusPassive1,
+            SkillType.RangeBonusAura1,
+            SkillType.RangeBonusPassive2,
+            SkillType.RangeBonusAura2,
+            SkillType.AdvancedMagicMissile,
+
+            SkillType.StaffDamageBonusPassive1,
+            SkillType.StaffDamageBonusAura1,
+            SkillType.StaffDamageBonusPassive2,
+            SkillType.StaffDamageBonusAura2,
+            SkillType.Fireball,
 
             SkillType.MagicalDamageBonusPassive1,
             SkillType.MagicalDamageBonusAura1,
@@ -1399,6 +1433,21 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             var building = source as Building;
             if (building != null)
             {
+
+                if (_isOneOneOne)
+                {
+                    var hasNearBuildingFriends =
+                        friends.Any(x => x.Id != _self.Id && x.GetDistanceTo(building) <= building.AttackRange);
+
+                    if (hasNearBuildingFriends) return !CanGoToBuilding(building, friends);
+                    else
+                    {
+                        var isOkToGoOneOnOne = GetLineCoeff(_myWizards[_line].Count, _anemyWizards[_line].Count) >= 1 &&
+                                               _self.Life > _self.MaxLife*HP_FACTOR_TO_GO_TO_TOWERS;
+                        return !isOkToGoOneOnOne;
+                    }
+                }
+              
                 //return false;
                 return !CanGoToBuilding(building, friends);
             }
@@ -2692,7 +2741,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                     new Point2D(mapSize - 200.0D, mapSize * 0.25D),
                     new Point2D(mapSize - 200.0D, 200.0D)
             });
-                if (_isOneOneOne && _self.Id % 5 == 1) _line = LaneType.Top;
+                if (_isOneOneOne && (_self.Id % 5 == 1 || _self.Id % 5 == 2)) _line = LaneType.Top;
                 else _line = LaneType.Middle;
 
                 //_line = LaneType.Top;
@@ -3946,12 +3995,11 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
         
         private SkillType GetSkillTypeToLearn()
         {
-            var skills = _self.Skills;
-            if (skills.Length == _skillsOrder.Length)
-            {
-                return _skillsOrder[_skillsOrder.Length - 1];
-            }
-            return _skillsOrder[skills.Length];
+            var lineCoeff = GetLineCoeff(_myWizards[_line].Count, _anemyWizards[_line].Count);
+            var skillsOrder = lineCoeff < 1 ? _devensiveSkillsOrder : _agressiveSkillsOrder;
+
+            var newSkill = skillsOrder.FirstOrDefault(x => !_self.Skills.Contains(x));
+            return newSkill;
         }
 
         private class BulletStartData
