@@ -164,10 +164,10 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             UpdateBulletStartDatas();
             SendMessage();
 
-             //if (!_isOneOneOne)
-             //{
-             //    InitializeLineActions();
-             //}
+            if (!_isOneOneOne)
+            {
+                InitializeLineActions();
+            }
 
             _see0Bonus =
                 _world.Wizards.Any(w => w.Faction == _self.Faction && w.GetDistanceTo(_bonusPoints[0].X, _bonusPoints[0].Y) <= w.VisionRange);
@@ -2692,10 +2692,10 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                     new Point2D(mapSize - 200.0D, mapSize * 0.25D),
                     new Point2D(mapSize - 200.0D, 200.0D)
             });
-                //if (_isOneOneOne && _self.Id%5 == 1) _line = LaneType.Top;
-                //else _line = LaneType.Middle;
+                if (_isOneOneOne && _self.Id % 5 == 1) _line = LaneType.Top;
+                else _line = LaneType.Middle;
 
-                _line = LaneType.Top;
+                //_line = LaneType.Top;
                 //_line = LaneType.Middle;
 
 
@@ -2962,10 +2962,10 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
 
         private GoToResult GoTo(Point2D point, double relaxCoeff, double strightRelaxCoeff, IList<Point> path = null)
         {
-            //if (!_isLineSet && _world.TickIndex < 600 && !_isOneOneOne)
-            //{
-            //    point = new Point2D(900, _world.Height - 1000);
-            //}
+            if (!_isLineSet && _world.TickIndex < 600 && !_isOneOneOne)
+            {
+                point = new Point2D(900, _world.Height - 1000);
+            }
             
             //SpeedContainer speedContainer = null;
             var goStraightPoint = GetGoStraightPoint(point.X, point.Y, strightRelaxCoeff);
