@@ -1470,7 +1470,10 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                     if (hasNearBuildingFriends) return !CanGoToBuilding(building, friends);
                     else
                     {
-                        var isOkToGoOneOnOne = GetLineCoeff(_myWizards[_line].Count, _anemyWizards[_line].Count) >= 1 &&
+                        var isClearSituation = _allAnemyWizards.Count == 5 || _world.TickIndex > 800;
+
+                        var isOkToGoOneOnOne = isClearSituation &&
+                                               GetLineCoeff(_myWizards[_line].Count, _anemyWizards[_line].Count) >= 1 &&
                                                _self.Life > _self.MaxLife*HP_FACTOR_TO_GO_TO_TOWERS;
                         return !isOkToGoOneOnOne;
                     }
