@@ -313,12 +313,24 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                         }
 
                         //TODO!!! Теоретически closestTarget м.б. null
-                        
-                        _thisTickResPoint = new Point2D(target.X, target.Y);
-                        goToResult = GoTo(
-                            new Point2D(target.X, target.Y),
-                            _game.StaffRange + target.Radius + 10000 * TOLERANCE,
-                            _game.StaffRange + target.Radius - TOLERANCE);
+                        var isCalmMinion = (shootingTarget is Minion && (shootingTarget as Minion).Faction == Faction.Neutral &&
+                                            IsCalmNeutralMinion(shootingTarget as Minion));
+                        if (isCalmMinion)
+                        {
+                            _thisTickResPoint = new Point2D(_self.X, _self.Y);
+                            goToResult = GoTo(
+                                new Point2D(_self.X, _self.Y),
+                                0,
+                                0);
+                        }
+                        else
+                        {
+                            _thisTickResPoint = new Point2D(target.X, target.Y);
+                            goToResult = GoTo(
+                                new Point2D(target.X, target.Y),
+                                _game.StaffRange + target.Radius + 10000 * TOLERANCE,
+                                _game.StaffRange + target.Radius - TOLERANCE);
+                        }
                     }
                     else
                     {
