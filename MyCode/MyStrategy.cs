@@ -1739,8 +1739,9 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             while (!isIn)
             {
                 t++;
-                var newTargetX = currTargetPoint.X - GetWizardMaxBackSpeed(target) * Math.Cos(target.Angle);
-                var newTargetY = currTargetPoint.Y - GetWizardMaxBackSpeed(target) * Math.Sin(target.Angle);
+
+                var newTargetX = currTargetPoint.X + GetWizardMaxBackSpeed(target) * Math.Cos(target.Angle - Math.PI);
+                var newTargetY = currTargetPoint.Y + GetWizardMaxBackSpeed(target) * Math.Sin(target.Angle - Math.PI);
                 currTargetPoint = new Point2D(newTargetX, newTargetY);
 
                 var newBulletX = currBulletPoint.X + bulletStartData.Speed * Math.Cos(bulletAngle);
