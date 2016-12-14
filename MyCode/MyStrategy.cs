@@ -1429,23 +1429,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                 var startX = wizard.X + GetWizardMaxForwardSpeed(wizard)*Math.Cos(wizard.Angle);
                 var startY = wizard.Y + GetWizardMaxForwardSpeed(wizard) * Math.Sin(wizard.Angle);
 
-
-                var canShootWithMissle = CanShootWizardWithMissleNoCooldown(wizard.X, wizard.Y, wizard.CastRange, _self, false);
-                var canShootWithFireball = wizard.Skills.Any(x => x == SkillType.Fireball) &&
-                                           CanShootWizardWithFireballNoCooldown(
-                                               wizard.X,
-                                               wizard.Y,
-                                               wizard.CastRange,
-                                               _self,
-                                               false);
-                var canShootWithFrostBolt = wizard.Skills.Any(x => x == SkillType.Fireball) &&
-                                            CanShootWizardWithFrostboltNoCooldown(
-                                                wizard.X,
-                                                wizard.Y,
-                                                wizard.CastRange,
-                                                _self,
-                                                false);
-                if (canShootWithMissle || canShootWithFireball || canShootWithFrostBolt) return true;
+                if (CanShootWizard(wizard, _self, false)) return true;
             }
 
             var building = source as Building;
