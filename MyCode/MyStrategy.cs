@@ -997,7 +997,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
 
                 if (!IsStrongOnLine(unit, lane)) continue;
                 var dist = _selfBase.GetDistanceTo(unit);
-                if (_self.GetDistanceTo(_selfBase) - dist > _self.CastRange * 1.5) continue;
+                if (IsStrongOnLine(_self, lane) && _self.GetDistanceTo(_selfBase) - dist > _self.CastRange * 1.5) continue;
 
                 if (dist < minDist)
                 {
