@@ -396,9 +396,9 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                 var time = GetBulletTime(bullet, _self);
 
                 var canGoBack = CanGoBack(_self, bullet, time, false);
-                var canGoLeft = CanGoLeft(_self, bullet, time);
-                var canGoRight = CanGoRight(_self, bullet, time);
-                var canGoForward = CanGoForward(_self, bullet, time);
+                var canGoLeft = CanGoLeft(_self, bullet, time, false);
+                var canGoRight = CanGoRight(_self, bullet, time, false);
+                var canGoForward = CanGoForward(_self, bullet, time, false);
                 if (canGoBack)
                 {
                     _move.Speed = -GetWizardMaxBackSpeed(_self);
@@ -863,9 +863,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             var newY = target.Y + GetWizardMaxBackSpeed(target) * time * Math.Sin(target.Angle - Math.PI);
 
             //if (!target.IsMe)
-            //Debug.circle(newX, newY, 10, 150);
-
-            //var canGo = CanGoSide(bsd, myX, myY);
+            //    Debug.circle(newX, newY, 10, 150);
 
             var isIntersect = Square.Intersect(
                 bsd.StartX,
@@ -885,13 +883,14 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             return !isIntersect && canGoStraightPoint;
         }
 
-        private bool CanGoForward(Wizard target, BulletStartData bsd, double time)
+        private bool CanGoForward(Wizard target, BulletStartData bsd, double time, bool ignoreGoStraightPoint)
         {
 
             var newX = target.X + GetWizardMaxForwardSpeed(target) * time * Math.Cos(target.Angle);
             var newY = target.Y + GetWizardMaxForwardSpeed(target) * time * Math.Sin(target.Angle);
 
-            //Debug.circle(newX, newY, 10, 150);
+            //if (!target.IsMe)
+            //    Debug.circle(newX, newY, 10, 150);
 
             if (newX < target.Radius || newY < target.Radius || newX > _world.Width - target.Radius ||
                 newY > _world.Height - target.Radius)
@@ -907,16 +906,19 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                 bsd.Radius,
                 target.Radius);
 
-            return !isIntersect && GetGoStraightPoint(newX, newY, 0) != null;
+            var canGoStraightPoint = true;
+            if (!ignoreGoStraightPoint) canGoStraightPoint = CanGoBackStraightPoint(target, time);
+
+            return !isIntersect && canGoStraightPoint;
         }
         
-        private bool CanGoLeft(Wizard target, BulletStartData bsd, double time)
+        private bool CanGoLeft(Wizard target, BulletStartData bsd, double time, bool ignoreGoStraightPoint)
         {
             var newX = target.X + GetWizardMaxStrafeSpeed(target) * time * Math.Cos(target.Angle - Math.PI / 2);
             var newY = target.Y + GetWizardMaxStrafeSpeed(target) * time * Math.Sin(target.Angle - Math.PI / 2);
 
             //if (!target.IsMe)
-            //Debug.circle(newX, newY, 10, 150);
+            //    Debug.circle(newX, newY, 10, 150);
 
             if (newX < target.Radius || newY < target.Radius || newX > _world.Width - target.Radius ||
                 newY > _world.Height - target.Radius)
@@ -932,10 +934,13 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                 bsd.Radius,
                 target.Radius);
 
-            return !isIntersect && GetGoStraightPoint(newX, newY, 0) != null;
+            var canGoStraightPoint = true;
+            if (!ignoreGoStraightPoint) canGoStraightPoint = CanGoBackStraightPoint(target, time);
+
+            return !isIntersect && canGoStraightPoint;
         }
 
-        private bool CanGoRight(Wizard target, BulletStartData bsd, double time)
+        private bool CanGoRight(Wizard target, BulletStartData bsd, double time, bool ignoreGoStraightPoint)
         {
 
             var newX = target.X + GetWizardMaxStrafeSpeed(target) * time * Math.Cos(target.Angle + Math.PI / 2);
@@ -958,7 +963,10 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                 bsd.Radius,
                 target.Radius);
 
-            return !isIntersect && GetGoStraightPoint(newX, newY, 0) != null;
+            var canGoStraightPoint = true;
+            if (!ignoreGoStraightPoint) canGoStraightPoint = CanGoBackStraightPoint(target, time);
+
+            return !isIntersect && canGoStraightPoint;
         }
         
         private LivingUnit GetNearestMyBaseAnemy(LaneType lane)
@@ -1046,7 +1054,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                 IsGo = false,
                 GoToResult = null
             };
-
+            
             //если игра 1 на 1
             if (_isOneOneOne)
             {
@@ -1536,9 +1544,9 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             if (considerCooldown) goAwayTime += source.RemainingCooldownTicksByAction[(int) ActionType.MagicMissile];
 
             var canGoBack = checkBack && CanGoBack(target, bsd, goAwayTime, true);
-            var canGoForward = checkForward && CanGoForward(target, bsd, goAwayTime);
-            var canGoLeft = checkSide && CanGoLeft(target, bsd, goAwayTime);
-            var canGoRight = checkSide && CanGoRight(target, bsd, goAwayTime);
+            var canGoForward = checkForward && CanGoForward(target, bsd, goAwayTime, true);
+            var canGoLeft = checkSide && CanGoLeft(target, bsd, goAwayTime, true);
+            var canGoRight = checkSide && CanGoRight(target, bsd, goAwayTime, true);
 
             return !canGoBack && !canGoForward && !canGoLeft && !canGoRight;
         }
