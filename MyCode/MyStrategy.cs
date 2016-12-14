@@ -336,7 +336,8 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                         var nearestBaseTarget = GetNearestMyBaseAnemy(_line);
                         if (nearestBaseTarget != null)
                         {
-                            if (_self.GetDistanceTo(nearestBaseTarget) < _self.CastRange * 1.5) turnTarget = nearestBaseTarget;
+                            if (closestTarget != null && _self.GetDistanceTo(closestTarget) < _self.CastRange*1.5)
+                                turnTarget = nearestBaseTarget;
 
                             var radius = _self.CastRange - nearestBaseTarget.Radius +
                                             _game.MagicMissileRadius * 1.5;
