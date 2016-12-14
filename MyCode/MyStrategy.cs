@@ -433,10 +433,12 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             }
 
             var canGoOnStaffRange = CanGoToStaffRange(shootingTarget, selfNextTickX, selfNextTickY);
+            var goBack = false;
             if (!goBonusResult.IsGo && (!canGoOnStaffRange || NeedGoBack()))
             {
                 goToResult = GoBack();
                 speedContainer = GetSpeedContainer(goToResult.X, goToResult.Y);
+                goBack = true;
             }
             
             _move.Speed = speedContainer.Speed;
@@ -469,7 +471,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             {
                 _move.Turn = _self.GetAngleTo(turnTarget.X, turnTarget.Y);
             }
-            else
+            else if (!goBack)
             {
                 double turnPointX = goToResult.X;
                 double turnPointY = goToResult.Y;
