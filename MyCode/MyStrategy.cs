@@ -857,8 +857,11 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
         /// <returns></returns>
         private bool CanGoBack(Wizard target, BulletStartData bsd, double time, bool ignoreGoStraightPoint)
         {
-            var newX = target.X - GetWizardMaxBackSpeed(target) * time * Math.Cos(target.Angle);
-            var newY = target.Y - GetWizardMaxBackSpeed(target) * time * Math.Sin(target.Angle);
+            var newX = target.X + GetWizardMaxBackSpeed(target) * time * Math.Cos(target.Angle - Math.PI);
+            var newY = target.Y + GetWizardMaxBackSpeed(target) * time * Math.Sin(target.Angle - Math.PI);
+
+            //if (!target.IsMe)
+            //Debug.circle(newX, newY, 10, 150);
 
             //var canGo = CanGoSide(bsd, myX, myY);
 
@@ -886,6 +889,8 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             var newX = target.X + GetWizardMaxForwardSpeed(target) * time * Math.Cos(target.Angle);
             var newY = target.Y + GetWizardMaxForwardSpeed(target) * time * Math.Sin(target.Angle);
 
+            //Debug.circle(newX, newY, 10, 150);
+
             if (newX < target.Radius || newY < target.Radius || newX > _world.Width - target.Radius ||
                 newY > _world.Height - target.Radius)
                 return false;
@@ -905,9 +910,11 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
         
         private bool CanGoLeft(Wizard target, BulletStartData bsd, double time)
         {
-
             var newX = target.X + GetWizardMaxStrafeSpeed(target) * time * Math.Cos(target.Angle - Math.PI / 2);
             var newY = target.Y + GetWizardMaxStrafeSpeed(target) * time * Math.Sin(target.Angle - Math.PI / 2);
+
+            //if (!target.IsMe)
+            //Debug.circle(newX, newY, 10, 150);
 
             if (newX < target.Radius || newY < target.Radius || newX > _world.Width - target.Radius ||
                 newY > _world.Height - target.Radius)
@@ -931,6 +938,9 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
 
             var newX = target.X + GetWizardMaxStrafeSpeed(target) * time * Math.Cos(target.Angle + Math.PI / 2);
             var newY = target.Y + GetWizardMaxStrafeSpeed(target) * time * Math.Sin(target.Angle + Math.PI / 2);
+
+            //if (!target.IsMe)
+            //    Debug.circle(newX, newY, 10, 150);
 
             if (newX < target.Radius || newY < target.Radius || newX > _world.Width - target.Radius ||
                 newY > _world.Height - target.Radius)
