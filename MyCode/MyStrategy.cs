@@ -4144,10 +4144,10 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                         break;
                     }
                 }
-                if (laneType == null) return null;
+                if (laneType == null) continue;
 
                 var lineType = GetLineType(laneType.Value);
-                if (lineType != LineType.Agressive) return null;
+                if (lineType != LineType.Agressive) continue;
 
                 var myWizards = _world.Wizards.Where(x => x.Faction == _self.Faction);
 
