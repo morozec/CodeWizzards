@@ -4140,7 +4140,33 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
 
             if (_seenAnemyWizards.Count < 5) return null;
 
+            var isFarBuildings = true;
+            for (int i = 0; i < _anemyBuildings.Count; ++i)
+            {
+                if (!_IsAnemyBuildingAlive[i] || _self.Life > _anemyBuildings[i].Damage) continue;
+                if (_anemyBuildings[i].GetDistanceTo(_self) - _self.Radius < _anemyBuildings[i].AttackRange)
+                {
+                    isFarBuildings = false;
+                    break;
+                }
+            }
+
+            var anemyMinions = _world.Minions.Where(x => x.Faction != _self.Faction);
+            var isFarMinios = true;
+            foreach (var minion in anemyMinions)
+            {
+                if (minion.Faction == Faction.Neutral && IsCalmNeutralMinion(minion) || minion.Type == MinionType.FetishBlowdart) continue;
+                if (minion.GetDistanceTo(_self) - _self.Radius <= _game.OrcWoodcutterAttackRange)
+                {
+                    isFarMinios = false;
+                    break;
+                }
+            }
+
+            if (!isFarBuildings || !isFarMinios) return null;
+
             var okAnemyWizards = new List<BerserkTargetResult>();
+
             foreach (var wizard in _world.Wizards.Where(x => x.Faction != _self.Faction))
             {
                 LaneType? laneType = null;
