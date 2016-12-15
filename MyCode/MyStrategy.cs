@@ -858,18 +858,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
 
             return new Point2D(relaxP.X, relaxP.Y);
         }
-
-        private bool CanGoBackStraightPoint(Wizard target, double time)
-        {
-            var newX = target.X - GetWizardMaxBackSpeed(target) * time * Math.Cos(target.Angle);
-            var newY = target.Y - GetWizardMaxBackSpeed(target) * time * Math.Sin(target.Angle);
-
-            if (newX < target.Radius || newY < target.Radius || newX > _world.Width - target.Radius ||
-                newY > _world.Height - target.Radius)
-                return false;
-
-            return GetGoStraightPoint(newX, newY, 0) != null;
-        }
+      
         
         /// <summary>
         /// Может ли волшебник отойти от пули bsd. time - время на отход
@@ -883,6 +872,10 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
         {
             var newX = target.X + GetWizardMaxBackSpeed(target) * time * Math.Cos(target.Angle - Math.PI);
             var newY = target.Y + GetWizardMaxBackSpeed(target) * time * Math.Sin(target.Angle - Math.PI);
+
+            if (newX < target.Radius || newY < target.Radius || newX > _world.Width - target.Radius ||
+                newY > _world.Height - target.Radius)
+                return false;
 
             //if (!target.IsMe)
             //    Debug.circle(newX, newY, 10, 150);
@@ -899,7 +892,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
 
 
             var canGoStraightPoint = true;
-            if (!ignoreGoStraightPoint) canGoStraightPoint = CanGoBackStraightPoint(target, time);
+            if (!ignoreGoStraightPoint) canGoStraightPoint = (GetGoStraightPoint(newX, newY, 0) != null);
 
 
             return !isIntersect && canGoStraightPoint;
@@ -929,7 +922,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                 target.Radius);
 
             var canGoStraightPoint = true;
-            if (!ignoreGoStraightPoint) canGoStraightPoint = CanGoBackStraightPoint(target, time);
+            if (!ignoreGoStraightPoint) canGoStraightPoint = (GetGoStraightPoint(newX, newY, 0) != null);
 
             return !isIntersect && canGoStraightPoint;
         }
@@ -957,7 +950,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                 target.Radius);
 
             var canGoStraightPoint = true;
-            if (!ignoreGoStraightPoint) canGoStraightPoint = CanGoBackStraightPoint(target, time);
+            if (!ignoreGoStraightPoint) canGoStraightPoint = (GetGoStraightPoint(newX, newY, 0) != null);
 
             return !isIntersect && canGoStraightPoint;
         }
@@ -986,7 +979,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                 target.Radius);
 
             var canGoStraightPoint = true;
-            if (!ignoreGoStraightPoint) canGoStraightPoint = CanGoBackStraightPoint(target, time);
+            if (!ignoreGoStraightPoint) canGoStraightPoint = (GetGoStraightPoint(newX, newY, 0) != null);
 
             return !isIntersect && canGoStraightPoint;
         }
