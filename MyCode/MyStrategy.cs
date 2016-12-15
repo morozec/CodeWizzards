@@ -26,6 +26,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
         private static double BONUS_ADD_TIME = 300;
         private static double BONUS_ADD_TIME_PER_SUARE = 1.1;
         private static double LIGHT_SHOOTING_SQUARE_WEIGHT = 3;
+        private static double STRONG_SHOOTING_SQUARE_WEIGHT = 7;
         private static double CLOSE_TO_WIN_DISTANCE = 1200;
         private static double CLOSE_TO_TOWER_DISTANCE = 700;
         private static double COEFF_TO_RUN_FOR_WEAK = 1.2;
@@ -2395,7 +2396,10 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                             var dist = _anemyBuildings[k].GetDistanceTo(centerX, centerY);
                             if (dist < _anemyBuildings[k].AttackRange)
                             {
-                                p.Weight += LIGHT_SHOOTING_SQUARE_WEIGHT;
+                                p.Weight += IsStrongOnLine(_anemyBuildings[k], _line) ||
+                                            _anemyBuildings[k].Type == BuildingType.FactionBase
+                                    ? LIGHT_SHOOTING_SQUARE_WEIGHT
+                                    : STRONG_SHOOTING_SQUARE_WEIGHT;
                             }
                         }
                     }
@@ -2420,7 +2424,10 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                         var dist = _anemyBuildings[k].GetDistanceTo(centerX, centerY);
                         if (dist < _anemyBuildings[k].AttackRange)
                         {
-                            _table[i, j].Weight += LIGHT_SHOOTING_SQUARE_WEIGHT;
+                            _table[i, j].Weight += IsStrongOnLine(_anemyBuildings[k], _line) ||
+                                                   _anemyBuildings[k].Type == BuildingType.FactionBase
+                                ? LIGHT_SHOOTING_SQUARE_WEIGHT
+                                : STRONG_SHOOTING_SQUARE_WEIGHT;
                         }
                     }
                 }
