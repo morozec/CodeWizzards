@@ -497,9 +497,8 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             UpdateWizardsLanes();
             if (_isOneOneOne)
             {
-                if (_allAnemyWizards.Count == 5 && _line == LaneType.Top &&
-                    (GetLineType(_line) == LineType.Defensive ||
-                     _myWizards[_line].Count - _anemyWizards[_line].Count == 0 && _anemyWizards[LaneType.Bottom].Any()))
+                if (_allAnemyWizards.Count == 5 && 
+                    _line == LaneType.Bottom && _anemyWizards[LaneType.Middle].Count - _myWizards[LaneType.Middle].Count >=2)
                 {
                     _line = LaneType.Middle;
                 }
@@ -2899,7 +2898,8 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                     new Point2D(mapSize - 200.0D, mapSize * 0.25D),
                     new Point2D(mapSize - 200.0D, 200.0D)
             });
-                if (_isOneOneOne && (_self.Id % 5 == 3 || _self.Id % 5 == 2)) _line = LaneType.Top;
+                if (_isOneOneOne && (_self.Id % 5 == 2)) _line = LaneType.Top;
+                else if (_isOneOneOne && (_self.Id % 5 == 4)) _line = LaneType.Bottom;
                 else _line = LaneType.Middle;
 
                 //_line = LaneType.Top;
