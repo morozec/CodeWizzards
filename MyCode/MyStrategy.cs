@@ -4308,7 +4308,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             if (!_isOneOneOne) return null;
             //if (_self.IsMaster) return null;
 
-            if (_seenAnemyWizards.Count < 5) return null;
+            //if (_seenAnemyWizards.Count < 5) return null;
 
             var isFarBuildings = true;
             for (int i = 0; i < _anemyBuildings.Count; ++i)
