@@ -30,7 +30,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
         private static double STRONG_SHOOTING_SQUARE_WEIGHT = 7;
         private static double CLOSE_TO_WIN_DISTANCE = 1200;
         private static double CLOSE_TO_TOWER_DISTANCE = 700;
-        private static double BERSERK_COEFF = 1.2;
+        private static double BERSERK_COEFF = 1.1;
         private static double TOWER_HP_FACTOR = 0.75;
         private static double COEFF_TO_RUN_FOR_WEAK = 1.2;
         
@@ -1977,7 +1977,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             {
                 bulletPoint = new Point2D(bulletStartData.StartX, bulletStartData.StartY);
             }
-            var dist = bulletPoint.getDistanceTo(target);
+            var dist = bulletPoint.getDistanceTo(target) - target.Radius;
             var time = dist/bulletStartData.Speed;
             return (int) time + 1;
 
@@ -4311,10 +4311,23 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             //if (_seenAnemyWizards.Count < 5) return null;
 
             var isFarBuildings = true;
+            var friends = new List<LivingUnit>();
+            friends.AddRange(_world.Wizards.Where(x => x.Faction == _self.Faction));
+            friends.AddRange(_world.Minions.Where(x => x.Faction == _self.Faction));
+            friends.AddRange(_world.Buildings.Where(x => x.Faction == _self.Faction));
+
+
             for (int i = 0; i < _anemyBuildings.Count; ++i)
             {
-                if (!_IsAnemyBuildingAlive[i] || _self.Life > _anemyBuildings[i].Damage) continue;
-                if (_anemyBuildings[i].GetDistanceTo(_self) - _self.Radius < _anemyBuildings[i].AttackRange)
+                if (!_IsAnemyBuildingAlive[i]) continue;
+                //if (_anemyBuildings[i].GetDistanceTo(_self) - _self.Radius < _anemyBuildings[i].AttackRange)
+                //{
+                //    isFarBuildings = false;
+                //    break;
+                //}
+
+
+                if (!CanGoToBuilding(_anemyBuildings[i], friends))
                 {
                     isFarBuildings = false;
                     break;
