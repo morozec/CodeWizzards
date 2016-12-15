@@ -1,5 +1,6 @@
 using Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk.Model;
 using System;
+using System.CodeDom;
 using System.Collections.Generic;
 using System.Linq;
 using Com.CodeGame.CodeRacing2015.DevKit.CSharpCgdk;
@@ -1077,7 +1078,66 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             //если игра 1 на 1
             if (_isOneOneOne)
             {
-                return goBonusResult;
+                if (GetLineType(_line) == LineType.Defensive) return goBonusResult;
+                var ordered0Wizards =
+                    _world.Wizards.Where(x => x.Faction == _self.Faction).OrderBy(x => _bonusPoints[0].getDistanceTo(x));
+
+                var isNearest0 = false;
+                foreach (var wizard in ordered0Wizards)
+                {
+                    if (wizard.IsMe)
+                    {
+                        isNearest0 = true;
+                        break;
+                    }
+                    else
+                    {
+                        LaneType? wizardLaneType = null;
+                        foreach (var lane in _myWizards.Keys)
+                        {
+                            if (_myWizards[lane].Contains(wizard.Id))
+                            {
+                                wizardLaneType = lane;
+                                break;
+                            }
+                        }
+                        if (wizardLaneType != null && GetLineType(wizardLaneType.Value) != LineType.Defensive)
+                        {
+                            break;
+                        }
+                    }
+                }
+
+                var ordered1Wizards =
+                   _world.Wizards.Where(x => x.Faction == _self.Faction).OrderBy(x => _bonusPoints[1].getDistanceTo(x));
+
+                var isNearest1 = false;
+                foreach (var wizard in ordered1Wizards)
+                {
+                    if (wizard.IsMe)
+                    {
+                        isNearest1 = true;
+                        break;
+                    }
+                    else
+                    {
+                        LaneType? wizardLaneType = null;
+                        foreach (var lane in _myWizards.Keys)
+                        {
+                            if (_myWizards[lane].Contains(wizard.Id))
+                            {
+                                wizardLaneType = lane;
+                                break;
+                            }
+                        }
+                        if (wizardLaneType != null && GetLineType(wizardLaneType.Value) != LineType.Defensive)
+                        {
+                            break;
+                        }
+                    }
+                }
+
+                if (!isNearest0 && !isNearest1) return goBonusResult;
             }
             
             //не идем, если атакуем дохлого волшебника
