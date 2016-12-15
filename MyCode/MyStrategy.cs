@@ -1618,9 +1618,12 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             var minion = source as Minion;
             if (minion != null)
             {
+                var attackRange = GetAttackRange(minion);
                 var orderedFriends = friends.OrderBy(x => x.GetDistanceTo(source));
                 var firstFriend = orderedFriends.First() as Wizard;
-                if (firstFriend != null && firstFriend.IsMe) return true;
+                var eps = _self.Radius/2;
+                if (firstFriend != null && firstFriend.IsMe && _self.GetDistanceTo(minion) <= attackRange + eps)
+                    return true;
             }
 
             var wizard = source as Wizard;
