@@ -199,10 +199,9 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             UpdateBulletStartDatas();
             SendMessage();
 
-            if (!_isOneOneOne)
-            {
-                InitializeLineActions();
-            }
+           
+            InitializeLineActions();
+            
 
             _see0Bonus =
                 _world.Wizards.Any(w => w.Faction == _self.Faction && w.GetDistanceTo(_bonusPoints[0].X, _bonusPoints[0].Y) <= w.VisionRange);
@@ -496,6 +495,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
         private void InitializeLineActions()
         {
             UpdateWizardsLanes();
+            if (_isOneOneOne) return;
 
             var isNearToBase = _self.X <= 2 * ROW_WIDTH && _self.Y >= _world.Height - 2 * ROW_WIDTH;
 
@@ -2889,7 +2889,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                     new Point2D(mapSize - 200.0D, mapSize * 0.25D),
                     new Point2D(mapSize - 200.0D, 200.0D)
             });
-                if (_isOneOneOne && (_self.Id % 5 == 1 || _self.Id % 5 == 2)) _line = LaneType.Top;
+                if (_isOneOneOne && (_self.Id % 5 == 3 || _self.Id % 5 == 2)) _line = LaneType.Top;
                 else _line = LaneType.Middle;
 
                 //_line = LaneType.Top;
