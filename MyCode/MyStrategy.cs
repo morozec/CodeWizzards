@@ -498,7 +498,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             if (_isOneOneOne)
             {
                 if (_allAnemyWizards.Count == 5 && _line == LaneType.Top &&
-                    (GetLineType(_line) == LineType.Agressive ||
+                    (GetLineType(_line) == LineType.Defensive ||
                      _myWizards[_line].Count - _anemyWizards[_line].Count == 0 && _anemyWizards[LaneType.Bottom].Any()))
                 {
                     _line = LaneType.Middle;
