@@ -30,6 +30,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
         private static double STRONG_SHOOTING_SQUARE_WEIGHT = 7;
         private static double CLOSE_TO_WIN_DISTANCE = 1200;
         private static double CLOSE_TO_TOWER_DISTANCE = 700;
+        private static double TOWER_HP_FACTOR = 0.75;
         private static double COEFF_TO_RUN_FOR_WEAK = 1.2;
         
         private IDictionary<LaneType, Point2D[]> _waypointsByLine = new Dictionary<LaneType, Point2D[]>();
@@ -3791,8 +3792,8 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             var newSourceY = source.Y +
                              GetWizardMaxForwardSpeed(source) * Math.Sin(source.Angle + source.GetAngleTo(target)) * targetCooldown;
 
-            var newTargetX = target.X - GetWizardMaxBackSpeed(target)*Math.Cos(target.Angle + target.GetAngleTo(source)) * targetCooldown;
-            var newTargetY = target.Y - GetWizardMaxBackSpeed(target)*Math.Sin(target.Angle + target.GetAngleTo(source)) * targetCooldown;
+            var newTargetX = target.X + GetWizardMaxBackSpeed(target)*Math.Cos(target.Angle + target.GetAngleTo(source) - Math.PI) * targetCooldown;
+            var newTargetY = target.Y + GetWizardMaxBackSpeed(target)*Math.Sin(target.Angle + target.GetAngleTo(source) - Math.PI) * targetCooldown;
 
             var newTarget = new Wizard(
                        target.Id,
@@ -4080,9 +4081,17 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             if (lineCoeff < 1) return false;
 
             var towers = GetLineAliveAnemyTowers(_line);
-            if (towers.All(x => x.GetDistanceTo(_self) > CLOSE_TO_TOWER_DISTANCE)) return false;
+            var orderedTowers = towers.OrderBy(x => x.GetDistanceTo(_self));
+            var tower = orderedTowers.FirstOrDefault();
+            if (tower == null) return false;
 
-            return true;
+             var units = new List<LivingUnit>();
+            units.AddRange(_world.Wizards.Where(x => x.Faction == _self.Faction));
+            units.AddRange(_world.Minions.Where(x => x.Faction == _self.Faction));
+            var nearUnits = units.Where(x => x.GetDistanceTo(tower) - tower.Radius <= GetAttackRange(x));
+
+            return (tower.GetDistanceTo(_self) <= CLOSE_TO_TOWER_DISTANCE) &&
+                tower.Life <= tower.MaxLife*TOWER_HP_FACTOR && nearUnits.Count() >= 3;
         }
 
         private bool IsOkToRunForWeakWizard(LivingUnit target)
