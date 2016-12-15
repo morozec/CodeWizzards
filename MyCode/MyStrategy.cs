@@ -2898,8 +2898,8 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                     new Point2D(mapSize - 200.0D, mapSize * 0.25D),
                     new Point2D(mapSize - 200.0D, 200.0D)
             });
-                if (_isOneOneOne && (_self.Id % 5 == 2)) _line = LaneType.Top;
-                else if (_isOneOneOne && (_self.Id % 5 == 4)) _line = LaneType.Bottom;
+                if (_isOneOneOne && (_self.Id % 5 == 1)) _line = LaneType.Top;
+                else if (_isOneOneOne && (_self.Id % 5 == 0)) _line = LaneType.Bottom;
                 else _line = LaneType.Middle;
 
                 //_line = LaneType.Top;
