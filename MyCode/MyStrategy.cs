@@ -30,6 +30,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
         private static double STRONG_SHOOTING_SQUARE_WEIGHT = 7;
         private static double CLOSE_TO_WIN_DISTANCE = 1200;
         private static double CLOSE_TO_TOWER_DISTANCE = 700;
+        private static double BERSERK_COEFF = 1.2;
         private static double TOWER_HP_FACTOR = 0.75;
         private static double COEFF_TO_RUN_FOR_WEAK = 1.2;
         
@@ -105,6 +106,10 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
 
         private List<Wizard> _allMyWizards;
         private List<Wizard> _allAnemyWizards;
+        private List<Wizard> _seenAnemyWizards;
+
+        private bool _isBerserkTarget = false;
+
 
         private bool _isOneOneOne = false;
 
@@ -501,11 +506,11 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             UpdateWizardsLanes();
             if (_isOneOneOne)
             {
-                if (_allAnemyWizards.Count == 5 && 
-                    _line == LaneType.Bottom && _anemyWizards[LaneType.Middle].Count - _myWizards[LaneType.Middle].Count >=2)
-                {
-                    _line = LaneType.Middle;
-                }
+                //if (_allAnemyWizards.Count == 5 && 
+                //    _line == LaneType.Bottom && _anemyWizards[LaneType.Middle].Count - _myWizards[LaneType.Middle].Count >=2)
+                //{
+                //    _line = LaneType.Middle;
+                //}
                 return;
             }
 
@@ -572,6 +577,11 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             {
                 _allAnemyWizards.RemoveAll(x => x.Id == wizard.Id);
                 _allAnemyWizards.Add(wizard);
+
+                if (!_seenAnemyWizards.Any(x => x.Id == wizard.Id))
+                {
+                    _seenAnemyWizards.Add(wizard);
+                }
             }
 
             var anemyDeadWizards = new List<Wizard>();
@@ -1146,6 +1156,12 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                 SetBonusZoneNotPasseble(_bonusPoints[1]);
                 return goBonusResult;
             }
+
+            //не идем, если берсерк-мод
+            if (IsOkToRunForWeakWizard(shootingTarget))
+            {
+                return goBonusResult;
+            }
             //если близко к чужой базе
             if (IsCloseToWin()) return goBonusResult;
             //Если можем сломать башню
@@ -1538,7 +1554,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                     if (hasNearBuildingFriends) return !CanGoToBuilding(building, friends);
                     else
                     {
-                        var isClearSituation = _allAnemyWizards.Count == 5 || _world.TickIndex > 800;
+                        var isClearSituation = _seenAnemyWizards.Count == 5;
 
                         var isOkToGoOneOnOne = isClearSituation &&
                                                GetLineCoeff(_myWizards[_line].Count, _anemyWizards[_line].Count) >= 1 &&
@@ -1554,6 +1570,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             return false;
         }
 
+      
         private bool CanGoToBuilding (Building building, IList<LivingUnit> friends)
         {
             const int eps = 70;
@@ -2887,6 +2904,8 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                 _allAnemyWizards = new List<Wizard>();
                 _allMyWizards.AddRange(_world.Wizards.Where(x => !x.IsMe && x.Faction == _self.Faction));
 
+                _seenAnemyWizards = new List<Wizard>();
+
                 _myBuildings = new List<Building>();
                 _anemyBuildings = new List<Building>();
                 _IsMyBuildingAlive = new List<bool>();
@@ -2963,8 +2982,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                     new Point2D(mapSize - 200.0D, mapSize * 0.25D),
                     new Point2D(mapSize - 200.0D, 200.0D)
             });
-                if (_isOneOneOne && (_self.Id % 5 == 1)) _line = LaneType.Top;
-                else if (_isOneOneOne && (_self.Id % 5 == 0)) _line = LaneType.Bottom;
+                if (_isOneOneOne && (_self.Id % 5 == 1 || _self.Id % 5 == 2)) _line = LaneType.Top;
                 else _line = LaneType.Middle;
 
                 //_line = LaneType.Top;
@@ -3392,7 +3410,19 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
 
         private LivingUnit GetAgressiveLineShootingTarget()
         {
+            _isBerserkTarget = false;
             LivingUnit shootingTarget = null;
+
+            #region Берсерк
+            
+            var berserkTarget = GetBerserkTarget();
+            if (berserkTarget != null && berserkTarget.MyWizards.Any(x => x.Id == _self.Id))
+            {
+                _isBerserkTarget = true;
+                return berserkTarget.Target;
+            }
+
+            #endregion
 
             #region Дохлый волшебник
 
@@ -4094,6 +4124,50 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                 tower.Life <= tower.MaxLife*TOWER_HP_FACTOR && nearUnits.Count() >= 3;
         }
 
+    
+        private BerserkTargetResult GetBerserkTarget()
+        {
+            if (!_isOneOneOne) return null;
+            //if (_self.IsMaster) return null;
+
+            if (_seenAnemyWizards.Count < 5) return null;
+
+            var okAnemyWizards = new List<BerserkTargetResult>();
+            foreach (var wizard in _world.Wizards.Where(x => x.Faction != _self.Faction))
+            {
+                LaneType? laneType = null;
+                foreach (var lt in _anemyWizards.Keys)
+                {
+                    if (_anemyWizards[lt].Contains(wizard.Id))
+                    {
+                        laneType = lt;
+                        break;
+                    }
+                }
+                if (laneType == null) return null;
+
+                var lineType = GetLineType(laneType.Value);
+                if (lineType != LineType.Agressive) return null;
+
+                var myWizards = _world.Wizards.Where(x => x.Faction == _self.Faction);
+
+                var nearMyWizards = myWizards.Where(x => x.GetDistanceTo(wizard) <= x.CastRange * BERSERK_COEFF);
+
+                var nearAnemyWizards = _world.Wizards.Where(
+                    x => x.Faction != _self.Faction && nearMyWizards.Any(y => x.GetDistanceTo(y) <= x.CastRange * BERSERK_COEFF));
+
+                if (nearMyWizards.Count() > nearAnemyWizards.Count()) okAnemyWizards.Add(new BerserkTargetResult()
+                {
+                    Target = wizard,
+                    MyWizards = nearMyWizards
+                });
+            }
+
+            if (!okAnemyWizards.Any()) return null;
+            var sortedOkAnemyWizards = okAnemyWizards.OrderBy(x => x.Target.Life);
+            return sortedOkAnemyWizards.First();
+        }
+
         private bool IsOkToRunForWeakWizard(LivingUnit target)
         {
             if (target == null) return false;
@@ -4132,6 +4206,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
         private bool CanGoToStaffRange(LivingUnit shootingTarget, double selfNextTickX, double selfNextTickY)
         {
             if (IsOkToRunForWeakWizard(shootingTarget)) return true;
+            if (_isBerserkTarget) return true;
             if (IsOkToDestroyBase(shootingTarget)) return true;
 
             var friends = new List<LivingUnit>();
@@ -4271,15 +4346,56 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
 
             var resultLine = _isLineSet ? _line : LaneType.Middle;
 
+            //var berserkTargetResult = GetBerserkTarget();
+            //var myWizardsIds = new List<long>();
+            //if (berserkTargetResult != null)
+            //{
+            //    myWizardsIds.AddRange(berserkTargetResult.MyWizards.Select(x => x.Id));
+            //}
+            //for (int i = 0; i < myWizardsIds.Count; ++i)
+            //{
+            //    if (myWizardsIds[i] > 5) myWizardsIds[i] -= 5;
+            //}
+
             _move.Messages = new Message[]
             {
                 new Message(resultLine, null, new byte[0]),
                 new Message(resultLine, null, new byte[0]),
                 new Message(resultLine, null, new byte[0]),
-                new Message(resultLine, null, new byte[0]),
+                new Message(resultLine, null, new byte[0])
             };
+
+            //_move.Messages = new Message[]
+            //{
+            //    new Message(
+            //        resultLine,
+            //        null,
+            //        berserkTargetResult != null && myWizardsIds.Contains(2)
+            //            ? new byte[] {(byte) berserkTargetResult.Target.Id}
+            //            : new byte[0]),
+            //    new Message(
+            //        resultLine,
+            //        null,
+            //        berserkTargetResult != null && myWizardsIds.Contains(3)
+            //            ? new byte[] {(byte) berserkTargetResult.Target.Id}
+            //            : new byte[0]),
+            //    new Message(
+            //        resultLine,
+            //        null,
+            //        berserkTargetResult != null && myWizardsIds.Contains(4)
+            //            ? new byte[] {(byte) berserkTargetResult.Target.Id}
+            //            : new byte[0]),
+            //    new Message(
+            //        resultLine,
+            //        null,
+            //        berserkTargetResult != null && myWizardsIds.Contains(5)
+            //            ? new byte[] {(byte) berserkTargetResult.Target.Id}
+            //            : new byte[0]),
+            //};
+            
         }
         
+
         private LaneType GetNearToBaseLine()
         {
             var laneTypes = new List<LaneType>()
@@ -4566,6 +4682,12 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             Agressive,
             Defensive,
             Neutral
+        }
+
+        private class BerserkTargetResult
+        {
+            public Wizard Target { get; set; }
+            public IEnumerable<Wizard> MyWizards { get; set; } 
         }
 
     }
