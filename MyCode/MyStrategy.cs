@@ -516,11 +516,14 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             UpdateWizardsLanes();
             if (_isOneOneOne)
             {
-                //if (_allAnemyWizards.Count == 5 && 
-                //    _line == LaneType.Bottom && _anemyWizards[LaneType.Middle].Count - _myWizards[LaneType.Middle].Count >=2)
-                //{
-                //    _line = LaneType.Middle;
-                //}
+                if (_seenAnemyWizards.Count == 5)
+                {
+                    if (_self.Id%5 == 2 &&
+                        (_anemyWizards[LaneType.Middle].Count == 5 || _anemyWizards[LaneType.Middle].Count <= 2))
+                    {
+                        _line = LaneType.Middle;
+                    }
+                }
                 return;
             }
 
