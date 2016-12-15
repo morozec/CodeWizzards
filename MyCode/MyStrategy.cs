@@ -24,6 +24,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
         private static double ROW_WIDTH = 400;
         private static double TOLERANCE = 1E-3;
         private static double BONUS_ADD_TIME = 300;
+        private static double BONUS_ADD_TIME_ONE_ON_ONE = 100;
         private static double BONUS_ADD_TIME_PER_SUARE = 1.1;
         private static double LIGHT_SHOOTING_SQUARE_WEIGHT = 3;
         private static double STRONG_SHOOTING_SQUARE_WEIGHT = 7;
@@ -1075,6 +1076,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                 IsGo = false,
                 GoToResult = null
             };
+            var bonusAddTime = BONUS_ADD_TIME;
 
             //если игра 1 на 1
             if (_isOneOneOne)
@@ -1138,6 +1140,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                     }
                 }
 
+                bonusAddTime = BONUS_ADD_TIME_ONE_ON_ONE;
                 if (!isNearest0 && !isNearest1) return goBonusResult;
             }
             
@@ -1203,7 +1206,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                 path0 = GetCorrectPath(path0);
                 path0Time = GetPathTime(path0, _bonusPoints[0]);
                 path0Weight = GetPathWeight(path0);
-                dt0 = _game.BonusAppearanceIntervalTicks - (_gotBonus0Time + path0Time + BONUS_ADD_TIME);
+                dt0 = _game.BonusAppearanceIntervalTicks - (_gotBonus0Time + path0Time + bonusAddTime);
                 if (path0.Count > pathMaxLength || dt0 > 0) path0 = null;
 
             }
@@ -1221,7 +1224,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                 path1 = GetCorrectPath(path1);
                 path1Time = GetPathTime(path1, _bonusPoints[1]);
                 path1Weight = GetPathWeight(path1);
-                dt1 = _game.BonusAppearanceIntervalTicks - (_gotBonus1Time + path1Time + BONUS_ADD_TIME);
+                dt1 = _game.BonusAppearanceIntervalTicks - (_gotBonus1Time + path1Time + bonusAddTime);
                 if (path1.Count > pathMaxLength || dt1 > 0) path1 = null;
 
             }
