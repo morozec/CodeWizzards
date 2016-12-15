@@ -275,17 +275,25 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             
             if (nearestStaffTarget != null)
             {
-                double angle = self.GetAngleTo(nearestStaffTarget);
-                //move.Turn = angle;
-
-                goToResult = new GoToResult()
+                if (!goBonusResult.IsGo)
                 {
-                    WoodCuTree = null,
-                    X = nearestStaffTarget.X,
-                    Y = nearestStaffTarget.Y
-                };
-                turnTarget = nearestStaffTarget;
+                    //move.Turn = angle;
 
+                    goToResult = new GoToResult()
+                    {
+                        WoodCuTree = null,
+                        X = nearestStaffTarget.X,
+                        Y = nearestStaffTarget.Y
+                    };
+                    turnTarget = nearestStaffTarget;
+                }
+                else
+                {
+                    goToResult = goBonusResult.GoToResult;
+                }
+
+
+                double angle = self.GetAngleTo(nearestStaffTarget);
                 if (Math.Abs(angle) <= _game.StaffSector / 2.0D)
                 {
                     InitializeShootingAction(nearestStaffTarget, true);
