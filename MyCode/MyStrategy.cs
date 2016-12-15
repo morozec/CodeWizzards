@@ -1006,7 +1006,8 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                     continue;
                 }
 
-                if (unit is Minion && (unit as Minion).Faction == Faction.Neutral && IsCalmNeutralMinion(unit as Minion)) continue;
+                if (unit is Minion && (unit as Minion).Faction == Faction.Neutral &&
+                    (IsCalmNeutralMinion(unit as Minion) || !IsTotallyOnLine(unit, _line))) continue;
 
                 if (!IsStrongOnLine(unit, lane)) continue;
                 var dist = _selfBase.GetDistanceTo(unit);
