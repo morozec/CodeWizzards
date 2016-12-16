@@ -710,22 +710,22 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
         private void InitializeLineActions()
         {
             UpdateWizardsLanes();
-            if (_isOneOneOne)
+            if (_isOneOneOne && _isCheatingStrategy)
             {
-                //if (_seenAnemyWizards.Count == 5)
-                //{
-                //    if (_self.Id%5 == 2 &&
-                //        (_anemyWizards[LaneType.Middle].Count == 5 || _anemyWizards[LaneType.Middle].Count <= 2))
-                //    {
-                //        _line = LaneType.Middle;
-                //    }
+                if (_seenAnemyWizards.Count == 5)
+                {
+                    if (_self.Id % 5 == 2 &&
+                        (_anemyWizards[LaneType.Middle].Count == 5 || _anemyWizards[LaneType.Middle].Count <= 2))
+                    {
+                        _line = LaneType.Middle;
+                    }
 
-                //    if (_anemyWizards[LaneType.Bottom].Count >= 2 && _anemyWizards[_line].Count > 0 &&
-                //        (_self.Id%5 == 1 || _self.Id%5 == 2))
-                //    {
-                //        _line = LaneType.Middle;
-                //    }
-                //}
+                    if (_anemyWizards[LaneType.Bottom].Count >= 2 && _anemyWizards[_line].Count > 0 &&
+                        (_self.Id % 5 == 1 || _self.Id % 5 == 2))
+                    {
+                        _line = LaneType.Middle;
+                    }
+                }
                 return;
             }
 
@@ -1015,7 +1015,6 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
         {
             double angle = _self.GetAngleTo(shootingTarget);
             if (Math.Abs(angle) >= _game.StaffSector / 2.0D) return;
-            if (_isOneOneOne && _isCheatingStrategy && _self.Id % 5 == 3) return;
 
 
             double distance = _self.GetDistanceTo(shootingTarget);
@@ -3312,7 +3311,10 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                 }
 
                 if (_isOneOneOne &&
-                    _world.Players.Any(x => x.Name == "Romka" || x.Name == "jetblack" || x.Name == "mustang"))
+                    _world.Players.Any(
+                        x =>
+                            x.Name == "Romka" || x.Name == "jetblack" || x.Name == "mustang" || x.Name == "Antmsu" ||
+                            x.Name == "tyamgin"))
                 {
                     _isCheatingStrategy = true;
                 }
