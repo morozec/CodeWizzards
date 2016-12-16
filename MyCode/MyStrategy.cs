@@ -448,13 +448,34 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                 //}
             }
 
-            var canGoOnStaffRange = CanGoToStaffRange(shootingTarget, selfNextTickX, selfNextTickY);
+            IList<Wizard> goBackWizards;
+            double addTurnAngle = 0;
+            var canGoOnStaffRange = CanGoToStaffRange(shootingTarget, selfNextTickX, selfNextTickY, out goBackWizards);
             var goBack = false;
             if (!goBonusResult.IsGo && (!canGoOnStaffRange || NeedGoBack()))
             {
                 goToResult = GoBack();
                 speedContainer = GetSpeedContainer(goToResult.X, goToResult.Y);
                 goBack = true;
+
+                
+                if (goBackWizards.Any())
+                {
+                    var turnTime = 0d;
+                    if (turnTarget != null)
+                    {
+                        turnTime = GetTurnTime(_self, turnTarget);
+                    }
+                    if (turnTime <= GetShootingCooldown(_self))
+                    {
+                        var orderedGoBackWizards = goBackWizards.OrderBy(GetShootingCooldown);
+                        turnTarget = orderedGoBackWizards.First();
+
+                        if (_self.GetAngleTo(turnTarget) < 0) addTurnAngle = Math.PI / 2;
+                        else addTurnAngle = -Math.PI / 2;
+                        
+                    }
+                }
             }
             
             _move.Speed = speedContainer.Speed;
@@ -485,7 +506,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
 
             else if (turnTarget != null)
             {
-                _move.Turn = _self.GetAngleTo(turnTarget.X, turnTarget.Y);
+                _move.Turn = _self.GetAngleTo(turnTarget.X, turnTarget.Y) + addTurnAngle;
             }
             else if (!goBack)
             {
@@ -1878,6 +1899,25 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             var canGoRight = CanGoRight(target, bsd, bulletTime, true);
 
             return !canGoBack && !canGoForward && !canGoLeft && !canGoRight;
+        }
+
+        private double GetTurnTime(Wizard source, LivingUnit target)
+        {
+            var angle = source.GetAngleTo(target);
+            var deltaAngle = Math.Abs(angle) - _game.StaffSector / 2;
+            int turnTime = 0;
+           
+            if (deltaAngle <= 0)
+            {
+                turnTime = 0;
+            }
+            else
+            {
+                turnTime = (int)(deltaAngle / GetWizardMaxTurn(source)) + 1;
+            }
+
+            return turnTime;
+            
         }
 
         private bool CanShootWizardWithFrostboltNoCooldown(Wizard source, double sourceX, double sourceY, Wizard target, bool addTick, int sourceCooldown, bool checkOtherSides, bool considerTurnTime)
@@ -4420,8 +4460,10 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             return isWeakWizard && isOkHp && isFarBuildings && isFarWizards && isFarMinios;
         }
 
-        private bool CanGoToStaffRange(LivingUnit shootingTarget, double selfNextTickX, double selfNextTickY)
+        private bool CanGoToStaffRange(LivingUnit shootingTarget, double selfNextTickX, double selfNextTickY, out IList<Wizard> goBackWizard)
         {
+            goBackWizard = new List<Wizard>();
+
             if (IsOkToRunForWeakWizard(shootingTarget)) return true;
             if (_isBerserkTarget) return true;
             if (IsOkToDestroyBase(shootingTarget)) return true;
@@ -4463,7 +4505,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                 }
             }
 
-
+            
             var needRunBackAnemies = new List<LivingUnit>();
             foreach (var anemy in anemies)
             {
@@ -4472,6 +4514,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                 if (needRunBack)
                 {
                     needRunBackAnemies.Add(anemy);
+                    if (anemy is Wizard) goBackWizard.Add(anemy as Wizard);
                 }
             }
 
