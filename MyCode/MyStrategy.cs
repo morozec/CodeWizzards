@@ -24,7 +24,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
         private static double ROW_WIDTH = 400;
         private static double TOLERANCE = 1E-3;
         private static double BONUS_ADD_TIME = 300;
-        private static double BONUS_ADD_TIME_ONE_ON_ONE = 250;
+        private static double BONUS_ADD_TIME_ONE_ON_ONE = 200;
         private static double BONUS_ADD_TIME_PER_SUARE = 1.1;
         private static double LIGHT_SHOOTING_SQUARE_WEIGHT = 3;
         private static double STRONG_SHOOTING_SQUARE_WEIGHT = 7;
@@ -111,7 +111,8 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
         private bool _isBerserkTarget = false;
         private bool _isOneOneOne = false;
 
-
+        private bool _isCheatingStrategy = false;
+         
 
         private readonly SkillType[] _agressiveSkillsOrder = new SkillType[]
         {
@@ -1012,6 +1013,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
         {
             double angle = _self.GetAngleTo(shootingTarget);
             if (Math.Abs(angle) >= _game.StaffSector / 2.0D) return;
+            if (_isOneOneOne && _isCheatingStrategy && _self.Id % 5 == 3) return;
 
 
             double distance = _self.GetDistanceTo(shootingTarget);
@@ -3409,7 +3411,9 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                 //else _line = LaneType.Middle;
 
                 //_line = LaneType.Top;
-                _line = LaneType.Middle;
+                if (_isOneOneOne && (_self.Id % 5 == 1 || _self.Id % 5 == 2) && _isCheatingStrategy) _line = LaneType.Top;
+                else _line = LaneType.Middle;
+                
 
 
                 //                    switch ((int) self.Id)
