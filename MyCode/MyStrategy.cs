@@ -2807,6 +2807,8 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
         
         private Point2D GetRadiusPoint(double borderDist, double radius, LivingUnit target)
         {
+            if (_isOneOneOne) return null;
+
             var isOkPos = _self.X <= ROW_WIDTH * 1.25 || _self.Y <= ROW_WIDTH * 1.25 ||
                           _self.X >= _world.Width - ROW_WIDTH * 1.25 ||
                           _self.Y >= _world.Height - ROW_WIDTH * 1.25 ||
