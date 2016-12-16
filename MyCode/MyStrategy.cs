@@ -3601,7 +3601,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                     }
                 }
 
-                return !friends.Any(x => x.Id == _self.Id) && anemies.Count > friends.Count;
+                return !friends.Any(x => x is Wizard) && anemies.Count > friends.Count;
 
             }
             else
