@@ -544,6 +544,12 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                     {
                         _line = LaneType.Middle;
                     }
+
+                    if (_anemyWizards[LaneType.Bottom].Count >= 2 && _anemyWizards[_line].Count > 0 &&
+                        (_self.Id%5 == 1 || _self.Id%5 == 2))
+                    {
+                        _line = LaneType.Middle;
+                    }
                 }
                 return;
             }
