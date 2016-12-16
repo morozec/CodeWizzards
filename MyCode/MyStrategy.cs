@@ -1754,7 +1754,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                     var hasNearBuildingFriends =
                         friends.Any(x => x.Id != _self.Id && x.GetDistanceTo(building) <= building.AttackRange);
 
-                    if (hasNearBuildingFriends) return !CanGoToBuilding(building, friends);
+                    if (hasNearBuildingFriends && building.Type != BuildingType.FactionBase) return !CanGoToBuilding(building, friends);
                     else
                     {
                         var isClearSituation = _seenAnemyWizards.Count == 5;
