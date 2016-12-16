@@ -109,9 +109,9 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
         private List<Wizard> _seenAnemyWizards;
 
         private bool _isBerserkTarget = false;
-
-
         private bool _isOneOneOne = false;
+
+
 
         private readonly SkillType[] _agressiveSkillsOrder = new SkillType[]
         {
@@ -181,6 +181,176 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
         };
 
 
+        private readonly IList<SkillType[]> _commonSkillsOrder = new List<SkillType[]>()
+        {
+            new[]
+            {
+                SkillType.StaffDamageBonusPassive1,
+                SkillType.StaffDamageBonusAura1,
+                SkillType.StaffDamageBonusPassive2,
+                SkillType.StaffDamageBonusAura2,
+                SkillType.Fireball,
+
+                SkillType.MovementBonusFactorPassive1,
+                SkillType.MovementBonusFactorAura1,
+                SkillType.MovementBonusFactorPassive2,
+                SkillType.MovementBonusFactorAura2,
+                SkillType.Haste,
+
+                SkillType.MagicalDamageBonusPassive1,
+                SkillType.MagicalDamageBonusAura1,
+                SkillType.MagicalDamageBonusPassive2,
+                SkillType.MagicalDamageBonusAura2,
+                SkillType.FrostBolt,
+
+                SkillType.RangeBonusPassive1,
+                SkillType.RangeBonusAura1,
+                SkillType.RangeBonusPassive2,
+                SkillType.RangeBonusAura2,
+                SkillType.AdvancedMagicMissile,
+
+                SkillType.MagicalDamageAbsorptionPassive1,
+                SkillType.MagicalDamageAbsorptionAura1,
+                SkillType.MagicalDamageAbsorptionPassive2,
+                SkillType.MagicalDamageAbsorptionAura2,
+                SkillType.Shield,
+            },
+
+            new[]
+            {
+                SkillType.MovementBonusFactorPassive1,
+                SkillType.MovementBonusFactorAura1,
+                SkillType.MovementBonusFactorPassive2,
+                SkillType.MovementBonusFactorAura2,
+                SkillType.Haste,
+
+                SkillType.StaffDamageBonusPassive1,
+                SkillType.StaffDamageBonusAura1,
+                SkillType.StaffDamageBonusPassive2,
+                SkillType.StaffDamageBonusAura2,
+                SkillType.Fireball,
+
+                SkillType.MagicalDamageBonusPassive1,
+                SkillType.MagicalDamageBonusAura1,
+                SkillType.MagicalDamageBonusPassive2,
+                SkillType.MagicalDamageBonusAura2,
+                SkillType.FrostBolt,
+
+                SkillType.RangeBonusPassive1,
+                SkillType.RangeBonusAura1,
+                SkillType.RangeBonusPassive2,
+                SkillType.RangeBonusAura2,
+                SkillType.AdvancedMagicMissile,
+
+                SkillType.MagicalDamageAbsorptionPassive1,
+                SkillType.MagicalDamageAbsorptionAura1,
+                SkillType.MagicalDamageAbsorptionPassive2,
+                SkillType.MagicalDamageAbsorptionAura2,
+                SkillType.Shield,
+            },
+
+            new[]
+            {
+                SkillType.MagicalDamageBonusPassive1,
+                SkillType.MagicalDamageBonusAura1,
+                SkillType.MagicalDamageBonusPassive2,
+                SkillType.MagicalDamageBonusAura2,
+                SkillType.FrostBolt,
+
+                SkillType.MovementBonusFactorPassive1,
+                SkillType.MovementBonusFactorAura1,
+                SkillType.MovementBonusFactorPassive2,
+                SkillType.MovementBonusFactorAura2,
+                SkillType.Haste,
+
+                SkillType.StaffDamageBonusPassive1,
+                SkillType.StaffDamageBonusAura1,
+                SkillType.StaffDamageBonusPassive2,
+                SkillType.StaffDamageBonusAura2,
+                SkillType.Fireball,
+            
+                SkillType.RangeBonusPassive1,
+                SkillType.RangeBonusAura1,
+                SkillType.RangeBonusPassive2,
+                SkillType.RangeBonusAura2,
+                SkillType.AdvancedMagicMissile,
+
+                SkillType.MagicalDamageAbsorptionPassive1,
+                SkillType.MagicalDamageAbsorptionAura1,
+                SkillType.MagicalDamageAbsorptionPassive2,
+                SkillType.MagicalDamageAbsorptionAura2,
+                SkillType.Shield,
+            },
+
+
+             new[]
+            {
+                SkillType.RangeBonusPassive1,
+                SkillType.RangeBonusAura1,
+                SkillType.RangeBonusPassive2,
+                SkillType.RangeBonusAura2,
+                SkillType.AdvancedMagicMissile,
+
+                SkillType.StaffDamageBonusPassive1,
+                SkillType.StaffDamageBonusAura1,
+                SkillType.StaffDamageBonusPassive2,
+                SkillType.StaffDamageBonusAura2,
+                SkillType.Fireball,
+
+                SkillType.MovementBonusFactorPassive1,
+                SkillType.MovementBonusFactorAura1,
+                SkillType.MovementBonusFactorPassive2,
+                SkillType.MovementBonusFactorAura2,
+                SkillType.Haste,
+
+                SkillType.MagicalDamageBonusPassive1,
+                SkillType.MagicalDamageBonusAura1,
+                SkillType.MagicalDamageBonusPassive2,
+                SkillType.MagicalDamageBonusAura2,
+                SkillType.FrostBolt,
+
+                SkillType.MagicalDamageAbsorptionPassive1,
+                SkillType.MagicalDamageAbsorptionAura1,
+                SkillType.MagicalDamageAbsorptionPassive2,
+                SkillType.MagicalDamageAbsorptionAura2,
+                SkillType.Shield,
+            },
+
+             new[]
+            {
+                SkillType.MagicalDamageAbsorptionPassive1,
+                SkillType.MagicalDamageAbsorptionAura1,
+                SkillType.MagicalDamageAbsorptionPassive2,
+                SkillType.MagicalDamageAbsorptionAura2,
+                SkillType.Shield,
+
+                SkillType.StaffDamageBonusPassive1,
+                SkillType.StaffDamageBonusAura1,
+                SkillType.StaffDamageBonusPassive2,
+                SkillType.StaffDamageBonusAura2,
+                SkillType.Fireball,
+
+                SkillType.MovementBonusFactorPassive1,
+                SkillType.MovementBonusFactorAura1,
+                SkillType.MovementBonusFactorPassive2,
+                SkillType.MovementBonusFactorAura2,
+                SkillType.Haste,
+
+                SkillType.MagicalDamageBonusPassive1,
+                SkillType.MagicalDamageBonusAura1,
+                SkillType.MagicalDamageBonusPassive2,
+                SkillType.MagicalDamageBonusAura2,
+                SkillType.FrostBolt,
+
+                SkillType.RangeBonusPassive1,
+                SkillType.RangeBonusAura1,
+                SkillType.RangeBonusPassive2,
+                SkillType.RangeBonusAura2,
+                SkillType.AdvancedMagicMissile,
+            },
+        };
+
+
         public void Move(Wizard self, World world, Game game, Move move)
          {
              //Debug.beginPost();
@@ -208,7 +378,9 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             UpdateBulletStartDatas();
             SendMessage();
 
-           
+            InitShiled();
+            InitHaste();
+            
             InitializeLineActions();
             
 
@@ -537,20 +709,20 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             UpdateWizardsLanes();
             if (_isOneOneOne)
             {
-                if (_seenAnemyWizards.Count == 5)
-                {
-                    if (_self.Id%5 == 2 &&
-                        (_anemyWizards[LaneType.Middle].Count == 5 || _anemyWizards[LaneType.Middle].Count <= 2))
-                    {
-                        _line = LaneType.Middle;
-                    }
+                //if (_seenAnemyWizards.Count == 5)
+                //{
+                //    if (_self.Id%5 == 2 &&
+                //        (_anemyWizards[LaneType.Middle].Count == 5 || _anemyWizards[LaneType.Middle].Count <= 2))
+                //    {
+                //        _line = LaneType.Middle;
+                //    }
 
-                    if (_anemyWizards[LaneType.Bottom].Count >= 2 && _anemyWizards[_line].Count > 0 &&
-                        (_self.Id%5 == 1 || _self.Id%5 == 2))
-                    {
-                        _line = LaneType.Middle;
-                    }
-                }
+                //    if (_anemyWizards[LaneType.Bottom].Count >= 2 && _anemyWizards[_line].Count > 0 &&
+                //        (_self.Id%5 == 1 || _self.Id%5 == 2))
+                //    {
+                //        _line = LaneType.Middle;
+                //    }
+                //}
                 return;
             }
 
@@ -801,6 +973,38 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
 
 
             return resultDamage;
+        }
+
+        private void InitShiled()
+        {
+            if (_self.Skills.Any(x => x == SkillType.Shield) && !_self.Statuses.Any(x => x.Type == StatusType.Shielded))
+            {
+                var orderedWizards =
+                    _world.Wizards.Where(
+                        x => x.Faction == _self.Faction && !x.IsMe && !x.Statuses.Any(y => y.Type == StatusType.Shielded))
+                        .OrderBy(x => x.GetDistanceTo(_self));
+                var targetWizard = orderedWizards.FirstOrDefault();
+                if (targetWizard == null) return;
+
+                _move.Action = ActionType.Shield;
+                _move.StatusTargetId = targetWizard.Id;
+            }
+        }
+
+        private void InitHaste()
+        {
+            if (_self.Skills.Any(x => x == SkillType.Shield) && !_self.Statuses.Any(x => x.Type == StatusType.Hastened))
+            {
+                var orderedWizards =
+                    _world.Wizards.Where(
+                        x => x.Faction == _self.Faction && !x.IsMe && !x.Statuses.Any(y => y.Type == StatusType.Hastened))
+                        .OrderBy(x => x.GetDistanceTo(_self));
+                var targetWizard = orderedWizards.FirstOrDefault();
+                if (targetWizard == null) return;
+
+                _move.Action = ActionType.Haste;
+                _move.StatusTargetId = targetWizard.Id;
+            }
         }
       
 
@@ -3198,11 +3402,11 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                     new Point2D(mapSize - 200.0D, mapSize * 0.25D),
                     new Point2D(mapSize - 200.0D, 200.0D)
             });
-                if (_isOneOneOne && (_self.Id % 5 == 1 || _self.Id % 5 == 2)) _line = LaneType.Top;
-                else _line = LaneType.Middle;
+                //if (_isOneOneOne && (_self.Id % 5 == 1 || _self.Id % 5 == 2)) _line = LaneType.Top;
+                //else _line = LaneType.Middle;
 
                 //_line = LaneType.Top;
-                //_line = LaneType.Middle;
+                _line = LaneType.Middle;
 
 
                 //                    switch ((int) self.Id)
@@ -4804,9 +5008,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
         
         private SkillType GetSkillTypeToLearn()
         {
-            var lineCoeff = GetLineCoeff(_myWizards[_line].Count, _anemyWizards[_line].Count);
-            var skillsOrder = lineCoeff < 1 ? _devensiveSkillsOrder : _agressiveSkillsOrder;
-
+            var skillsOrder = _isOneOneOne ? _commonSkillsOrder[(int) ((_self.Id - 1)%5)] : _commonSkillsOrder[0];
             var newSkill = skillsOrder.FirstOrDefault(x => !_self.Skills.Contains(x));
             return newSkill;
         }
