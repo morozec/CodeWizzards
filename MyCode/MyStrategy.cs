@@ -1365,7 +1365,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             //если игра 1 на 1
             if (_isOneOneOne)
             {
-                if (GetMyLineType(_line) == LineType.Defensive || _myWizards[_line].Count - _anemyWizards[_line].Count >= 1) return goBonusResult;
+                //if (GetMyLineType(_line) == LineType.Defensive || _myWizards[_line].Count - _anemyWizards[_line].Count >= 1) return goBonusResult;
                 var ordered0Wizards =
                     _world.Wizards.Where(x => x.Faction == _self.Faction).OrderBy(x => _bonusPoints[0].getDistanceTo(x));
 
