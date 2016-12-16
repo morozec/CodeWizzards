@@ -24,7 +24,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
         private static double ROW_WIDTH = 400;
         private static double TOLERANCE = 1E-3;
         private static double BONUS_ADD_TIME = 300;
-        private static double BONUS_ADD_TIME_ONE_ON_ONE = 100;
+        private static double BONUS_ADD_TIME_ONE_ON_ONE = 200;
         private static double BONUS_ADD_TIME_PER_SUARE = 1.1;
         private static double LIGHT_SHOOTING_SQUARE_WEIGHT = 3;
         private static double STRONG_SHOOTING_SQUARE_WEIGHT = 7;
