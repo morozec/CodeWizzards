@@ -1179,7 +1179,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                             }
                         }
                         if (wizardLaneType != null && GetLineType(wizardLaneType.Value) != LineType.Defensive &&
-                            _myWizards[wizardLaneType.Value].Count - _anemyWizards[wizardLaneType.Value].Count < 1)
+                            _myWizards[wizardLaneType.Value].Count - _anemyWizards[wizardLaneType.Value].Count <= 1)
                         {
                             break;
                         }
@@ -1209,7 +1209,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                             }
                         }
                         if (wizardLaneType != null && GetLineType(wizardLaneType.Value) != LineType.Defensive &&
-                            _myWizards[wizardLaneType.Value].Count - _anemyWizards[wizardLaneType.Value].Count < 1)
+                            _myWizards[wizardLaneType.Value].Count - _anemyWizards[wizardLaneType.Value].Count <= 1)
                         {
                             break;
                         }
