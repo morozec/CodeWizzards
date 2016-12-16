@@ -848,7 +848,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
 
         private bool IsWeakWizard(LivingUnit unit)
         {
-            var shootingCoeff = GetMyLineType(_line) == LineType.Defensive ? 1d : 2d;
+            var shootingCoeff = GetMyLineType(_line) == LineType.Defensive ? 1d : 1.75d;
             var wizard = unit as Wizard;
             return wizard != null && wizard.Life <= GetShootingPower(_self) * shootingCoeff;
         }
@@ -3905,7 +3905,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             if (shootingTarget != null) return shootingTarget;
             #endregion
 
-            #region Дохлая башня
+            #region Обычная башня или дохлая база
 
             var minDist = double.MaxValue;
             foreach (var target in _world.Buildings)
@@ -3916,7 +3916,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
 
                 double distance = _self.GetDistanceTo(target);
 
-                if (distance < minDist && target.Life <= target.MaxLife * 0.5)
+                if (distance < minDist && target.Type == BuildingType.GuardianTower || target.Life <= target.MaxLife * 0.5)
                 {
                     minDist = distance;
                     shootingTarget = target;
@@ -3984,7 +3984,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
 
             #endregion
 
-            #region Обычная башня
+            #region База
             minDist = double.MaxValue;
             foreach (var target in _world.Buildings)
             {
