@@ -436,7 +436,9 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
 
 
             var nearestStaffTarget = GetNearestStaffRangeTarget(_self);
-            var shootingTarget = GetAgressiveLineShootingTarget();
+            var shootingTarget = _line == LaneType.Top
+                ? GetAgressiveLineShootingTarget()
+                : GetDefensiveLineShootingTarget();
 
             var goBonusResult = CheckAndGoForBonus(nearestStaffTarget, shootingTarget);
 
