@@ -3302,11 +3302,17 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             if (_random == null)
             {
                 _random = new Random(DateTime.Now.Millisecond);
-
+                
                 if (_world.Players[0].Name == _world.Players[1].Name && _world.Players[0].Name == _world.Players[2].Name &&
                     _world.Players[0].Name == _world.Players[3].Name && _world.Players[0].Name == _world.Players[4].Name)
                 {
                     _isOneOneOne = true;
+                }
+
+                if (_isOneOneOne &&
+                    _world.Players.Any(x => x.Name == "Romka" || x.Name == "jetblack" || x.Name == "mustang"))
+                {
+                    _isCheatingStrategy = true;
                 }
 
                 _bulletStartDatas = new Dictionary<long, BulletStartData>();
