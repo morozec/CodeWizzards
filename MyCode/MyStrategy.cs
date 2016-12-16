@@ -436,7 +436,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
 
 
             var nearestStaffTarget = GetNearestStaffRangeTarget(_self);
-            var shootingTarget = _line == LaneType.Top
+            var shootingTarget = GetMyLineType(_line) != LineType.Defensive
                 ? GetAgressiveLineShootingTarget()
                 : GetDefensiveLineShootingTarget();
 
@@ -1715,6 +1715,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                 Math.Max(
                     source.RemainingActionCooldownTicks,
                     source.RemainingCooldownTicksByAction[(int) ActionType.MagicMissile]);
+            time -= 2;
 
             var newX = target.X + GetWizardMaxBackSpeed(target) * time * Math.Cos(target.Angle - Math.PI);
             var newY = target.Y + GetWizardMaxBackSpeed(target) * time * Math.Sin(target.Angle - Math.PI);
@@ -3314,7 +3315,8 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                     _world.Players.Any(
                         x =>
                             x.Name == "Romka" || x.Name == "jetblack" || x.Name == "mustang" || x.Name == "Antmsu" ||
-                            x.Name == "tyamgin"))
+                            x.Name == "tyamgin" ||
+                            x.Name == "core2duo"))
                 {
                     _isCheatingStrategy = true;
                 }
