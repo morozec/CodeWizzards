@@ -1618,7 +1618,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
 
                 if (realRelaxCoeff == 0)
                 {
-                    _thisTickResPoint = new Point2D(bonusPoint.X, bonusPoint.Y);
+                    _thisTickResPoint = bonusPoint;
                     goToResult = GoTo(
                          bonusPoint,
                         relaxCoeff - TOLERANCE * 100,
@@ -1627,12 +1627,12 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                 }
                 else if (wizardPreventPoint != null)
                 {
-                    _thisTickResPoint = new Point2D(wizardPreventPoint.X, wizardPreventPoint.Y);
+                    _thisTickResPoint = wizardPreventPoint;
                     goToResult = GoTo(wizardPreventPoint, 0, 0);
                 }
                 else
                 {
-                    _thisTickResPoint = new Point2D(bonusPoint.X, bonusPoint.Y);
+                    _thisTickResPoint = bonusPoint;
                     goToResult = GoTo(
                         bonusPoint,
                         relaxCoeff,
@@ -1644,7 +1644,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             {
                 if (realRelaxCoeff == 0 || bonusPoint.getDistanceTo(_self) > _self.CastRange / 2)
                 {
-                    _thisTickResPoint = new Point2D(bonusPoint.X, bonusPoint.Y);
+                    _thisTickResPoint = bonusPoint;
                     goToResult = GoTo(bonusPoint, relaxCoeff - TOLERANCE * 100, relaxCoeff - TOLERANCE * 100, path);
                 }
                 else
@@ -2316,7 +2316,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
 
             var resPoint = new Point2D(2 * bonusPoint.X - _self.X, 2 * bonusPoint.Y - _self.Y);
 
-            _thisTickResPoint = new Point2D(resPoint.X, resPoint.Y);
+            _thisTickResPoint = resPoint;
             return GoTo(resPoint, _self.Radius * 2, _self.Radius * 2);
         }
         
@@ -3779,7 +3779,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             {
                 _lastTickPath.Add(new Square(p.Side, p.X, p.Y, 1d, p.Name, _game));
             }
-            _lastTickResPoint = new Point2D(_thisTickResPoint.X, _thisTickResPoint.Y);
+            _lastTickResPoint = _thisTickResPoint;
             #endregion
 
             return new GoToResult()
