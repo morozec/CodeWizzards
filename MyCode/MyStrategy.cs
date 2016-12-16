@@ -435,7 +435,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
 
 
             var nearestStaffTarget = GetNearestStaffRangeTarget(_self);
-            var shootingTarget = GetMyLineType(_line) == LineType.Defensive ? GetDefensiveLineShootingTarget() : GetAgressiveLineShootingTarget();
+            var shootingTarget = GetAgressiveLineShootingTarget();
 
             var goBonusResult = CheckAndGoForBonus(nearestStaffTarget, shootingTarget);
 
@@ -3933,7 +3933,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                 if (IsBlockingTree(_self, target, _game.MagicMissileRadius)) continue;
 
                 if (_self.GetDistanceTo(target) > _self.CastRange * 1.5) continue;
-                if (!IsOkToRunForWizard(_self, target, true)) continue;
+                if (!IsOkToRunForWizard(_self, target)) continue;
                 
 
                 //var canShootWizard = CanShootWizard(_self, target, true, true, true);
@@ -4186,7 +4186,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                 if (IsBlockingTree(_self, target, _game.MagicMissileRadius)) continue;
 
                 if (_self.GetDistanceTo(target) > _self.CastRange * 1.5) continue;
-                if (!IsOkToRunForWizard(_self, target, true)) continue;
+                if (!IsOkToRunForWizard(_self, target)) continue;
 
 
                 //var canShootWizard = CanShootWizard(_self, target, true, true, true);
@@ -4227,10 +4227,12 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             return cooldown;
         }
 
-        private bool IsOkToRunForWizard(Wizard source, Wizard target, bool isAgressive)
+        private bool IsOkToRunForWizard(Wizard source, Wizard target)
         {
-            var sourceCooldown = GetShootingCooldown(source);
             var targetCooldown = GetShootingCooldown(target);
+
+            var anemyWizards = _world.Wizards.Where(x => x.Faction != _self.Faction && GetShootingCooldown(target) < GetShootingCooldown(source));
+
             //if (isAgressive && sourceCooldown >= targetCooldown || !isAgressive && sourceCooldown > targetCooldown)
             //{
             //    return false;
@@ -4241,36 +4243,76 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             var newSourceY = source.Y +
                              GetWizardMaxForwardSpeed(source) * Math.Sin(source.Angle + source.GetAngleTo(target)) * targetCooldown;
 
-            var newTargetX = target.X + GetWizardMaxBackSpeed(target)*Math.Cos(target.Angle + target.GetAngleTo(source) - Math.PI) * targetCooldown;
-            var newTargetY = target.Y + GetWizardMaxBackSpeed(target)*Math.Sin(target.Angle + target.GetAngleTo(source) - Math.PI) * targetCooldown;
+            var newSource= new Wizard(
+                       source.Id,
+                       newSourceX,
+                       newSourceY,
+                       source.SpeedX,
+                       source.SpeedY,
+                       source.Angle,
+                       source.Faction,
+                       source.Radius,
+                       source.Life,
+                       source.MaxLife,
+                       source.Statuses,
+                       source.OwnerPlayerId,
+                       source.IsMe,
+                       source.Mana,
+                       source.MaxMana,
+                       source.VisionRange,
+                       source.CastRange,
+                       source.Xp,
+                       source.Level,
+                       source.Skills,
+                       source.RemainingActionCooldownTicks,
+                       source.RemainingCooldownTicksByAction,
+                       source.IsMaster,
+                       source.Messages);
 
-            var newTarget = new Wizard(
-                       target.Id,
-                       newTargetX,
-                       newTargetY,
-                       target.SpeedX,
-                       target.SpeedY,
-                       target.Angle,
-                       target.Faction,
-                       target.Radius,
-                       target.Life,
-                       target.MaxLife,
-                       target.Statuses,
-                       target.OwnerPlayerId,
-                       target.IsMe,
-                       target.Mana,
-                       target.MaxMana,
-                       target.VisionRange,
-                       target.CastRange,
-                       target.Xp,
-                       target.Level,
-                       target.Skills,
-                       target.RemainingActionCooldownTicks,
-                       target.RemainingCooldownTicksByAction,
-                       target.IsMaster,
-                       target.Messages);
+            var hasDangerousWizards = anemyWizards.Any(x => CanShootWizard(x, newSource, false, true));
 
-            return CanShootWizardWithMissleNoCooldown(source, newSourceX, newSourceY, newTarget, 0, false, true);
+            if (hasDangerousWizards)
+            {
+
+                var newTargetX = target.X +
+                                 GetWizardMaxBackSpeed(target)*Math.Cos(target.Angle + target.GetAngleTo(source) - Math.PI)*
+                                 targetCooldown;
+                var newTargetY = target.Y +
+                                 GetWizardMaxBackSpeed(target)*Math.Sin(target.Angle + target.GetAngleTo(source) - Math.PI)*
+                                 targetCooldown;
+
+                var newTarget = new Wizard(
+                    target.Id,
+                    newTargetX,
+                    newTargetY,
+                    target.SpeedX,
+                    target.SpeedY,
+                    target.Angle,
+                    target.Faction,
+                    target.Radius,
+                    target.Life,
+                    target.MaxLife,
+                    target.Statuses,
+                    target.OwnerPlayerId,
+                    target.IsMe,
+                    target.Mana,
+                    target.MaxMana,
+                    target.VisionRange,
+                    target.CastRange,
+                    target.Xp,
+                    target.Level,
+                    target.Skills,
+                    target.RemainingActionCooldownTicks,
+                    target.RemainingCooldownTicksByAction,
+                    target.IsMaster,
+                    target.Messages);
+
+                return CanShootWizardWithMissleNoCooldown(source, newSourceX, newSourceY, newTarget, 0, true, true);
+            }
+            else
+            {
+                return CanShootWizardWithMissleNoCooldown(source, source.X, source.Y, target, 0, true, true);
+            }
         }
 
        
