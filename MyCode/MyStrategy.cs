@@ -3320,7 +3320,11 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                             x.Name == "Romka" || x.Name == "jetblack" || x.Name == "mustang" || x.Name == "Antmsu" ||
                             x.Name == "tyamgin" ||
                             x.Name == "core2duo" ||
-                            x.Name == "OrickBy"))
+                            x.Name == "OrickBy" || 
+                            x.Name == "dedoo" || 
+                            x.Name == "byserge" || 
+                            x.Name == "ud1" || 
+                            x.Name == "Commandos" ))
                 {
                     _isCheatingStrategy = true;
                 }
