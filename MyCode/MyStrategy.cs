@@ -1956,13 +1956,15 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             if (building != null)
             {
 
-                if (_isOneOneOne && building.Type == BuildingType.FactionBase)
+                if (_isOneOneOne &&
+                    (building.Type == BuildingType.FactionBase ||
+                     _seenAnemyWizards.Count == 5 && (_myWizards[_line].Count - _anemyWizards[_line].Count >= 2)))
                 {
                     var isOkToGoOneOnOne = GetMyLineType(_line) == LineType.Agressive &&
-                                            _self.Life > _self.MaxLife*HP_FACTOR_TO_GO_TO_TOWERS;
+                                           _self.Life > _self.MaxLife*HP_FACTOR_TO_GO_TO_TOWERS;
                     return !isOkToGoOneOnOne;
                 }
-              
+
                 //return false;
                 return !CanGoToBuilding(building, friends);
             }
