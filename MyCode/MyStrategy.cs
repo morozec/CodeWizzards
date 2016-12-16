@@ -1019,15 +1019,15 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             var shootingBuilding = shootingTarget as Building;
 
             var canShootWithMissle = shootingWizard != null
-                ? CanShootWizardWithMissleNoCooldown(_self, _self.X, _self.Y, shootingWizard, 0, true, true)
+                ? CanShootWizardWithMissleNoCooldown(_self, _self.X, _self.Y, shootingWizard, 0, true, true, true)
                 : IsOkDistanceToShoot(_self, shootingTarget,0d);
 
             var canShootWithFrostbolt = shootingWizard != null
-                                        && CanShootWizardWithFrostboltNoCooldown(_self, _self.X, _self.Y, shootingWizard, 0, true, true);
+                                        && CanShootWizardWithFrostboltNoCooldown(_self, _self.X, _self.Y, shootingWizard, 0, true, true, true);
 
 
             var canFireballWizard = shootingWizard != null &&
-                                    CanShootWizardWithFireballNoCooldown(_self, _self.X, _self.Y, shootingWizard, 0, true, true);
+                                    CanShootWizardWithFireballNoCooldown(_self, _self.X, _self.Y, shootingWizard, 0, true, true, true);
             var canFireballBuilding = shootingBuilding != null;
             var wantedDist = distance + shootingTarget.Radius;
             var realDist = shootingTarget is Building ? (wantedDist > _self.CastRange ? _self.CastRange : wantedDist) : distance;
@@ -1742,7 +1742,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                 target.IsMaster,
                 target.Messages);
 
-            var canShootWithMissle = CanShootWizardWithMissleNoCooldown(source, source.X, source.Y, newTarget, 0, true, false);
+            var canShootWithMissle = CanShootWizardWithMissleNoCooldown(source, source.X, source.Y, newTarget, 0, true, false, false);
 
             var canShootWhithFireball = false;
             if (source.Skills.Any(x => x == SkillType.Fireball))
@@ -1781,7 +1781,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                     target.IsMaster,
                     target.Messages);
 
-                canShootWhithFireball = CanShootWizardWithFireballNoCooldown(source, source.X, source.Y, newTarget, 0, true, false);
+                canShootWhithFireball = CanShootWizardWithFireballNoCooldown(source, source.X, source.Y, newTarget, 0, true, false, false);
             }
 
             var canShootWhithFrostbolt = false;
@@ -1821,7 +1821,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                     target.IsMaster,
                     target.Messages);
 
-                canShootWhithFrostbolt = CanShootWizardWithFrostboltNoCooldown(source, source.X, source.Y, newTarget, 0, true, false);
+                canShootWhithFrostbolt = CanShootWizardWithFrostboltNoCooldown(source, source.X, source.Y, newTarget, 0, true, false, false);
             }
 
             return canShootWithMissle || canShootWhithFireball || canShootWhithFrostbolt;
@@ -1829,7 +1829,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
         }
         
 
-        private bool CanShootWizard(Wizard source, Wizard target, bool considerCooldown, bool checkOtherSides)
+        private bool CanShootWizard(Wizard source, Wizard target, bool considerCooldown, bool checkOtherSides, bool addTick)
         {
 
             var missleCooldown = considerCooldown
@@ -1844,7 +1844,8 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                 target,
                 missleCooldown,
                 checkOtherSides,
-                true);
+                true,
+                addTick);
 
             var fireballCooldown = considerCooldown
                 ? Math.Max(
@@ -1859,7 +1860,8 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                                            target,
                                            fireballCooldown, 
                                            checkOtherSides, 
-                                           true);
+                                           true,
+                                           addTick);
 
             var frostbaltCooldown = considerCooldown
                 ? Math.Max(
@@ -1874,7 +1876,8 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                                             target,
                                             frostbaltCooldown,
                                             checkOtherSides,
-                                            true);
+                                            true,
+                                            addTick);
 
             return canShootWithMissle || canShootWithFrostBolt || canShootWithFireball;
         }
@@ -1960,9 +1963,10 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                     (building.Type == BuildingType.FactionBase ||
                      _seenAnemyWizards.Count == 5 && (_myWizards[_line].Count - _anemyWizards[_line].Count >= 2)))
                 {
-                    var isOkToGoOneOnOne = GetMyLineType(_line) == LineType.Agressive &&
-                                           _self.Life > _self.MaxLife*HP_FACTOR_TO_GO_TO_TOWERS;
-                    return !isOkToGoOneOnOne;
+                    //var isOkToGoOneOnOne = GetMyLineType(_line) == LineType.Agressive &&
+                    //                       _self.Life > _self.MaxLife*HP_FACTOR_TO_GO_TO_TOWERS;
+                    //return !isOkToGoOneOnOne;
+                    return false;
                 }
 
                 //return false;
@@ -2055,7 +2059,8 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             Wizard target,
             int sourceCooldown,
             bool checkOtherSides,
-            bool considerTurnTime)
+            bool considerTurnTime,
+            bool addTick)
         {
             var bsd = new BulletStartData(
                 sourceX,
@@ -2084,7 +2089,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
 
             var bulletTime = GetBulletTime(bsd, target);
             bulletTime += Math.Max(sourceCooldown, turnTime);
-            //if (addTick) bulletTime++; //+1, т.к. может уйти на этом ходу
+            if (addTick) bulletTime++; //+1, т.к. может уйти на этом ходу
 
             var canGoBack = CanGoBack(target, bsd, bulletTime, true);
             if (!checkOtherSides)
@@ -2118,7 +2123,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             
         }
 
-        private bool CanShootWizardWithFrostboltNoCooldown(Wizard source, double sourceX, double sourceY, Wizard target, int sourceCooldown, bool checkOtherSides, bool considerTurnTime)
+        private bool CanShootWizardWithFrostboltNoCooldown(Wizard source, double sourceX, double sourceY, Wizard target, int sourceCooldown, bool checkOtherSides, bool considerTurnTime, bool addTick)
         {
             var bsd = new BulletStartData(
                sourceX,
@@ -2146,7 +2151,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
 
             var bulletTime = GetBulletTime(bsd, target);
             bulletTime += Math.Max(sourceCooldown, turnTime);
-            //if (addTick) bulletTime++; //+1, т.к. может уйти на этом ходу
+            if (addTick) bulletTime++; //+1, т.к. может уйти на этом ходу
 
             var canGoBack = CanGoBack(target, bsd, bulletTime, true);
             if (!checkOtherSides)
@@ -2161,7 +2166,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             return !canGoBack && !canGoForward && !canGoLeft && !canGoRight;
         }
 
-        private bool CanShootWizardWithFireballNoCooldown(Wizard source, double sourceX, double sourceY, Wizard target, int sourceCooldown, bool checkOtherSides, bool considerTurnTime)
+        private bool CanShootWizardWithFireballNoCooldown(Wizard source, double sourceX, double sourceY, Wizard target, int sourceCooldown, bool checkOtherSides, bool considerTurnTime, bool addTick)
         {
             var bsd = new BulletStartData(
                sourceX,
@@ -2189,7 +2194,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
 
             var bulletTime = GetBulletTime(bsd, target);
             bulletTime += Math.Max(sourceCooldown, turnTime);
-            //if (addTick) bulletTime++; //+1, т.к. может уйти на этом ходу
+            if (addTick) bulletTime++; //+1, т.к. может уйти на этом ходу
 
             var canGoBack = CanGoBack(target, bsd, bulletTime, true);
             if (!checkOtherSides)
@@ -4271,16 +4276,21 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                        source.IsMaster,
                        source.Messages);
 
-            var hasDangerousWizards = anemyWizards.Any(x => CanShootWizard(x, newSource, false, true));
+            var hasDangerousWizards = anemyWizards.Any(x => CanShootWizard(x, newSource, false, true, true));
 
             if (hasDangerousWizards)
             {
 
+                return CanShootWizardWithMissleNoCooldown(source, source.X, source.Y, target, 0, true, true, true);
+              
+            }
+            else
+            {
                 var newTargetX = target.X +
-                                 GetWizardMaxBackSpeed(target)*Math.Cos(target.Angle + target.GetAngleTo(source) - Math.PI)*
-                                 targetCooldown;
+                               GetWizardMaxBackSpeed(target) * Math.Cos(target.Angle + target.GetAngleTo(source) - Math.PI) *
+                               targetCooldown;
                 var newTargetY = target.Y +
-                                 GetWizardMaxBackSpeed(target)*Math.Sin(target.Angle + target.GetAngleTo(source) - Math.PI)*
+                                 GetWizardMaxBackSpeed(target) * Math.Sin(target.Angle + target.GetAngleTo(source) - Math.PI) *
                                  targetCooldown;
 
                 var newTarget = new Wizard(
@@ -4309,11 +4319,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                     target.IsMaster,
                     target.Messages);
 
-                return CanShootWizardWithMissleNoCooldown(source, newSourceX, newSourceY, newTarget, 0, true, true);
-            }
-            else
-            {
-                return CanShootWizardWithMissleNoCooldown(source, source.X, source.Y, target, 0, true, true);
+                return CanShootWizardWithMissleNoCooldown(source, newSourceX, newSourceY, newTarget, 0, true, true, true);
             }
         }
 
@@ -4544,7 +4550,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             }
 
             var anemyWizards = _world.Wizards.Where(x => x.Faction != _self.Faction && x.Id != target.Id);
-            var isFarWizards = anemyWizards.All(x => !CanShootWizard(x, _self, true, false));
+            var isFarWizards = anemyWizards.All(x => !CanShootWizard(x, _self, true, false, false));
 
             return isWeakBuilding && isOkHp && isFarMinios && isFarWizards;
         }
@@ -4688,7 +4694,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             }
 
             var anemyWizards = _world.Wizards.Where(x => x.Faction != _self.Faction && x.Id != target.Id);
-            var isFarWizards = anemyWizards.All(x => !CanShootWizard(x, _self, true, false));
+            var isFarWizards = anemyWizards.All(x => !CanShootWizard(x, _self, true, false, false));
 
             var anemyMinions = _world.Minions.Where(x => x.Faction != _self.Faction);
             var isFarMinios = true;
