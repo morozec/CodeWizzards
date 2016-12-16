@@ -263,7 +263,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
 
 
             var nearestStaffTarget = GetNearestStaffRangeTarget(_self);
-            var shootingTarget = GetLineType(_line) == LineType.Defensive ? GetDefensiveLineShootingTarget() : GetAgressiveLineShootingTarget();
+            var shootingTarget = GetMyLineType(_line) == LineType.Defensive ? GetDefensiveLineShootingTarget() : GetAgressiveLineShootingTarget();
 
             var goBonusResult = CheckAndGoForBonus(nearestStaffTarget, shootingTarget);
 
@@ -676,7 +676,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
 
         private bool IsWeakWizard(LivingUnit unit)
         {
-            var shootingCoeff = GetLineType(_line) == LineType.Defensive ? 1d : 2d;
+            var shootingCoeff = GetMyLineType(_line) == LineType.Defensive ? 1d : 2d;
             var wizard = unit as Wizard;
             return wizard != null && wizard.Life <= GetShootingPower(_self) * shootingCoeff;
         }
@@ -1161,7 +1161,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             //если игра 1 на 1
             if (_isOneOneOne)
             {
-                if (GetLineType(_line) == LineType.Defensive || _myWizards[_line].Count - _anemyWizards[_line].Count >= 1) return goBonusResult;
+                if (GetMyLineType(_line) == LineType.Defensive || _myWizards[_line].Count - _anemyWizards[_line].Count >= 1) return goBonusResult;
                 var ordered0Wizards =
                     _world.Wizards.Where(x => x.Faction == _self.Faction).OrderBy(x => _bonusPoints[0].getDistanceTo(x));
 
@@ -1184,7 +1184,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                                 break;
                             }
                         }
-                        if (wizardLaneType != null && GetLineType(wizardLaneType.Value) != LineType.Defensive &&
+                        if (wizardLaneType != null && GetMyLineType(wizardLaneType.Value) != LineType.Defensive &&
                             _myWizards[wizardLaneType.Value].Count - _anemyWizards[wizardLaneType.Value].Count <= 1)
                         {
                             break;
@@ -1214,7 +1214,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                                 break;
                             }
                         }
-                        if (wizardLaneType != null && GetLineType(wizardLaneType.Value) != LineType.Defensive &&
+                        if (wizardLaneType != null && GetMyLineType(wizardLaneType.Value) != LineType.Defensive &&
                             _myWizards[wizardLaneType.Value].Count - _anemyWizards[wizardLaneType.Value].Count <= 1)
                         {
                             break;
@@ -1755,21 +1755,11 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             if (building != null)
             {
 
-                if (_isOneOneOne)
+                if (_isOneOneOne && building.Type == BuildingType.FactionBase)
                 {
-                    var hasNearBuildingFriends =
-                        friends.Any(x => x.Id != _self.Id && x.GetDistanceTo(building) <= building.AttackRange);
-
-                    if (hasNearBuildingFriends && building.Type != BuildingType.FactionBase) return !CanGoToBuilding(building, friends);
-                    else
-                    {
-                        var isClearSituation = _seenAnemyWizards.Count == 5;
-
-                        var isOkToGoOneOnOne = isClearSituation &&
-                                               GetLineCoeff(_myWizards[_line].Count, _anemyWizards[_line].Count) >= 1 &&
-                                               _self.Life > _self.MaxLife*HP_FACTOR_TO_GO_TO_TOWERS;
-                        return !isOkToGoOneOnOne;
-                    }
+                    var isOkToGoOneOnOne = GetMyLineType(_line) == LineType.Agressive &&
+                                            _self.Life > _self.MaxLife*HP_FACTOR_TO_GO_TO_TOWERS;
+                    return !isOkToGoOneOnOne;
                 }
               
                 //return false;
@@ -3627,10 +3617,13 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             return closestTarget;
         }
 
-        private LineType GetLineType(LaneType laneType)
+        private LineType GetMyLineType(LaneType laneType)
         {
-            if (_myWizards[laneType].Count >= _anemyWizards[laneType].Count) return LineType.Agressive;
-            if (_anemyWizards[laneType].Count - _myWizards[laneType].Count == 1) return LineType.Neutral;
+            var myWizardsCount = _myWizards[laneType].Count;
+            if (laneType == _line) myWizardsCount++;
+
+            if (myWizardsCount > _anemyWizards[laneType].Count) return LineType.Agressive;
+            if (_anemyWizards[laneType].Count == myWizardsCount) return LineType.Neutral;
             return LineType.Defensive;
         }
 
@@ -4411,7 +4404,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                 }
                 if (laneType == null) continue;
 
-                var lineType = GetLineType(laneType.Value);
+                var lineType = GetMyLineType(laneType.Value);
                 if (lineType != LineType.Agressive) continue;
 
                 var myWizards = _world.Wizards.Where(x => x.Faction == _self.Faction);
