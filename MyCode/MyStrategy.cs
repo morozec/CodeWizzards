@@ -1968,7 +1968,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
 
                 if (_isOneOneOne &&
                     (building.Type == BuildingType.FactionBase ||
-                     _seenAnemyWizards.Count == 5 && (_myWizards[_line].Count - _anemyWizards[_line].Count >= 2)))
+                     _seenAnemyWizards.Count == 5 && (_myWizards[_line].Count - _anemyWizards[_line].Count >= 1)))
                 {
                     //var isOkToGoOneOnOne = GetMyLineType(_line) == LineType.Agressive &&
                     //                       _self.Life > _self.MaxLife*HP_FACTOR_TO_GO_TO_TOWERS;
