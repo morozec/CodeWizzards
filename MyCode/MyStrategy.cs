@@ -2091,7 +2091,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
 
             var bulletTime = GetBulletTime(bsd, target);
             bulletTime += Math.Max(sourceCooldown, turnTime);
-            if (addTick) bulletTime++; //+1, т.к. может уйти на этом ходу
+            //if (addTick) bulletTime++; //+1, т.к. может уйти на этом ходу
 
             var canGoBack = CanGoBack(target, bsd, bulletTime, true);
             if (!checkOtherSides)
@@ -2153,7 +2153,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
 
             var bulletTime = GetBulletTime(bsd, target);
             bulletTime += Math.Max(sourceCooldown, turnTime);
-            if (addTick) bulletTime++; //+1, т.к. может уйти на этом ходу
+            //if (addTick) bulletTime++; //+1, т.к. может уйти на этом ходу
 
             var canGoBack = CanGoBack(target, bsd, bulletTime, true);
             if (!checkOtherSides)
@@ -2196,7 +2196,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
 
             var bulletTime = GetBulletTime(bsd, target);
             bulletTime += Math.Max(sourceCooldown, turnTime);
-            if (addTick) bulletTime++; //+1, т.к. может уйти на этом ходу
+            //if (addTick) bulletTime++; //+1, т.к. может уйти на этом ходу
 
             var canGoBack = CanGoBack(target, bsd, bulletTime, true);
             if (!checkOtherSides)
