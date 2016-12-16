@@ -892,120 +892,155 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
         /// <param name="time"></param>
         /// <param name="ignoreGoStraightPoint"></param>
         /// <returns></returns>
-        private bool CanGoBack(Wizard target, BulletStartData bsd, double time, bool ignoreGoStraightPoint)
+        private bool CanGoBack(Wizard target, BulletStartData bsd, int time, bool ignoreGoStraightPoint)
         {
-            var newX = target.X + GetWizardMaxBackSpeed(target) * time * Math.Cos(target.Angle - Math.PI);
-            var newY = target.Y + GetWizardMaxBackSpeed(target) * time * Math.Sin(target.Angle - Math.PI);
+            double newX = target.X;
+            double newY = target.Y;
+            if (ignoreGoStraightPoint)
+            {
+                newX = target.X + GetWizardMaxStrafeSpeed(target) * time * Math.Cos(target.Angle - Math.PI);
+                newY = target.Y + GetWizardMaxStrafeSpeed(target) * time * Math.Sin(target.Angle - Math.PI);
+            }
+            else
+            {
+                for (int i = 0; i <= time; ++i)
+                {
+                    newX = target.X + GetWizardMaxStrafeSpeed(target) * i * Math.Cos(target.Angle - Math.PI);
+                    newY = target.Y + GetWizardMaxStrafeSpeed(target) * i * Math.Sin(target.Angle - Math.PI);
+
+                    if (GetGoStraightPoint(newX, newY, 0) == null) break;
+                }
+            }
 
             if (newX < target.Radius || newY < target.Radius || newX > _world.Width - target.Radius ||
-                newY > _world.Height - target.Radius)
+                  newY > _world.Height - target.Radius)
                 return false;
 
-            //if (!target.IsMe)
-            //    Debug.circle(newX, newY, 10, 150);
-
             var isIntersect = Square.Intersect(
-                bsd.StartX,
-                bsd.StartY,
-                bsd.EndX,
-                bsd.EndY,
-                newX,
-                newY,
-                bsd.Radius,
-                target.Radius);
+                  bsd.StartX,
+                  bsd.StartY,
+                  bsd.EndX,
+                  bsd.EndY,
+                  newX,
+                  newY,
+                  bsd.Radius,
+                  target.Radius);
 
-
-            var canGoStraightPoint = true;
-            if (!ignoreGoStraightPoint) canGoStraightPoint = (GetGoStraightPoint(newX, newY, 0) != null);
-
-
-            return !isIntersect && canGoStraightPoint;
+            return !isIntersect;
         }
 
-        private bool CanGoForward(Wizard target, BulletStartData bsd, double time, bool ignoreGoStraightPoint)
+        private bool CanGoForward(Wizard target, BulletStartData bsd, int time, bool ignoreGoStraightPoint)
         {
 
-            var newX = target.X + GetWizardMaxForwardSpeed(target) * time * Math.Cos(target.Angle);
-            var newY = target.Y + GetWizardMaxForwardSpeed(target) * time * Math.Sin(target.Angle);
-
-            //if (!target.IsMe)
-            //    Debug.circle(newX, newY, 10, 150);
+            double newX = target.X;
+            double newY = target.Y;
+            if (ignoreGoStraightPoint)
+            {
+                newX = target.X + GetWizardMaxForwardSpeed(target)*time*Math.Cos(target.Angle);
+                newY = target.Y + GetWizardMaxForwardSpeed(target)*time*Math.Sin(target.Angle);
+            }
+            else
+            {
+                for (int i = 0; i <= time; ++i)
+                {
+                    newX = target.X + GetWizardMaxForwardSpeed(target) * i * Math.Cos(target.Angle);
+                    newY = target.Y + GetWizardMaxForwardSpeed(target) * i * Math.Sin(target.Angle);
+                    
+                    if (GetGoStraightPoint(newX, newY, 0) == null) break;
+                }
+            }
 
             if (newX < target.Radius || newY < target.Radius || newX > _world.Width - target.Radius ||
-                newY > _world.Height - target.Radius)
+                  newY > _world.Height - target.Radius)
                 return false;
 
             var isIntersect = Square.Intersect(
-                bsd.StartX,
-                bsd.StartY,
-                bsd.EndX,
-                bsd.EndY,
-                newX,
-                newY,
-                bsd.Radius,
-                target.Radius);
+                  bsd.StartX,
+                  bsd.StartY,
+                  bsd.EndX,
+                  bsd.EndY,
+                  newX,
+                  newY,
+                  bsd.Radius,
+                  target.Radius);
 
-            var canGoStraightPoint = true;
-            if (!ignoreGoStraightPoint) canGoStraightPoint = (GetGoStraightPoint(newX, newY, 0) != null);
-
-            return !isIntersect && canGoStraightPoint;
+            return !isIntersect;
         }
         
-        private bool CanGoLeft(Wizard target, BulletStartData bsd, double time, bool ignoreGoStraightPoint)
+        private bool CanGoLeft(Wizard target, BulletStartData bsd, int time, bool ignoreGoStraightPoint)
         {
-            var newX = target.X + GetWizardMaxStrafeSpeed(target) * time * Math.Cos(target.Angle - Math.PI / 2);
-            var newY = target.Y + GetWizardMaxStrafeSpeed(target) * time * Math.Sin(target.Angle - Math.PI / 2);
+            double newX = target.X;
+            double newY = target.Y;
+            if (ignoreGoStraightPoint)
+            {
+                newX = target.X + GetWizardMaxStrafeSpeed(target) * time * Math.Cos(target.Angle - Math.PI / 2);
+                newY = target.Y + GetWizardMaxStrafeSpeed(target) * time * Math.Sin(target.Angle - Math.PI / 2);
+            }
+            else
+            {
+                for (int i = 0; i <= time; ++i)
+                {
+                    newX = target.X + GetWizardMaxStrafeSpeed(target) * i * Math.Cos(target.Angle - Math.PI / 2);
+                    newY = target.Y + GetWizardMaxStrafeSpeed(target) * i * Math.Sin(target.Angle - Math.PI / 2);
 
-            //if (!target.IsMe)
-            //    Debug.circle(newX, newY, 10, 150);
+                    if (GetGoStraightPoint(newX, newY, 0) == null) break;
+                }
+            }
 
             if (newX < target.Radius || newY < target.Radius || newX > _world.Width - target.Radius ||
-                newY > _world.Height - target.Radius)
+                  newY > _world.Height - target.Radius)
                 return false;
 
             var isIntersect = Square.Intersect(
-                bsd.StartX,
-                bsd.StartY,
-                bsd.EndX,
-                bsd.EndY,
-                newX,
-                newY,
-                bsd.Radius,
-                target.Radius);
+                  bsd.StartX,
+                  bsd.StartY,
+                  bsd.EndX,
+                  bsd.EndY,
+                  newX,
+                  newY,
+                  bsd.Radius,
+                  target.Radius);
 
-            var canGoStraightPoint = true;
-            if (!ignoreGoStraightPoint) canGoStraightPoint = (GetGoStraightPoint(newX, newY, 0) != null);
-
-            return !isIntersect && canGoStraightPoint;
+            return !isIntersect;
         }
 
-        private bool CanGoRight(Wizard target, BulletStartData bsd, double time, bool ignoreGoStraightPoint)
+        private bool CanGoRight(Wizard target, BulletStartData bsd, int time, bool ignoreGoStraightPoint)
         {
 
-            var newX = target.X + GetWizardMaxStrafeSpeed(target) * time * Math.Cos(target.Angle + Math.PI / 2);
-            var newY = target.Y + GetWizardMaxStrafeSpeed(target) * time * Math.Sin(target.Angle + Math.PI / 2);
+            double newX = target.X;
+            double newY = target.Y;
+            if (ignoreGoStraightPoint)
+            {
+                newX = target.X + GetWizardMaxStrafeSpeed(target) * time * Math.Cos(target.Angle + Math.PI / 2);
+                newY = target.Y + GetWizardMaxStrafeSpeed(target) * time * Math.Sin(target.Angle + Math.PI / 2);
+            }
+            else
+            {
+                for (int i = 0; i <= time; ++i)
+                {
+                    newX = target.X + GetWizardMaxStrafeSpeed(target) * i * Math.Cos(target.Angle + Math.PI / 2);
+                    newY = target.Y + GetWizardMaxStrafeSpeed(target) * i * Math.Sin(target.Angle + Math.PI / 2);
 
-            //if (!target.IsMe)
-            //    Debug.circle(newX, newY, 10, 150);
+                    if (GetGoStraightPoint(newX, newY, 0) == null) break;
+                }
+            }
 
             if (newX < target.Radius || newY < target.Radius || newX > _world.Width - target.Radius ||
-                newY > _world.Height - target.Radius)
+                  newY > _world.Height - target.Radius)
                 return false;
 
             var isIntersect = Square.Intersect(
-                bsd.StartX,
-                bsd.StartY,
-                bsd.EndX,
-                bsd.EndY,
-                newX,
-                newY,
-                bsd.Radius,
-                target.Radius);
+                  bsd.StartX,
+                  bsd.StartY,
+                  bsd.EndX,
+                  bsd.EndY,
+                  newX,
+                  newY,
+                  bsd.Radius,
+                  target.Radius);
 
-            var canGoStraightPoint = true;
-            if (!ignoreGoStraightPoint) canGoStraightPoint = (GetGoStraightPoint(newX, newY, 0) != null);
-
-            return !isIntersect && canGoStraightPoint;
+            return !isIntersect;
+       
         }
         
         private LivingUnit GetNearestMyBaseAnemy(LaneType lane)
@@ -1930,48 +1965,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             return !canGoBack && !canGoForward && !canGoLeft && !canGoRight;
         }
 
-        private bool CanShootWithFrostBolt(Wizard wizard, double startX, double startY, Wizard target, double turnTime)
-        {
-
-            var bsd = new BulletStartData(
-                startX,
-                startY,
-                wizard.CastRange,
-                target.X - startX,
-                target.Y - startY,
-                _game.FrostBoltRadius,
-                _game.FrostBoltSpeed);
-
-
-            var bulletTime = GetBulletTime(bsd, target);
-            var nextTickTime = bulletTime +
-                               wizard.RemainingCooldownTicksByAction[(int)ActionType.FrostBolt] + turnTime;
-
-            var canGoBack = CanGoBack(target, bsd, nextTickTime, true);
-            return !canGoBack;
-        }
-
-        private bool CanShootWithFireball(Wizard wizard, double startX, double startY, Wizard target, double turnTime)
-        {
-
-            var bsd = new BulletStartData(
-                startX,
-                startY,
-                wizard.CastRange,
-                target.X - startX,
-                target.Y - startY,
-                _game.FireballRadius,
-                _game.FireballSpeed);
-
-
-            var bulletTime = GetBulletTime(bsd, target);
-            var nextTickTime = bulletTime +
-                               wizard.RemainingCooldownTicksByAction[(int)ActionType.Fireball] + turnTime;
-
-            var canGoBack = CanGoBack(target, bsd, nextTickTime, true);
-            return !canGoBack;
-        }
-        
+  
         private int GetBulletTime(BulletStartData bulletStartData, Wizard target)
         {
             Point2D bulletPoint;
