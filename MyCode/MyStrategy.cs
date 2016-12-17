@@ -437,9 +437,8 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
 
 
             var nearestStaffTarget = GetNearestStaffRangeTarget(_self);
-            var shootingTarget = GetMyLineType(_line) != LineType.Defensive
-                ? GetAgressiveLineShootingTarget()
-                : GetDefensiveLineShootingTarget();
+            var shootingTarget = _isOneOneOne ? GetOneOnOneShootingTarget() :
+                GetAgressiveLineShootingTarget();
 
             var goBonusResult = CheckAndGoForBonus(nearestStaffTarget, shootingTarget);
 
@@ -4172,6 +4171,167 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             #endregion
 
           
+            return null;
+        }
+
+        private LivingUnit GetOneOnOneShootingTarget()
+        {
+            _isBerserkTarget = false;
+            LivingUnit shootingTarget = null;
+
+            #region Берсерк
+
+            var berserkTarget = GetBerserkTarget();
+            if (berserkTarget != null && berserkTarget.MyWizards.Any(x => x.Id == _self.Id))
+            {
+                _isBerserkTarget = true;
+                return berserkTarget.Target;
+            }
+
+            #endregion
+
+            #region Дохлый волшебник
+
+            var wizards = _world.Wizards.Where(x => x.Faction != _self.Faction);
+
+            //LivingUnit possibleShootingTarget = null;
+
+            var minHp = double.MaxValue;
+            //var possibleMinHp = double.MaxValue;
+
+            foreach (var target in wizards)
+            {
+                if (target.Faction == _self.Faction) continue;
+                if (!IsOkDistanceToShoot(_self, target, 0d)) continue;
+                if (!_isOneOneOne && IsBlockingTree(_self, target, _game.MagicMissileRadius)) continue;
+
+                var life = target.Life;
+                var distanceToRunForWeak = _self.CastRange * COEFF_TO_RUN_FOR_WEAK;
+
+                if (IsWeakWizard(target) && _self.GetDistanceTo(target) <= distanceToRunForWeak)
+                {
+                    if (life < minHp)
+                    {
+                        minHp = life;
+                        shootingTarget = target;
+                    }
+                }
+            }
+
+            if (shootingTarget != null) return shootingTarget;
+            #endregion
+
+            #region Спокойный нейтрал
+
+            if (!IsCloseToWin() || GetLineAliveAnemyTowers(_line).Count > 0)
+            {
+                var neutrals = _world.Minions.Where(x => x.Faction == Faction.Neutral);
+                minHp = double.MaxValue;
+                foreach (var target in neutrals)
+                {
+                    if (!IsCalmNeutralMinion(target) || !ShouldAttackNeutralMinion(target)) continue;
+                    if (!IsOkDistanceToShoot(_self, target, 0d)) continue;
+                    if (IsBlockingTree(_self, target, _game.MagicMissileRadius)) continue;
+
+                    var life = target.Life;
+                    if (life < minHp)
+                    {
+                        minHp = life;
+                        shootingTarget = target;
+                    }
+                }
+            }
+
+            if (shootingTarget != null) return shootingTarget;
+            #endregion
+
+            #region Миньон
+            var minions = _world.Minions;
+            minHp = double.MaxValue;
+            foreach (var target in minions)
+            {
+                if (target.Faction == _self.Faction) continue;
+                if (target.Faction == Faction.Neutral && !ShouldAttackNeutralMinion(target)) continue;
+                if (!IsOkDistanceToShoot(_self, target, 0d)) continue;
+                if (IsBlockingTree(_self, target, _game.MagicMissileRadius)) continue;
+
+                //double distance = _self.GetDistanceTo(target);
+
+                var life = target.Life;
+                if (life < minHp)
+                {
+                    minHp = life;
+                    shootingTarget = target;
+                }
+            }
+
+            if (shootingTarget != null) return shootingTarget;
+
+            #endregion
+
+            #region Обычный волшебник
+
+            //LivingUnit possibleShootingTarget = null;
+
+            minHp = double.MaxValue;
+            //var possibleMinHp = double.MaxValue;
+
+            foreach (var target in wizards)
+            {
+                if (target.Faction == _self.Faction) continue;
+                //if (!IsOkDistanceToShoot(_self, target, 0d)) continue;
+                if (!_isOneOneOne && IsBlockingTree(_self, target, _game.MagicMissileRadius)) continue;
+
+                if (_self.GetDistanceTo(target) > _self.CastRange * 1.5) continue;
+                if (!IsOkToRunForWizard(_self, target)) continue;
+
+
+                //var canShootWizard = CanShootWizard(_self, target, true, true, true);
+
+                var life = target.Life;
+
+                //if (canShootWizard)
+                //{
+                if (life < minHp)
+                {
+                    minHp = life;
+                    shootingTarget = target;
+                }
+                //}
+            }
+
+            if (shootingTarget != null) return shootingTarget;
+            #endregion
+
+            #region Здание
+
+            var minDist = double.MaxValue;
+            foreach (var target in _world.Buildings)
+            {
+                if (target.Faction == _self.Faction) continue;
+                if (!IsOkDistanceToShoot(_self, target, 0d)) continue;
+                if (!_isOneOneOne && IsBlockingTree(_self, target, _game.MagicMissileRadius)) continue;
+                if (!IsStrongOnLine(target, _line)) continue;
+
+                double distance = _self.GetDistanceTo(target);
+
+                if (distance < minDist)
+                {
+                    minDist = distance;
+                    shootingTarget = target;
+                }
+            }
+            if (shootingTarget != null) return shootingTarget;
+
+            #endregion
+
+           
+
+           
+
+           
+
+
             return null;
         }
 
