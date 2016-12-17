@@ -35,6 +35,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
         private static double COEFF_TO_RUN_FOR_WEAK = 1.2;
         
         private IDictionary<LaneType, Point2D[]> _waypointsByLine = new Dictionary<LaneType, Point2D[]>();
+        private Point2D[] _cheatingWaypointsByLine;
 
         private Random _random;
 
@@ -111,7 +112,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
         private bool _isBerserkTarget = false;
         private bool _isOneOneOne = false;
 
-        private bool _isCheatingStrategy = false;
+        //private bool _isCheatingStrategy = false;
          
 
         private readonly SkillType[] _agressiveSkillsOrder = new SkillType[]
@@ -496,7 +497,21 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                         //TODO!!! Теоретически closestTarget м.б. null
                         var isCalmMinion = (shootingTarget is Minion && (shootingTarget as Minion).Faction == Faction.Neutral &&
                                             IsCalmNeutralMinion(shootingTarget as Minion));
-                        if (isCalmMinion)
+
+                        //var anmeyMinions =
+                        //    _world.Minions.Where(
+                        //        x =>
+                        //            x.Faction != _self.Faction &&
+                        //            (x.Faction != Faction.Neutral || !IsCalmNeutralMinion(x)));
+
+                        var isFirstTower = shootingTarget is Building &&
+                                           (shootingTarget as Building).Type == BuildingType.GuardianTower &&
+                                           GetAliveAnemyTowers(LaneType.Bottom).Count == 2;
+                                           //anmeyMinions.Any(
+                                           //    x =>
+                                           //        x.GetDistanceTo(_self) <
+                                           //        _game.FetishBlowdartAttackRange + _self.Radius);
+                        if (isCalmMinion || isFirstTower)
                         {
                             _thisTickResPoint = new Point2D(_self.X, _self.Y);
                             goToResult = GoTo(
@@ -527,7 +542,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                     {
                        
                         var nearestBaseTarget = GetNearestMyBaseAnemy(_line);
-                        if (nearestBaseTarget != null)
+                        if (nearestBaseTarget != null && !_isOneOneOne)
                         {
                             if (closestTarget != null && _self.GetDistanceTo(closestTarget) < _self.CastRange*1.5)
                                 turnTarget = nearestBaseTarget;
@@ -554,6 +569,21 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                         else
                         {
                             var nextWaypoint = GetNextWaypoint();
+
+                            if (_isOneOneOne && nextWaypoint.X > _cheatingWaypointsByLine[2].X)
+                            {
+                                for (int i = 0; i < _anemyBuildings.Count; ++i)
+                                {
+                                    if (_anemyBuildings[i].X > _world.Width - 400 && _anemyBuildings[i].Y > 2000)
+                                    {
+                                        if (_IsAnemyBuildingAlive[i])
+                                        {
+                                            nextWaypoint = _cheatingWaypointsByLine[3];
+                                        }
+                                    }
+                                }
+                            }
+
                             _thisTickResPoint = nextWaypoint;
                             goToResult = GoTo(nextWaypoint, _self.Radius * 2, 0d);
                         }
@@ -653,8 +683,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                 }
             }
             
-            _move.Speed = speedContainer.Speed;
-            _move.StrafeSpeed = speedContainer.StrafeSpeed;
+        
             var woodCutTree = goToResult.WoodCuTree;
 
             if (woodCutTree != null)
@@ -688,7 +717,64 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                 double turnPointX = goToResult.X;
                 double turnPointY = goToResult.Y;
 
-                if (goBonusResult.IsGo)
+                #region Дерево
+
+                //var nextWayPoint = GetNextWaypoint();
+                var neutralMinions = _world.Minions.Where(x => x.Faction == Faction.Neutral);
+                var nextWayPoint = GetNextWaypoint();
+                var isNeutralIntersect =
+                    neutralMinions.Any(x => Square.Intersect(_self.X, _self.Y, nextWayPoint.X, nextWayPoint.Y, x.X, x.Y,
+                        _self.Radius, x.Radius));
+
+              
+             
+
+
+                if (_isOneOneOne && nextWayPoint.X== _cheatingWaypointsByLine[3].X && nextWayPoint.Y == _cheatingWaypointsByLine[3].Y)
+                {
+                    var closeTrees = _trees.Where(x => IsOkDistanceToShoot(_self, x, 0));
+                    var intersectingTrees = new List<Tree>();
+                    foreach (var tree in closeTrees)
+                    {
+                        if (Square.Intersect(_self.X, _self.Y, nextWayPoint.X, nextWayPoint.Y, tree.X, tree.Y,
+                            _self.Radius, tree.Radius))
+                        {
+                            intersectingTrees.Add(tree);
+                        }
+                    }
+
+                    var minHpTrees = intersectingTrees.OrderBy(x => x.GetDistanceTo(_self));
+                    var minHpTree = minHpTrees.FirstOrDefault();
+                    if (minHpTree != null)
+                    {
+                        turnPointX = minHpTree.X;
+                        turnPointY = minHpTree.Y;
+                        if (Math.Abs(_self.GetAngleTo(minHpTree)) <= _game.StaffSector/2d)
+                        {
+                            var distance = _self.GetDistanceTo(minHpTree) - minHpTree.Radius;
+                            if (_self.RemainingCooldownTicksByAction[(int) ActionType.Staff] == 0 &&
+                                distance <= _game.StaffRange)
+                            {
+                                _move.Action = ActionType.Staff;
+                            }
+                            else if (_self.RemainingCooldownTicksByAction[(int)ActionType.MagicMissile] == 0)
+                            {
+                                _move.Action = ActionType.MagicMissile;
+                                _move.MinCastDistance = _self.GetDistanceTo(minHpTree) - minHpTree.Radius +
+                                                   _game.MagicMissileRadius;
+                            }
+                            _move.CastAngle = _self.GetAngleTo(minHpTree);
+                           
+                        }
+                    }
+
+                }
+
+               
+                #endregion
+               
+
+                else if (goBonusResult.IsGo)
                 {
                     turnPointX = _bonusPoints[0].getDistanceTo(_self) < _bonusPoints[1].getDistanceTo(_self)
                         ? _bonusPoints[0].X
@@ -702,30 +788,33 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                                 Math.Abs(_self.Y - turnPointY) < TOLERANCE;
                 if (!isInPoint) _move.Turn = _self.GetAngleTo(turnPointX, turnPointY);
             }
-            
 
-          
+            _move.Speed = speedContainer.Speed;
+            _move.StrafeSpeed = speedContainer.StrafeSpeed;
+
+
+
         }
 
         private void InitializeLineActions()
         {
             UpdateWizardsLanes();
-            if (_isOneOneOne && _isCheatingStrategy)
+            if (_isOneOneOne)
             {
-                if (_seenAnemyWizards.Count == 5)
-                {
-                    if (_self.Id % 5 == 2 &&
-                        (_anemyWizards[LaneType.Middle].Count == 5 || _anemyWizards[LaneType.Middle].Count <= 2))
-                    {
-                        _line = LaneType.Middle;
-                    }
+                //if (_seenAnemyWizards.Count == 5)
+                //{
+                //    if (_self.Id % 5 == 2 &&
+                //        (_anemyWizards[LaneType.Middle].Count == 5 || _anemyWizards[LaneType.Middle].Count <= 2))
+                //    {
+                //        _line = LaneType.Middle;
+                //    }
 
-                    if (_anemyWizards[LaneType.Bottom].Count >= 2 && _anemyWizards[_line].Count > 0 &&
-                        (_self.Id % 5 == 1 || _self.Id % 5 == 2))
-                    {
-                        _line = LaneType.Middle;
-                    }
-                }
+                //    if (_anemyWizards[LaneType.Bottom].Count >= 2 && _anemyWizards[_line].Count > 0 &&
+                //        (_self.Id % 5 == 1 || _self.Id % 5 == 2))
+                //    {
+                //        _line = LaneType.Middle;
+                //    }
+                //}
                 return;
             }
 
@@ -1368,6 +1457,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             //если игра 1 на 1
             if (_isOneOneOne)
             {
+                return goBonusResult;
                 
                 if (GetMyLineType(_line) == LineType.Defensive || _myWizards[_line].Count - _anemyWizards[_line].Count >= 1) return goBonusResult;
                 var ordered0Wizards =
@@ -1905,6 +1995,8 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             var wizard = source as Wizard;
             if (wizard != null)
             {
+                if (_isOneOneOne) return false;
+
                 var angle = wizard.GetAngleTo(target);
                 var deltaAngle = Math.Abs(angle) - _game.StaffSector / 2;
                 double turnTime;
@@ -1965,16 +2057,16 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             var building = source as Building;
             if (building != null)
             {
-
-                if (_isOneOneOne &&
-                    (building.Type == BuildingType.FactionBase ||
-                     _seenAnemyWizards.Count == 5 && (_myWizards[_line].Count - _anemyWizards[_line].Count >= 1)))
-                {
-                    //var isOkToGoOneOnOne = GetMyLineType(_line) == LineType.Agressive &&
-                    //                       _self.Life > _self.MaxLife*HP_FACTOR_TO_GO_TO_TOWERS;
-                    //return !isOkToGoOneOnOne;
-                    return false;
-                }
+                if (_isOneOneOne) return false;
+                //if (_isOneOneOne &&
+                //    (building.Type == BuildingType.FactionBase ||
+                //     _seenAnemyWizards.Count == 5 && (_myWizards[_line].Count - _anemyWizards[_line].Count >= 1)))
+                //{
+                //    //var isOkToGoOneOnOne = GetMyLineType(_line) == LineType.Agressive &&
+                //    //                       _self.Life > _self.MaxLife*HP_FACTOR_TO_GO_TO_TOWERS;
+                //    //return !isOkToGoOneOnOne;
+                //    return false;
+                //}
 
                 //return false;
                 return !CanGoToBuilding(building, friends);
@@ -2349,6 +2441,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
         
         private bool NeedGoBack()
         {
+            if (_isOneOneOne) return false;
             return _self.Life < _self.MaxLife * LOW_HP_FACTOR && IsInDangerousArea(_self, _self.Radius * 2);
         }
 
@@ -2841,7 +2934,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                             {
                                 p.Weight += IsStrongOnLine(_anemyBuildings[k], _line) ||
                                             _anemyBuildings[k].Type == BuildingType.FactionBase
-                                    ? LIGHT_SHOOTING_SQUARE_WEIGHT
+                                    ? _isOneOneOne ? 0d : LIGHT_SHOOTING_SQUARE_WEIGHT
                                     : STRONG_SHOOTING_SQUARE_WEIGHT;
                             }
                         }
@@ -2869,7 +2962,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                         {
                             _table[i, j].Weight += IsStrongOnLine(_anemyBuildings[k], _line) ||
                                                    _anemyBuildings[k].Type == BuildingType.FactionBase
-                                ? LIGHT_SHOOTING_SQUARE_WEIGHT
+                                ? _isOneOneOne ? 0d : LIGHT_SHOOTING_SQUARE_WEIGHT
                                 : STRONG_SHOOTING_SQUARE_WEIGHT;
                         }
                     }
@@ -3314,24 +3407,24 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                     _isOneOneOne = true;
                 }
 
-                if (_isOneOneOne &&
-                    _world.Players.Any(
-                        x =>
-                            x.Name == "Romka" || x.Name == "jetblack" || x.Name == "mustang" || x.Name == "Antmsu" ||
-                            x.Name == "tyamgin" ||
-                            x.Name == "core2duo" ||
-                            x.Name == "OrickBy" || 
-                            x.Name == "dedoo" || 
-                            x.Name == "byserge" || 
-                            x.Name == "ud1" || 
-                            x.Name == "NighTurs" || 
-                            x.Name == "WildCat" || 
-                            x.Name == "cheeser" || 
-                            x.Name == "Oxidize" || 
-                            x.Name == "Commandos" ))
-                {
-                    _isCheatingStrategy = true;
-                }
+                //if (_isOneOneOne &&
+                //    _world.Players.Any(
+                //        x =>
+                //            x.Name == "Romka" || x.Name == "jetblack" || x.Name == "mustang" || x.Name == "Antmsu" ||
+                //            x.Name == "tyamgin" ||
+                //            x.Name == "core2duo" ||
+                //            x.Name == "OrickBy" || 
+                //            x.Name == "dedoo" || 
+                //            x.Name == "byserge" || 
+                //            x.Name == "ud1" || 
+                //            x.Name == "NighTurs" || 
+                //            x.Name == "WildCat" || 
+                //            x.Name == "cheeser" || 
+                //            x.Name == "Oxidize" || 
+                //            x.Name == "Commandos" ))
+                //{
+                //    _isCheatingStrategy = true;
+                //}
 
                 _bulletStartDatas = new Dictionary<long, BulletStartData>();
 
@@ -3431,12 +3524,26 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                     new Point2D(mapSize - 200.0D, mapSize * 0.25D),
                     new Point2D(mapSize - 200.0D, 200.0D)
             });
+
+                _cheatingWaypointsByLine = new Point2D[]
+                {
+                    new Point2D(100.0D, mapSize - 100.0D),
+                    new Point2D(400.0D, mapSize - 100.0D),
+                    new Point2D(1800.0D, mapSize - 200.0D),
+                    new Point2D(mapSize - 200.0D, 2200.0D),
+                    new Point2D(mapSize - 200.0D, 200.0D),
+
+
+                };
                 //if (_isOneOneOne && (_self.Id % 5 == 1 || _self.Id % 5 == 2)) _line = LaneType.Top;
                 //else _line = LaneType.Middle;
 
                 //_line = LaneType.Top;
-                if (_isOneOneOne && (_self.Id % 5 == 1 || _self.Id % 5 == 2) && _isCheatingStrategy) _line = LaneType.Top;
-                else _line = LaneType.Middle;
+                //if (_isOneOneOne && (_self.Id % 5 == 1 || _self.Id % 5 == 2) && _isCheatingStrategy) _line = LaneType.Top;
+                //else _line = LaneType.Middle;
+
+            if (_isOneOneOne) _line = LaneType.Bottom;
+            else _line = LaneType.Middle;
                 
 
 
@@ -3485,16 +3592,21 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
      
         private Point2D GetNextWaypoint()
         {
-            int lastWaypointIndex = _waypointsByLine[_line].Length - 1;
-            Point2D lastWaypoint = _waypointsByLine[_line][lastWaypointIndex];
+
+            
+
+            Point2D[] line = _isOneOneOne ? _cheatingWaypointsByLine : _waypointsByLine[_line];
+
+            int lastWaypointIndex = line.Length - 1;
+            Point2D lastWaypoint = line[lastWaypointIndex];
 
             for (int waypointIndex = 0; waypointIndex < lastWaypointIndex; ++waypointIndex)
             {
-                Point2D waypoint = _waypointsByLine[_line][waypointIndex];
+                Point2D waypoint = line[waypointIndex];
 
                 if (waypoint.getDistanceTo(_self) <= WAYPOINT_RADIUS)
                 {
-                    return _waypointsByLine[_line][waypointIndex + 1];
+                    return line[waypointIndex + 1];
                 }
 
                 if (lastWaypoint.getDistanceTo(waypoint) < lastWaypoint.getDistanceTo(_self))
@@ -3508,20 +3620,22 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
     
         private Point2D GetBeforePreviousWaypoint()
         {
-            Point2D firstWaypoint = _waypointsByLine[_line][0];
+            Point2D[] line = _isOneOneOne ? _cheatingWaypointsByLine : _waypointsByLine[_line];
 
-            for (int waypointIndex = _waypointsByLine[_line].Length - 1; waypointIndex > 0; --waypointIndex)
+            Point2D firstWaypoint = line[0];
+
+            for (int waypointIndex = line.Length - 1; waypointIndex > 0; --waypointIndex)
             {
-                Point2D waypoint = _waypointsByLine[_line][waypointIndex];
+                Point2D waypoint = line[waypointIndex];
 
                 if (waypoint.getDistanceTo(_self) <= WAYPOINT_RADIUS)
                 {
-                    return _waypointsByLine[_line][waypointIndex - 1];
+                    return line[waypointIndex - 1];
                 }
 
                 if (firstWaypoint.getDistanceTo(waypoint) < firstWaypoint.getDistanceTo(_self))
                 {
-                    return _waypointsByLine[_line][waypointIndex - 1];
+                    return line[waypointIndex - 1];
                 }
             }
 
@@ -3891,7 +4005,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             {
                 if (target.Faction == _self.Faction) continue;
                 if (!IsOkDistanceToShoot(_self, target, 0d)) continue;
-                if (IsBlockingTree(_self, target, _game.MagicMissileRadius)) continue;
+                if (!_isOneOneOne && IsBlockingTree(_self, target, _game.MagicMissileRadius)) continue;
 
                 var life = target.Life;
                 var distanceToRunForWeak = _self.CastRange*COEFF_TO_RUN_FOR_WEAK; 
@@ -3940,7 +4054,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             {
                 if (target.Faction == _self.Faction) continue;
                 if (!IsOkDistanceToShoot(_self, target, 0d)) continue;
-                if (IsBlockingTree(_self, target, _game.MagicMissileRadius)) continue;
+                if (!_isOneOneOne && IsBlockingTree(_self, target, _game.MagicMissileRadius)) continue;
                 if(!IsStrongOnLine(target, _line)) continue;
 
                 double distance = _self.GetDistanceTo(target);
@@ -3966,7 +4080,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             {
                 if (target.Faction == _self.Faction) continue;
                 //if (!IsOkDistanceToShoot(_self, target, 0d)) continue;
-                if (IsBlockingTree(_self, target, _game.MagicMissileRadius)) continue;
+                if (!_isOneOneOne && IsBlockingTree(_self, target, _game.MagicMissileRadius)) continue;
 
                 if (_self.GetDistanceTo(target) > _self.CastRange * 1.5) continue;
                 if (!IsOkToRunForWizard(_self, target)) continue;
@@ -3997,7 +4111,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                 if (target.Faction == _self.Faction) continue;
                 if (target.Faction == Faction.Neutral && !ShouldAttackNeutralMinion(target)) continue;
                 if (!IsOkDistanceToShoot(_self, target, 0d)) continue;
-                if (IsBlockingTree(_self, target, _game.MagicMissileRadius)) continue;
+                if (!_isOneOneOne && IsBlockingTree(_self, target, _game.MagicMissileRadius)) continue;
 
                 //double distance = _self.GetDistanceTo(target);
 
@@ -4019,7 +4133,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             {
                 if (target.Faction == _self.Faction) continue;
                 if (!IsOkDistanceToShoot(_self, target, 0d)) continue;
-                if (IsBlockingTree(_self, target, _game.MagicMissileRadius)) continue;
+                if (!_isOneOneOne && IsBlockingTree(_self, target, _game.MagicMissileRadius)) continue;
                 if (!IsStrongOnLine(target, _line)) continue;
 
                 double distance = _self.GetDistanceTo(target);
@@ -4056,7 +4170,8 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             if (shootingTarget != null) return shootingTarget;
 
             #endregion
-            
+
+          
             return null;
         }
 
@@ -4077,7 +4192,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             {
                 if (target.Faction == _self.Faction) continue;
                 if (!IsOkDistanceToShoot(_self, target, 0d)) continue;
-                if (IsBlockingTree(_self, target, _game.MagicMissileRadius)) continue;
+                if (!_isOneOneOne && IsBlockingTree(_self, target, _game.MagicMissileRadius)) continue;
 
                 var life = target.Life;
                 var distanceToRunForWeak = _self.CastRange * COEFF_TO_RUN_FOR_WEAK;
@@ -4126,7 +4241,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             {
                 if (target.Faction == _self.Faction) continue;
                 if (!IsOkDistanceToShoot(_self, target, 0d)) continue;
-                if (IsBlockingTree(_self, target, _game.MagicMissileRadius)) continue;
+                if (!_isOneOneOne && IsBlockingTree(_self, target, _game.MagicMissileRadius)) continue;
                 if (!IsStrongOnLine(target, _line)) continue;
 
                 double distance = _self.GetDistanceTo(target);
@@ -4149,7 +4264,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                 if (target.Faction == _self.Faction) continue;
                 if (target.Faction == Faction.Neutral && !ShouldAttackNeutralMinion(target)) continue;
                 if (!IsOkDistanceToShoot(_self, target, 0d)) continue;
-                if (IsBlockingTree(_self, target, _game.MagicMissileRadius)) continue;
+                if (!_isOneOneOne && IsBlockingTree(_self, target, _game.MagicMissileRadius)) continue;
 
                 //double distance = _self.GetDistanceTo(target);
 
@@ -4172,7 +4287,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                 if (target.Faction == _self.Faction) continue;
                 if (target.Faction == Faction.Neutral && !ShouldAttackNeutralMinion(target)) continue;
                 if (!IsOkDistanceToShoot(_self, target, 0d)) continue;
-                if (IsBlockingTree(_self, target, _game.MagicMissileRadius)) continue;
+                if (!_isOneOneOne && IsBlockingTree(_self, target, _game.MagicMissileRadius)) continue;
 
                 //double distance = _self.GetDistanceTo(target);
 
@@ -4194,7 +4309,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             {
                 if (target.Faction == _self.Faction) continue;
                 if (!IsOkDistanceToShoot(_self, target, 0d)) continue;
-                if (IsBlockingTree(_self, target, _game.MagicMissileRadius)) continue;
+                if (!_isOneOneOne && IsBlockingTree(_self, target, _game.MagicMissileRadius)) continue;
                 if (!IsStrongOnLine(target, _line)) continue;
 
                 double distance = _self.GetDistanceTo(target);
@@ -4220,7 +4335,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             {
                 if (target.Faction == _self.Faction) continue;
                 //if (!IsOkDistanceToShoot(_self, target, 0d)) continue;
-                if (IsBlockingTree(_self, target, _game.MagicMissileRadius)) continue;
+                if (!_isOneOneOne && IsBlockingTree(_self, target, _game.MagicMissileRadius)) continue;
 
                 if (_self.GetDistanceTo(target) > _self.CastRange * 1.5) continue;
                 if (!IsOkToRunForWizard(_self, target)) continue;
@@ -4243,6 +4358,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             if (shootingTarget != null) return shootingTarget;
             #endregion
 
+         
             return null;
         }
 
