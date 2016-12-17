@@ -459,7 +459,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
 
                     if (nearestStaffTarget is Building &&
                         (nearestStaffTarget as Building).Type == BuildingType.FactionBase &&
-                        cooldown > 10 && (_self.X < 3600 || _self.Y > 400))
+                        cooldown > 10 && (_behindBasePoint.getDistanceTo(_self) > 100))
                     {
                         goToResult =  GoTo(_behindBasePoint, _self.Radius * 2, _self.Radius * 2);
                     }
@@ -519,6 +519,10 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                                            (shootingTarget as Building).Type == BuildingType.GuardianTower &&
                                            GetAliveAnemyTowers(LaneType.Bottom).Count == 2 && _world.TickIndex < 1450;
 
+                        var isSecondTower = _isOneOneOne && shootingTarget is Building &&
+                                           (shootingTarget as Building).Type == BuildingType.GuardianTower &&
+                                           GetAliveAnemyTowers(LaneType.Bottom).Count == 1;
+
                         var nearTower =
                             _world.Buildings.FirstOrDefault(
                                 x =>
@@ -527,8 +531,14 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
 
                         var isFarTarget = _self.GetDistanceTo(_anemyBaseX, _anemyBaseY) <
                                           shootingTarget.GetDistanceTo(_anemyBaseX, _anemyBaseY);
+
+                        var nearToShotingTargetWizards =
+                            _world.Wizards.Where(
+                                x =>
+                                    x.Faction == _self.Faction && !x.IsMe &&
+                                    x.GetDistanceTo(shootingTarget) <= _game.StaffRange + shootingTarget.Radius);
                                       
-                        if (isCalmMinion || isFirstTower)
+                        if (isCalmMinion || isFirstTower || isSecondTower && nearToShotingTargetWizards.Count() >=3)
                         {
                             _thisTickResPoint = new Point2D(_self.X, _self.Y);
                             goToResult = new GoToResult()
@@ -539,6 +549,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                             };
                               
                         }
+                       
                         else if (_isOneOneOne && nearTower != null)
                         {
                             _thisTickResPoint = new Point2D(nearTower.X, nearTower.Y);
@@ -651,6 +662,8 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
 
             var bullet = GetBulletFlyingInMe();
 
+            
+
             var speedContainer = GetSpeedContainer(goToResult.X, goToResult.Y);
             var speedX = speedContainer.Speed * Math.Cos(_self.Angle) +
                          speedContainer.StrafeSpeed * Math.Cos(_self.Angle + Math.PI / 2);
@@ -714,7 +727,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                 goBack = true;
 
                 
-                if (goBackWizards.Any())
+                if (!_isOneOneOne && goBackWizards.Any())
                 {
                     var turnTime = 0d;
                     if (turnTarget != null)
@@ -772,12 +785,6 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                 //var nextWayPoint = GetNextWaypoint();
                 var neutralMinions = _world.Minions.Where(x => x.Faction == Faction.Neutral);
                 var nextWayPoint = GetNextWaypoint();
-                var isNeutralIntersect =
-                    neutralMinions.Any(x => Square.Intersect(_self.X, _self.Y, nextWayPoint.X, nextWayPoint.Y, x.X, x.Y,
-                        _self.Radius, x.Radius));
-
-              
-             
 
 
                 if (_isOneOneOne && nextWayPoint.X== _cheatingWaypointsByLine[3].X && nextWayPoint.Y == _cheatingWaypointsByLine[3].Y)
@@ -837,6 +844,23 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                 var isInPoint = Math.Abs(_self.X - turnPointX) < TOLERANCE &&
                                 Math.Abs(_self.Y - turnPointY) < TOLERANCE;
                 if (!isInPoint) _move.Turn = _self.GetAngleTo(turnPointX, turnPointY);
+            }
+
+
+            var isOtherLineTower = _anemyBuildings.Any(
+                x =>
+                    x.Type == BuildingType.GuardianTower && !IsStrongOnLine(x, _line) &&
+                    x.GetDistanceTo(goToResult.X, goToResult.Y) <= x.AttackRange);
+
+            var anemyBase = _anemyBuildings.Single(
+                x =>
+                    x.Type == BuildingType.FactionBase);
+            var isBase =  GetAliveAnemyTowers(_line).Count > 0 &&
+                   anemyBase.GetDistanceTo(goToResult.X, goToResult.Y) <= anemyBase.AttackRange;
+
+            if (_isOneOneOne && (isOtherLineTower || isBase))
+            {
+                speedContainer = new SpeedContainer() { Speed = 0, StrafeSpeed = 0 };
             }
 
             _move.Speed = speedContainer.Speed;
@@ -3425,6 +3449,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                 var distance = source.GetDistanceTo(target) - target.Radius;
                 if (distance > _game.StaffRange) continue;
 
+                if (target is Building && (target as Building).Type == BuildingType.FactionBase) return target;
 
                 if (source.GetDistanceTo(target) <= minDist)
                 {
