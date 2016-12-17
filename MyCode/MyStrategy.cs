@@ -85,6 +85,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
         private IList<Point> _lastTickPath;
         private Point2D _lastTickResPoint;
         private Point2D _thisTickResPoint;
+        private Point2D _behindBasePoint =new Point2D(3800, 200);
 
         private bool _needChangeLine;
         private bool _see0Bonus;
@@ -453,14 +454,30 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                 if (!goBonusResult.IsGo)
                 {
                     //move.Turn = angle;
+                    var cooldown = Math.Max(_self.RemainingActionCooldownTicks,
+                        _self.RemainingCooldownTicksByAction[(int) ActionType.Staff]);
 
-                    goToResult = new GoToResult()
+                    if (nearestStaffTarget is Building &&
+                        (nearestStaffTarget as Building).Type == BuildingType.FactionBase &&
+                        cooldown > 10 && (_self.X < 3600 || _self.Y > 400))
                     {
-                        WoodCuTree = null,
-                        X = nearestStaffTarget.X,
-                        Y = nearestStaffTarget.Y
-                    };
-                    
+                        goToResult = new GoToResult()
+                        {
+                            WoodCuTree = null,
+                            X = _behindBasePoint.X,
+                            Y = _behindBasePoint.Y
+                        };
+                    }
+                    else
+                    {
+                        goToResult = new GoToResult()
+                        {
+                            WoodCuTree = null,
+                            X = nearestStaffTarget.X,
+                            Y = nearestStaffTarget.Y
+                        };
+                    }
+
                 }
                 else
                 {
