@@ -505,7 +505,13 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
 
                         var isFirstTower = shootingTarget is Building &&
                                            (shootingTarget as Building).Type == BuildingType.GuardianTower &&
-                                           GetAliveAnemyTowers(LaneType.Bottom).Count == 2;
+                                           GetAliveAnemyTowers(LaneType.Bottom).Count == 2 && _world.TickIndex < 1450;
+
+                        var nearTower =
+                            _world.Buildings.FirstOrDefault(
+                                x =>
+                                    x.Type == BuildingType.GuardianTower && x.Faction != _self.Faction &&
+                                    IsOkDistanceToShoot(_self, x, 0d) && IsStrongOnLine(x, _line));
                                            //anmeyMinions.Any(
                                            //    x =>
                                            //        x.GetDistanceTo(_self) <
@@ -518,12 +524,20 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                                 0,
                                 0);
                         }
+                        else if (nearTower != null)
+                        {
+                            _thisTickResPoint = new Point2D(nearTower.X, nearTower.Y);
+                            goToResult = GoTo(
+                                new Point2D(nearTower.X, nearTower.Y),
+                                _game.StaffRange + nearTower.Radius - TOLERANCE,
+                                _game.StaffRange + nearTower.Radius - TOLERANCE);
+                        }
                         else
                         {
                             _thisTickResPoint = new Point2D(shootingTarget.X, shootingTarget.Y);
                             goToResult = GoTo(
                                 new Point2D(shootingTarget.X, shootingTarget.Y),
-                                _game.StaffRange + shootingTarget.Radius + 10000 * TOLERANCE,
+                                _game.StaffRange + shootingTarget.Radius - TOLERANCE,
                                 _game.StaffRange + shootingTarget.Radius - TOLERANCE);
                         }
                     }
@@ -578,6 +592,22 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                                         if (_IsAnemyBuildingAlive[i])
                                         {
                                             nextWaypoint = _cheatingWaypointsByLine[3];
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+
+                            else if (_isOneOneOne && nextWaypoint.X > _cheatingWaypointsByLine[3].X)
+                            {
+                                for (int i = 0; i < _anemyBuildings.Count; ++i)
+                                {
+                                    if (_anemyBuildings[i].X > _world.Width - 400 && _anemyBuildings[i].Y < 2000)
+                                    {
+                                        if (_IsAnemyBuildingAlive[i])
+                                        {
+                                            nextWaypoint = _cheatingWaypointsByLine[4];
+                                            break;
                                         }
                                     }
                                 }
@@ -1983,6 +2013,8 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             var minion = source as Minion;
             if (minion != null)
             {
+                //if (_isOneOneOne) return false;
+
                 var attackRange = GetAttackRange(minion);
                 var orderedFriends = friends.OrderBy(x => x.GetDistanceTo(source));
                 var firstFriend = orderedFriends.First() as Wizard;
@@ -2056,7 +2088,12 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             var building = source as Building;
             if (building != null)
             {
-                if (_isOneOneOne) return false;
+                if (_isOneOneOne)
+                {
+                    return building.Type != BuildingType.FactionBase && _self.Life > building.Damage && _self.Life < 100 &&
+                           !CanGoToBuilding(building, friends) && building.X < 3800 && _world.TickIndex <= 1450 ||
+                           building.Type == BuildingType.FactionBase && GetAliveAnemyTowers(_line).Count > 0 ;
+                }
                 //if (_isOneOneOne &&
                 //    (building.Type == BuildingType.FactionBase ||
                 //     _seenAnemyWizards.Count == 5 && (_myWizards[_line].Count - _anemyWizards[_line].Count >= 1)))
@@ -3529,7 +3566,8 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                     new Point2D(100.0D, mapSize - 100.0D),
                     new Point2D(400.0D, mapSize - 100.0D),
                     new Point2D(1800.0D, mapSize - 200.0D),
-                    new Point2D(mapSize - 200.0D, 2200.0D),
+                    new Point2D(mapSize - 200.0D, 2000),
+                    new Point2D(mapSize - 200.0D, 1600D),
                     new Point2D(mapSize - 200.0D, 200.0D),
 
 
@@ -4178,6 +4216,33 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
         {
             _isBerserkTarget = false;
             LivingUnit shootingTarget = null;
+            var minDist = double.MaxValue;
+
+           
+            #region Здание
+
+            minDist = double.MaxValue;
+            foreach (
+                var target in
+                    _world.Buildings.Where(x => x.Type == BuildingType.FactionBase || _world.TickIndex <= 1450))
+            {
+                if (target.Faction == _self.Faction) continue;
+                if (!IsOkDistanceToShoot(_self, target, 0d)) continue;
+                if (!_isOneOneOne && IsBlockingTree(_self, target, _game.MagicMissileRadius)) continue;
+                if (!IsStrongOnLine(target, _line)) continue;
+
+                double distance = _self.GetDistanceTo(target);
+
+                if (distance < minDist)
+                {
+                    minDist = distance;
+                    shootingTarget = target;
+                }
+            }
+            if (shootingTarget != null) return shootingTarget;
+
+            #endregion
+           
 
             #region Берсерк
 
@@ -4221,29 +4286,29 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             if (shootingTarget != null) return shootingTarget;
             #endregion
 
-            #region Спокойный нейтрал
+            //#region Спокойный нейтрал
 
-            if (!IsCloseToWin() || GetLineAliveAnemyTowers(_line).Count > 0)
-            {
-                var neutrals = _world.Minions.Where(x => x.Faction == Faction.Neutral);
-                minHp = double.MaxValue;
-                foreach (var target in neutrals)
-                {
-                    if (!IsCalmNeutralMinion(target) || !ShouldAttackNeutralMinion(target)) continue;
-                    if (!IsOkDistanceToShoot(_self, target, 0d)) continue;
-                    if (IsBlockingTree(_self, target, _game.MagicMissileRadius)) continue;
+            //if (!IsCloseToWin() || GetLineAliveAnemyTowers(_line).Count > 0)
+            //{
+            //    var neutrals = _world.Minions.Where(x => x.Faction == Faction.Neutral);
+            //    minHp = double.MaxValue;
+            //    foreach (var target in neutrals)
+            //    {
+            //        if (!IsCalmNeutralMinion(target) || !ShouldAttackNeutralMinion(target)) continue;
+            //        if (!IsOkDistanceToShoot(_self, target, 0d)) continue;
+            //        if (IsBlockingTree(_self, target, _game.MagicMissileRadius)) continue;
 
-                    var life = target.Life;
-                    if (life < minHp)
-                    {
-                        minHp = life;
-                        shootingTarget = target;
-                    }
-                }
-            }
+            //        var life = target.Life;
+            //        if (life < minHp)
+            //        {
+            //            minHp = life;
+            //            shootingTarget = target;
+            //        }
+            //    }
+            //}
 
-            if (shootingTarget != null) return shootingTarget;
-            #endregion
+            //if (shootingTarget != null) return shootingTarget;
+            //#endregion
 
             #region Миньон
             var minions = _world.Minions;
@@ -4251,7 +4316,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             foreach (var target in minions)
             {
                 if (target.Faction == _self.Faction) continue;
-                if (target.Faction == Faction.Neutral && !ShouldAttackNeutralMinion(target)) continue;
+                if (target.Faction == Faction.Neutral && (IsCalmNeutralMinion(target) || !ShouldAttackNeutralMinion(target))) continue;
                 if (!IsOkDistanceToShoot(_self, target, 0d)) continue;
                 if (IsBlockingTree(_self, target, _game.MagicMissileRadius)) continue;
 
@@ -4305,7 +4370,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
 
             #region Здание
 
-            var minDist = double.MaxValue;
+            minDist = double.MaxValue;
             foreach (var target in _world.Buildings)
             {
                 if (target.Faction == _self.Faction) continue;
@@ -4325,11 +4390,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
 
             #endregion
 
-           
 
-           
-
-           
 
 
             return null;
@@ -5034,7 +5095,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
 
             var anemies = new List<LivingUnit>();
             var anemyWizard =
-                _world.Wizards.Where(x => x.Faction != _self.Faction && x.GetDistanceTo(_self) <= _self.CastRange*1.5);
+                _world.Wizards.Where(x => x.Faction != _self.Faction && x.GetDistanceTo(_self) <= _self.CastRange*2);
             anemies.AddRange(anemyWizard);
             var anemyMinions =
                 _world.Minions.Where(
