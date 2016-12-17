@@ -2061,7 +2061,8 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             if (minion != null)
             {
                 if (_isOneOneOne &&
-                    _self.GetDistanceTo(_anemyBaseX, _anemyBaseY) <= minion.GetDistanceTo(_anemyBaseX, _anemyBaseY))
+                    (_self.GetDistanceTo(_anemyBaseX, _anemyBaseY) <= minion.GetDistanceTo(_anemyBaseX, _anemyBaseY) ||
+                     IsCloseToBase()))
                     return false;
                 //if (_isOneOneOne) return false;
 
@@ -3452,7 +3453,8 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                 var distance = source.GetDistanceTo(target) - target.Radius;
                 if (distance > _game.StaffRange) continue;
 
-                if (target is Building && (target as Building).Type == BuildingType.FactionBase) return target;
+                if (target is Building && _isOneOneOne) return target;
+                if (IsCloseToBase()) continue;
 
                 if (source.GetDistanceTo(target) <= minDist)
                 {
@@ -3466,6 +3468,12 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             }
 
             return nearestTarget;
+        }
+
+        private bool IsCloseToBase()
+        {
+            var dist = _self.GetDistanceTo(_anemyBaseX, _anemyBaseY);
+            return dist - _self.Radius - _game.FactionBaseRadius <= 50;
         }
         
         private IList<Building> GetAliveAnemyTowers(LaneType laneType)
