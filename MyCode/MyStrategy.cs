@@ -4115,7 +4115,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                 if (target.Faction == _self.Faction) continue;
                 if (!IsOkDistanceToShoot(_self, target, 0d)) continue;
                 if (!_isOneOneOne && IsBlockingTree(_self, target, _game.MagicMissileRadius)) continue;
-                if(!IsStrongOnLine(target, _line)) continue;
+                if(target.Type != BuildingType.FactionBase && !IsStrongOnLine(target, _line)) continue;
 
                 double distance = _self.GetDistanceTo(target);
 
@@ -4194,7 +4194,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                 if (target.Faction == _self.Faction) continue;
                 if (!IsOkDistanceToShoot(_self, target, 0d)) continue;
                 if (!_isOneOneOne && IsBlockingTree(_self, target, _game.MagicMissileRadius)) continue;
-                if (!IsStrongOnLine(target, _line)) continue;
+                if (target.Type != BuildingType.FactionBase && !IsStrongOnLine(target, _line)) continue;
 
                 double distance = _self.GetDistanceTo(target);
 
@@ -4251,7 +4251,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                 if (target.Faction == _self.Faction) continue;
                 if (!IsOkDistanceToShoot(_self, target, 0d)) continue;
                 if (!_isOneOneOne && IsBlockingTree(_self, target, _game.MagicMissileRadius)) continue;
-                if (!IsStrongOnLine(target, _line)) continue;
+                if (target.Type != BuildingType.FactionBase && !IsStrongOnLine(target, _line)) continue;
 
                 double distance = _self.GetDistanceTo(target);
 
@@ -4398,7 +4398,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                 if (target.Faction == _self.Faction) continue;
                 if (!IsOkDistanceToShoot(_self, target, 0d)) continue;
                 if (!_isOneOneOne && IsBlockingTree(_self, target, _game.MagicMissileRadius)) continue;
-                if (!IsStrongOnLine(target, _line)) continue;
+                if (target.Type != BuildingType.FactionBase && !IsStrongOnLine(target, _line)) continue;
 
                 double distance = _self.GetDistanceTo(target);
 
