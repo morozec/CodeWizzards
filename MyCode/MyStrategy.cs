@@ -461,20 +461,15 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                         (nearestStaffTarget as Building).Type == BuildingType.FactionBase &&
                         cooldown > 10 && (_self.X < 3600 || _self.Y > 400))
                     {
-                        goToResult = new GoToResult()
-                        {
-                            WoodCuTree = null,
-                            X = _behindBasePoint.X,
-                            Y = _behindBasePoint.Y
-                        };
+                        goToResult =  GoTo(_behindBasePoint, _self.Radius * 2, _self.Radius * 2);
                     }
                     else
                     {
                         goToResult = new GoToResult()
                         {
                             WoodCuTree = null,
-                            X = nearestStaffTarget.X,
-                            Y = nearestStaffTarget.Y
+                            X = _self.X,
+                            Y = _self.Y
                         };
                     }
 
@@ -520,7 +515,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                         //            x.Faction != _self.Faction &&
                         //            (x.Faction != Faction.Neutral || !IsCalmNeutralMinion(x)));
 
-                        var isFirstTower = shootingTarget is Building &&
+                        var isFirstTower = _isOneOneOne && shootingTarget is Building &&
                                            (shootingTarget as Building).Type == BuildingType.GuardianTower &&
                                            GetAliveAnemyTowers(LaneType.Bottom).Count == 2 && _world.TickIndex < 1450;
 
@@ -529,25 +524,34 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                                 x =>
                                     x.Type == BuildingType.GuardianTower && x.Faction != _self.Faction &&
                                     IsOkDistanceToShoot(_self, x, 0d) && IsStrongOnLine(x, _line));
-                                           //anmeyMinions.Any(
-                                           //    x =>
-                                           //        x.GetDistanceTo(_self) <
-                                           //        _game.FetishBlowdartAttackRange + _self.Radius);
+
+                        var isFarTarget = _self.GetDistanceTo(_anemyBaseX, _anemyBaseY) <
+                                          shootingTarget.GetDistanceTo(_anemyBaseX, _anemyBaseY);
+                                      
                         if (isCalmMinion || isFirstTower)
                         {
                             _thisTickResPoint = new Point2D(_self.X, _self.Y);
-                            goToResult = GoTo(
-                                new Point2D(_self.X, _self.Y),
-                                0,
-                                0);
+                            goToResult = new GoToResult()
+                            {
+                                WoodCuTree = null,
+                                X = _self.X,
+                                Y = _self.Y
+                            };
+                              
                         }
-                        else if (nearTower != null)
+                        else if (_isOneOneOne && nearTower != null)
                         {
                             _thisTickResPoint = new Point2D(nearTower.X, nearTower.Y);
                             goToResult = GoTo(
                                 new Point2D(nearTower.X, nearTower.Y),
                                 _game.StaffRange + nearTower.Radius - TOLERANCE,
                                 _game.StaffRange + nearTower.Radius - TOLERANCE);
+                        }
+                        else if (isFarTarget)
+                        {
+                            var nextWaypoint = GetNextWaypoint();
+                            _thisTickResPoint = nextWaypoint;
+                            goToResult = GoTo(nextWaypoint, _self.Radius * 2, 0d);
                         }
                         else
                         {
@@ -2030,7 +2034,9 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             var minion = source as Minion;
             if (minion != null)
             {
-                if (_isOneOneOne) return false;
+                if (_isOneOneOne &&
+                    _self.GetDistanceTo(_anemyBaseX, _anemyBaseY) <= minion.GetDistanceTo(_anemyBaseX, _anemyBaseY))
+                    return false;
 
                 var attackRange = GetAttackRange(minion);
                 var orderedFriends = friends.OrderBy(x => x.GetDistanceTo(source));
@@ -4234,8 +4240,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             _isBerserkTarget = false;
             LivingUnit shootingTarget = null;
             var minDist = double.MaxValue;
-
-           
+            
             #region Здание
 
             minDist = double.MaxValue;
@@ -4259,8 +4264,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             if (shootingTarget != null) return shootingTarget;
 
             #endregion
-           
-
+            
             #region Берсерк
 
             var berserkTarget = GetBerserkTarget();
@@ -4330,6 +4334,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             #region Миньон
             var minions = _world.Minions;
             minHp = double.MaxValue;
+            
             foreach (var target in minions)
             {
                 if (target.Faction == _self.Faction) continue;
