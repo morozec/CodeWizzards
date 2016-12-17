@@ -2030,7 +2030,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             var minion = source as Minion;
             if (minion != null)
             {
-                //if (_isOneOneOne) return false;
+                if (_isOneOneOne) return false;
 
                 var attackRange = GetAttackRange(minion);
                 var orderedFriends = friends.OrderBy(x => x.GetDistanceTo(source));
