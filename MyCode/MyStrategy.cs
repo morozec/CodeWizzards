@@ -532,6 +532,8 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                         var isFarTarget = _self.GetDistanceTo(_anemyBaseX, _anemyBaseY) <
                                           shootingTarget.GetDistanceTo(_anemyBaseX, _anemyBaseY);
 
+                        var isIgnorableMinion = shootingTarget is Minion && _isOneOneOne;
+
                         var nearToShotingTargetWizards =
                             _world.Wizards.Where(
                                 x =>
@@ -2061,6 +2063,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                 if (_isOneOneOne &&
                     _self.GetDistanceTo(_anemyBaseX, _anemyBaseY) <= minion.GetDistanceTo(_anemyBaseX, _anemyBaseY))
                     return false;
+                //if (_isOneOneOne) return false;
 
                 var attackRange = GetAttackRange(minion);
                 var orderedFriends = friends.OrderBy(x => x.GetDistanceTo(source));
@@ -4271,7 +4274,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             minDist = double.MaxValue;
             foreach (
                 var target in
-                    _world.Buildings.Where(x => x.Type == BuildingType.FactionBase || _world.TickIndex <= 1450))
+                    _world.Buildings.Where(x => x.Type == BuildingType.FactionBase || GetAliveAnemyTowers(_line).Count >=2))
             {
                 if (target.Faction == _self.Faction) continue;
                 if (!IsOkDistanceToShoot(_self, target, 0d)) continue;
