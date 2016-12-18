@@ -113,7 +113,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
         private bool _isBerserkTarget = false;
         private bool _isOneOneOne = false;
 
-        //private bool _isCheatingStrategy = false;
+        private bool _isTonyKStrategy = false;
          
 
         private readonly SkillType[] _agressiveSkillsOrder = new SkillType[]
@@ -463,6 +463,12 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                     {
                         goToResult =  GoTo(_behindBasePoint, _self.Radius * 2, _self.Radius * 2);
                     }
+                    else if (_isOneOneOne &&  !(nearestStaffTarget is Building))
+                    {
+                        var nextWaypoint = GetNextWaypoint();
+                        _thisTickResPoint = nextWaypoint;
+                        goToResult = GoTo(nextWaypoint, _self.Radius * 2, 0d);
+                    }
                     else
                     {
                         goToResult = new GoToResult()
@@ -515,11 +521,11 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                         //            x.Faction != _self.Faction &&
                         //            (x.Faction != Faction.Neutral || !IsCalmNeutralMinion(x)));
 
-                        var isFirstTower = _isOneOneOne && shootingTarget is Building &&
+                        var isFirstTower = _isOneOneOne && !_isTonyKStrategy && shootingTarget is Building &&
                                            (shootingTarget as Building).Type == BuildingType.GuardianTower &&
                                            GetAliveAnemyTowers(LaneType.Bottom).Count == 2 && _world.TickIndex < 1450;
 
-                        var isSecondTower = _isOneOneOne && shootingTarget is Building &&
+                        var isSecondTower = _isOneOneOne && !_isTonyKStrategy && shootingTarget is Building &&
                                            (shootingTarget as Building).Type == BuildingType.GuardianTower &&
                                            GetAliveAnemyTowers(LaneType.Bottom).Count == 1;
 
@@ -532,7 +538,6 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                         var isFarTarget = _self.GetDistanceTo(_anemyBaseX, _anemyBaseY) <
                                           shootingTarget.GetDistanceTo(_anemyBaseX, _anemyBaseY);
 
-                        var isIgnorableMinion = shootingTarget is Minion && _isOneOneOne;
 
                         var nearToShotingTargetWizards =
                             _world.Wizards.Where(
@@ -617,7 +622,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                         {
                             var nextWaypoint = GetNextWaypoint();
 
-                            if (_isOneOneOne && nextWaypoint.X > _cheatingWaypointsByLine[2].X)
+                            if (_isOneOneOne && !_isTonyKStrategy && nextWaypoint.X > _cheatingWaypointsByLine[2].X)
                             {
                                 for (int i = 0; i < _anemyBuildings.Count; ++i)
                                 {
@@ -632,7 +637,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                                 }
                             }
 
-                            else if (_isOneOneOne && nextWaypoint.X > _cheatingWaypointsByLine[3].X)
+                            else if (_isOneOneOne && !_isTonyKStrategy && nextWaypoint.X > _cheatingWaypointsByLine[3].X)
                             {
                                 for (int i = 0; i < _anemyBuildings.Count; ++i)
                                 {
@@ -789,7 +794,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                 var nextWayPoint = GetNextWaypoint();
 
 
-                if (_isOneOneOne && nextWayPoint.X== _cheatingWaypointsByLine[3].X && nextWayPoint.Y == _cheatingWaypointsByLine[3].Y)
+                if (_isOneOneOne && !_isTonyKStrategy && nextWayPoint.X== _cheatingWaypointsByLine[3].X && nextWayPoint.Y == _cheatingWaypointsByLine[3].Y)
                 {
                     var closeTrees = _trees.Where(x => IsOkDistanceToShoot(_self, x, 0));
                     var intersectingTrees = new List<Tree>();
@@ -2139,12 +2144,15 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             var building = source as Building;
             if (building != null)
             {
-                if (_isOneOneOne)
+                if (_isOneOneOne && !_isTonyKStrategy)
                 {
                     return building.Type != BuildingType.FactionBase && _self.Life > building.Damage && _self.Life < 100 &&
                            !CanGoToBuilding(building, friends) && building.X < 3800 && _world.TickIndex <= 1450 ||
                            building.Type == BuildingType.FactionBase && GetAliveAnemyTowers(_line).Count > 0 ;
                 }
+
+                if (_isTonyKStrategy) return false;
+
                 //if (_isOneOneOne &&
                 //    (building.Type == BuildingType.FactionBase ||
                 //     _seenAnemyWizards.Count == 5 && (_myWizards[_line].Count - _anemyWizards[_line].Count >= 1)))
@@ -3502,24 +3510,13 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                     _isOneOneOne = true;
                 }
 
-                //if (_isOneOneOne &&
-                //    _world.Players.Any(
-                //        x =>
-                //            x.Name == "Romka" || x.Name == "jetblack" || x.Name == "mustang" || x.Name == "Antmsu" ||
-                //            x.Name == "tyamgin" ||
-                //            x.Name == "core2duo" ||
-                //            x.Name == "OrickBy" || 
-                //            x.Name == "dedoo" || 
-                //            x.Name == "byserge" || 
-                //            x.Name == "ud1" || 
-                //            x.Name == "NighTurs" || 
-                //            x.Name == "WildCat" || 
-                //            x.Name == "cheeser" || 
-                //            x.Name == "Oxidize" || 
-                //            x.Name == "Commandos" ))
-                //{
-                //    _isCheatingStrategy = true;
-                //}
+                if (_isOneOneOne &&
+                    _world.Players.Any(
+                        x =>
+                            x.Name == "TonyK" ))
+                {
+                    _isTonyKStrategy = true;
+                }
 
                 _bulletStartDatas = new Dictionary<long, BulletStartData>();
 
@@ -3635,10 +3632,13 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                 //else _line = LaneType.Middle;
 
                 //_line = LaneType.Top;
-                //if (_isOneOneOne && (_self.Id % 5 == 1 || _self.Id % 5 == 2) && _isCheatingStrategy) _line = LaneType.Top;
+                //if (_isOneOneOne && (_self.Id % 5 == 1 || _self.Id % 5 == 2) && _isTonyKStrategy) _line = LaneType.Top;
                 //else _line = LaneType.Middle;
 
-            if (_isOneOneOne) _line = LaneType.Bottom;
+                if (_isOneOneOne)
+                {
+                    _line = _isTonyKStrategy ? LaneType.Middle : LaneType.Bottom;
+                }
             else _line = LaneType.Middle;
                 
 
@@ -3691,7 +3691,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
 
             
 
-            Point2D[] line = _isOneOneOne ? _cheatingWaypointsByLine : _waypointsByLine[_line];
+            Point2D[] line = _isOneOneOne && !_isTonyKStrategy ?   _cheatingWaypointsByLine : _waypointsByLine[_line];
 
             int lastWaypointIndex = line.Length - 1;
             Point2D lastWaypoint = line[lastWaypointIndex];
@@ -4369,7 +4369,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
 
             #region Миньон
             var minions = _world.Minions;
-            minHp = double.MaxValue;
+            minDist = double.MaxValue;
             
             foreach (var target in minions)
             {
@@ -4380,10 +4380,11 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
 
                 //double distance = _self.GetDistanceTo(target);
 
-                var life = target.Life;
-                if (life < minHp)
+                double distance = _self.GetDistanceTo(target);
+
+                if (distance < minDist)
                 {
-                    minHp = life;
+                    minDist = distance;
                     shootingTarget = target;
                 }
             }
@@ -5204,7 +5205,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                        anemyMinions.All(x => x.Id == needRunBackAnemies[0].Id || x.GetDistanceTo(_self) > _self.CastRange)
                        && (_self.Life > _self.MaxLife * 0.75 || _self.GetDistanceTo(needRunBackAnemies[0]) > GetAttackRange(needRunBackAnemies[0]) + eps);
             }
-           
+            
             return false;
             
 
