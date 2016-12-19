@@ -865,7 +865,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             var isBase =  GetAliveAnemyTowers(_line).Count > 0 &&
                    anemyBase.GetDistanceTo(goToResult.X, goToResult.Y) <= anemyBase.AttackRange;
 
-            if (_isOneOneOne && (isOtherLineTower || isBase))
+            if (_isOneOneOne && !_isTonyKStrategy && (isOtherLineTower || isBase))
             {
                 speedContainer = new SpeedContainer() { Speed = 0, StrafeSpeed = 0 };
             }
@@ -2082,7 +2082,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             var wizard = source as Wizard;
             if (wizard != null)
             {
-                if (_isOneOneOne) return false;
+                if (_isOneOneOne && !_isTonyKStrategy) return false;
 
                 var angle = wizard.GetAngleTo(target);
                 var deltaAngle = Math.Abs(angle) - _game.StaffSector / 2;
@@ -2151,17 +2151,16 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                            building.Type == BuildingType.FactionBase && GetAliveAnemyTowers(_line).Count > 0 ;
                 }
 
-                if (_isTonyKStrategy) return false;
 
-                //if (_isOneOneOne &&
-                //    (building.Type == BuildingType.FactionBase ||
-                //     _seenAnemyWizards.Count == 5 && (_myWizards[_line].Count - _anemyWizards[_line].Count >= 1)))
-                //{
-                //    //var isOkToGoOneOnOne = GetMyLineType(_line) == LineType.Agressive &&
-                //    //                       _self.Life > _self.MaxLife*HP_FACTOR_TO_GO_TO_TOWERS;
-                //    //return !isOkToGoOneOnOne;
-                //    return false;
-                //}
+                if (_isOneOneOne &&
+                    (building.Type == BuildingType.FactionBase ||
+                     _seenAnemyWizards.Count == 5 && (_myWizards[_line].Count - _anemyWizards[_line].Count >= 1)))
+                {
+                    //var isOkToGoOneOnOne = GetMyLineType(_line) == LineType.Agressive &&
+                    //                       _self.Life > _self.MaxLife*HP_FACTOR_TO_GO_TO_TOWERS;
+                    //return !isOkToGoOneOnOne;
+                    return false;
+                }
 
                 //return false;
                 return !CanGoToBuilding(building, friends);
@@ -2536,7 +2535,7 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
         
         private bool NeedGoBack()
         {
-            if (_isOneOneOne) return false;
+            if (_isOneOneOne && !_isTonyKStrategy) return false;
             return _self.Life < _self.MaxLife * LOW_HP_FACTOR && IsInDangerousArea(_self, _self.Radius * 2);
         }
 
@@ -3513,6 +3512,8 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                 if (_isOneOneOne &&
                     _world.Players.Any(
                         x =>
+                            x.Name == "En_taro_adun" ||
+                            x.Name == "Megabyte" ||
                             x.Name == "TonyK" ))
                 {
                     _isTonyKStrategy = true;
@@ -3585,8 +3586,9 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
                             : new Point2D(200.0D, mapSize - 600.0D),
                     new Point2D(800.0D, mapSize - 800.0D),
                     new Point2D(1600.0D, mapSize - 1600),
-                    new Point2D((midTowers[0].X + midTowers[1].X) / 2, (midTowers[0].Y + midTowers[1].Y) / 2),
-                    new Point2D(mapSize - 600.0D, 600.0D)
+                    //new Point2D((midTowers[0].X + midTowers[1].X) / 2, (midTowers[0].Y + midTowers[1].Y) / 2),
+                    new Point2D(mapSize - 600.0D, 600.0D),
+                    new Point2D(mapSize - 200.0D, 200.0D)
             });
 
                 _waypointsByLine.Add(LaneType.Top, new Point2D[]{
@@ -4276,13 +4278,20 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             _isBerserkTarget = false;
             LivingUnit shootingTarget = null;
             var minDist = double.MaxValue;
+
+            if (IsCloseToBase())
+            {
+                var anmeyBase =
+                    _world.Buildings.FirstOrDefault(x => x.Faction != _self.Faction && x.Type == BuildingType.FactionBase);
+                if (anmeyBase != null) return anmeyBase;
+            }
             
             #region Здание
 
             minDist = double.MaxValue;
             foreach (
                 var target in
-                    _world.Buildings.Where(x => x.Type == BuildingType.FactionBase || GetAliveAnemyTowers(_line).Count >=2))
+                    _world.Buildings.Where(x => GetAliveAnemyTowers(_line).Count >=2))
             {
                 if (target.Faction == _self.Faction) continue;
                 if (!IsOkDistanceToShoot(_self, target, 0d)) continue;
@@ -4367,32 +4376,6 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             //if (shootingTarget != null) return shootingTarget;
             //#endregion
 
-            #region Миньон
-            var minions = _world.Minions;
-            minDist = double.MaxValue;
-            
-            foreach (var target in minions)
-            {
-                if (target.Faction == _self.Faction) continue;
-                if (target.Faction == Faction.Neutral && (IsCalmNeutralMinion(target) || !ShouldAttackNeutralMinion(target))) continue;
-                if (!IsOkDistanceToShoot(_self, target, 0d)) continue;
-                if (IsBlockingTree(_self, target, _game.MagicMissileRadius)) continue;
-
-                //double distance = _self.GetDistanceTo(target);
-
-                double distance = _self.GetDistanceTo(target);
-
-                if (distance < minDist)
-                {
-                    minDist = distance;
-                    shootingTarget = target;
-                }
-            }
-
-            if (shootingTarget != null) return shootingTarget;
-
-            #endregion
-
             #region Обычный волшебник
 
             //LivingUnit possibleShootingTarget = null;
@@ -4425,6 +4408,32 @@ namespace Com.CodeGame.CodeWizards2016.DevKit.CSharpCgdk
             }
 
             if (shootingTarget != null) return shootingTarget;
+            #endregion
+
+            #region Миньон
+            var minions = _world.Minions;
+            minDist = double.MaxValue;
+            
+            foreach (var target in minions)
+            {
+                if (target.Faction == _self.Faction) continue;
+                if (target.Faction == Faction.Neutral && (IsCalmNeutralMinion(target) || !ShouldAttackNeutralMinion(target))) continue;
+                if (!IsOkDistanceToShoot(_self, target, 0d)) continue;
+                if (IsBlockingTree(_self, target, _game.MagicMissileRadius)) continue;
+
+                //double distance = _self.GetDistanceTo(target);
+
+                double distance = _self.GetDistanceTo(target);
+
+                if (distance < minDist)
+                {
+                    minDist = distance;
+                    shootingTarget = target;
+                }
+            }
+
+            if (shootingTarget != null) return shootingTarget;
+
             #endregion
 
             #region Здание
